@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>원클릭 스몰톡 v0.3.3 — 자동완성 검색 + 15곳 데모</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: #F5F4EE; color: #1F1E1D; margin: 0; padding: 20px; font-size: 14px; line-height: 1.5; }
+.container { max-width: 1100px; margin: 0 auto; }
+.header { background: #fff; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid #E8E6DC; }
+.header h1 { margin: 0 0 4px; font-size: 22px; color: #1F1E1D; }
+.header p { margin: 0; font-size: 13px; color: #6B6963; }
+.search { display: flex; gap: 8px; margin-bottom: 6px; position: relative; }
+.search input { flex: 1; padding: 11px 14px; border: 1px solid #E8E6DC; border-radius: 8px; font-size: 14px; background: #fff; font-family: inherit; }
+.search input:focus { outline: none; border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
+.search button { padding: 10px 18px; border: 1px solid #E8E6DC; background: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; }
+.search button:hover { background: #F5F4EE; }
+.dd { position: absolute; top: 100%; left: 0; right: 80px; background: #fff; border: 1px solid #E8E6DC; border-radius: 10px; margin-top: 6px; max-height: 360px; overflow-y: auto; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.dd-count { padding: 8px 14px; font-size: 12px; color: #6B6963; border-bottom: 1px solid #F0EEE5; background: #FAFAF6; }
+.dd-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #F0EEE5; transition: background 0.1s; }
+.dd-item:last-child { border-bottom: none; }
+.dd-item:hover { background: #F5F4EE; }
+.dd-name { font-size: 15px; font-weight: 600; }
+.dd-grade { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: #E6F1FB; color: #0C447C; margin-left: 6px; font-weight: 600; }
+.dd-grade-B { background: #FAEEDA; color: #633806; }
+.dd-grade-C { background: #FBE5E5; color: #7C0C0C; }
+.dd-sub { font-size: 12px; color: #6B6963; margin-top: 3px; }
+.dd-empty { padding: 18px; text-align: center; color: #6B6963; font-size: 14px; }
+.hint { padding: 10px 14px; background: #FAFAF6; border-radius: 8px; font-size: 12px; color: #6B6963; margin-bottom: 14px; border: 1px dashed #E8E6DC; }
+.card { background: #fff; border: 1px solid #E8E6DC; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
+.card-pb { border: 2px solid #7F77DD; }
+.head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #F0EEE5; }
+.title { font-size: 18px; font-weight: 600; margin: 0; }
+.sub { font-size: 13px; color: #6B6963; margin: 2px 0 0; }
+.grade { font-size: 12px; padding: 3px 10px; border-radius: 6px; background: #E6F1FB; color: #0C447C; font-weight: 600; }
+.section { font-size: 15px; font-weight: 600; margin: 14px 0 8px; }
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
+.metric { background: #F5F4EE; border-radius: 8px; padding: 12px 14px; }
+.metric-label { font-size: 12px; color: #6B6963; margin-bottom: 4px; }
+.metric-value { font-size: 20px; font-weight: 600; }
+.metric-trend { font-size: 12px; margin-top: 2px; }
+.up { color: #639922; }
+.down { color: #E24B4A; }
+.pb-hero { background: #EEEDFE; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.pb-hero-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.pb-pct { font-size: 30px; font-weight: 600; color: #3C3489; }
+.pb-label { font-size: 13px; color: #534AB7; margin-left: 8px; }
+.pb-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 8px; }
+.pb-stat { background: #fff; border-radius: 8px; padding: 10px 12px; border: 1px solid #CECBF6; }
+.pb-stat-label { font-size: 12px; color: #534AB7; }
+.pb-stat-value { font-size: 17px; font-weight: 600; color: #3C3489; margin-top: 4px; }
+.pb-stat-sub { font-size: 11px; color: #7F77DD; margin-top: 2px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid #E8E6DC; }
+.tab { padding: 9px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent; color: #6B6963; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; font-weight: 500; }
+.tab.active { color: #1F1E1D; font-weight: 600; border-bottom-color: #1F1E1D; }
+.tab-pro.active { border-bottom-color: #378ADD; color: #0C447C; }
+.tab-gen.active { border-bottom-color: #EF9F27; color: #633806; }
+.tab-hs.active { border-bottom-color: #97C459; color: #173404; }
+.tab-pb.active { border-bottom-color: #7F77DD; color: #3C3489; }
+.tab-summary { display: flex; gap: 18px; padding: 10px 14px; background: #F5F4EE; border-radius: 8px; margin-bottom: 10px; font-size: 12px; flex-wrap: wrap; }
+.tab-sum-item { display: flex; flex-direction: column; }
+.tab-sum-label { color: #6B6963; font-size: 11px; }
+.tab-sum-val { font-weight: 600; font-size: 14px; }
+.goal-box { background: #F5F4EE; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.goal-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.goal-pct { font-size: 30px; font-weight: 600; color: #1D9E75; }
+.bar-track { height: 14px; background: #fff; border-radius: 7px; overflow: hidden; border: 1px solid #E8E6DC; }
+.bar-fill { height: 100%; background: #1D9E75; transition: width 0.5s ease; }
+.goal-meta { display: flex; justify-content: space-between; font-size: 12px; color: #6B6963; margin-top: 8px; }
+.chart-wrap { height: 140px; margin: 8px 0; }
+.chart-square { height: 220px; position: relative; }
+.top-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
+.top-row:last-child { border-bottom: none; }
+.top-row-pb { background: #F5F4FE; padding: 8px 10px; border-radius: 6px; border-bottom: none; margin-bottom: 2px; }
+.top-rank { width: 28px; text-align: center; font-weight: 600; color: #6B6963; }
+.top-name { flex: 1; }
+.top-cat { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.cat-pro { background: #E6F1FB; color: #0C447C; }
+.cat-gen { background: #FAEEDA; color: #633806; }
+.cat-hs { background: #EAF3DE; color: #173404; }
+.cat-pb { background: #CECBF6; color: #3C3489; }
+.top-amount { font-weight: 600; min-width: 80px; text-align: right; }
+.cat-grid { display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: center; }
+.cat-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
+.cat-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
+.news { padding: 12px 14px; background: #F5F4EE; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+.memo-input { width: 100%; min-height: 80px; resize: vertical; font-size: 14px; padding: 10px 12px; border: 1px solid #E8E6DC; border-radius: 8px; font-family: inherit; }
+.memo-actions { display: flex; gap: 8px; margin-top: 8px; }
+.memo-actions button { padding: 8px 14px; border: 1px solid #E8E6DC; background: #fff; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; }
+.memo-actions button:hover { background: #F5F4EE; }
+.memo-item { background: #F5F4EE; border-radius: 8px; padding: 12px 14px; margin: 8px 0; font-size: 13px; }
+.memo-time { font-size: 11px; color: #6B6963; margin-bottom: 4px; }
+.ai-box { background: #EAF3DE; border-left: 3px solid #639922; padding: 10px 12px; margin-top: 8px; font-size: 13px; color: #173404; border-radius: 0 6px 6px 0; }
+.insight { margin-top: 12px; padding: 12px 14px; background: #F5F4EE; border-radius: 8px; font-size: 13px; line-height: 1.6; }
+.empty { padding: 16px; text-align: center; color: #6B6963; font-size: 12px; background: #F5F4EE; border-radius: 8px; }
+.welcome { text-align: center; padding: 48px 24px; color: #6B6963; }
+.welcome h3 { color: #1F1E1D; margin: 0 0 8px; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>원클릭 스몰톡 — 거래처 한눈에 보기</h1>
+  <p>2팀 전광석화 · v0.3.3 (자동완성 검색 + 15곳 데모 거래처)</p>
+</div>
+
+<div class="search">
+  <input type="text" id="Q" placeholder="거래처명 입력 (예: 행복, 약국, 푸른...)" oninput="onQuery()" onfocus="onQuery()" onkeydown="if(event.key==='Enter')doSearch()" autocomplete="off" />
+  <button onclick="doSearch()">검색</button>
+  <div id="Dropdown" class="dd" style="display:none;"></div>
+</div>
+<div class="hint">💡 데모용 15곳이 등록되어 있습니다. 검색창을 클릭하면 전체 목록이, 글자를 입력하면 매칭 거래처가 표시됩니다. 실제 서비스 시 본인 담당 거래처가 ERP에서 자동 로드됩니다.</div>
+
+<div id="Result"></div>
+
+</div>
+
+<script>
+const LIST = [
+  ['행복약국','전북 익산시','김약사','A',4800000,'+8%',2.3,300000,6000000,12,true,2.8],
+  ['미소약국','전북 익산시 어양동','박약사','B',2400000,'-12%',5.8,1200000,3500000,8,false,0],
+  ['새약국','전북 익산시 신동','최약사','A',5600000,'+15%',1.8,0,5500000,18,true,4.5],
+  ['건강약국','전북 익산시 송학동','이약사','A',7200000,'+22%',1.5,0,7000000,15,true,5.2],
+  ['햇살약국','전북 익산시 영등동','정약사','B',3200000,'+3%',3.2,450000,4000000,10,false,0],
+  ['동네약국','전북 익산시 동산동','강약사','C',1800000,'-5%',4.8,800000,2500000,6,false,0],
+  ['가족약국','전북 익산시 모현동','윤약사','A',4100000,'+18%',2.1,150000,5000000,14,true,3.2],
+  ['친절약국','전북 익산시 부송동','임약사','B',2800000,'-8%',4.5,600000,3500000,7,false,0],
+  ['푸른약국','전북 익산시 마동','한약사','A',5300000,'+12%',2.0,200000,6000000,13,true,3.8],
+  ['신뢰약국','전북 익산시 인화동','오약사','B',2300000,'+5%',3.8,400000,3000000,9,false,0],
+  ['우리약국','전북 익산시 신용동','서약사','A',4800000,'+20%',1.7,0,5500000,16,true,4.1],
+  ['큰마음약국','전북 익산시 평화동','문약사','B',3500000,'-2%',3.5,700000,4200000,8,false,0],
+  ['사랑약국','전북 익산시 갈산동','조약사','A',6200000,'+9%',2.2,250000,6500000,11,true,2.5],
+  ['평화약국','전북 익산시 남중동','신약사','C',1500000,'-15%',6.2,1500000,2500000,5,false,0],
+  ['행운약국','전북 익산시 창인동','권약사','A',5800000,'+25%',1.6,0,5500000,17,true,4.8],
+];
+const NEWS = [
+  { title: '창고형 약국 1년 새 40곳 확산', desc: '약국계 코스트코 인기', source: 'dailypharm.com' },
+  { title: '익산시장직 인수위 9일 출범', desc: '박은숙 전 부총장 위원장', source: 'domin.co.kr' },
+];
+const MEMOS = {
+  '행복약국': [{ time: '2026-06-08 14:23', text: '약사님이 위고비 문의. 약국 도입 시 매출 효과 궁금해함.', ai: '위고비 도입 검토 단계. 다음 방문 시 약국 매출 사례, 처방 흐름, 보험 적용 자료 준비.' }],
+  '새약국': [{ time: '2026-06-05 09:45', text: '최약사님 골프 좋아하심. 다음 주말 라운드 예정.', ai: '취미 공통점 라포 형성. 다음 방문 시 골프 화제 자연스럽게.' }],
+};
+
+function makeData(arr) {
+  const [name, region, pharmacist, grade, sales, trend, returnRate, debt, monthGoal, pbRatio, hasVet, vetM] = arr;
+  const annual = sales * 11;
+  let proR;
+  if (pbRatio >= 15) proR = 18;
+  else if (returnRate > 4 || trend.startsWith('-')) proR = 58;
+  else if (grade === 'A') proR = 42;
+  else proR = 50;
+  const remaining = 100 - pbRatio - proR;
+  const genR = Math.round(remaining * 0.6);
+  const hsR = 100 - proR - genR - pbRatio;
+  const catRatio = { pro: proR, gen: genR, hs: hsR, pb: pbRatio };
+  const catSales = { pro: Math.round(annual*proR/100), gen: Math.round(annual*genR/100), hs: Math.round(annual*hsR/100), pb: Math.round(annual*pbRatio/100) };
+  const pos = trend.startsWith('+');
+  const catTrend = {
+    pro: pos ? '+'+(Math.floor(Math.random()*10)+3)+'%' : '-'+(Math.floor(Math.random()*8)+3)+'%',
+    gen: pos ? '+'+(Math.floor(Math.random()*6)+1)+'%' : '-'+(Math.floor(Math.random()*6)+2)+'%',
+    hs: '+'+(Math.floor(Math.random()*15)+5)+'%',
+    pb: trend
+  };
+  const monthCurrent = Math.round(sales * 0.81);
+  const daily = [0];
+  for (let i=1; i<=30; i++) {
+    if (i>=24) daily.push(monthCurrent);
+    else daily.push(Math.round(monthCurrent * i / 24));
+  }
+  const proItems = ['아모디핀 5mg','리피토 10mg','메트포르민 500mg','오메프라졸 20mg','엘트로신','암로디핀','디아미크롱','바이엘 아스피린'];
+  const genItems = ['타이레놀 500mg','판콜에이','훼스탈 골드','게보린','활명수','베나치오','판피린'];
+  const hsItems = ['센트룸 종합비타민','오메가3 1000mg','프로바이오틱스 60포','루테인','밀크씨슬','콜라겐'];
+  const pbItems = ['태전 종합비타민','태전 프로바이오 30포','태전 칼슘마그네슘','태전 오메가3','태전 위장약'];
+  function gT(items, total, maxC) {
+    const c = Math.min(items.length, maxC);
+    return items.slice(0, c).map((n, i) => ({ name: n, sales: Math.round(total / c * (1.5 - i * 0.15)) }));
+  }
+  const proTop = gT(proItems, catSales.pro, Math.min(8, Math.max(3, Math.floor(sales/700000))));
+  const genTop = gT(genItems, catSales.gen, Math.min(7, Math.max(3, Math.floor(sales/800000))));
+  const hsTop = gT(hsItems, catSales.hs, Math.min(6, Math.max(2, Math.floor(sales/1100000))));
+  const pbMonthly = Math.round(sales * pbRatio / 100);
+  const pbCount = Math.min(pbItems.length, Math.max(1, Math.floor(pbMonthly / 220000)));
+  const pbThisMonthItems = pbItems.slice(0, pbCount).map((n, i) => {
+    const itemSales = Math.round(pbMonthly / pbCount * (1.4 - i * 0.18));
+    return { name: n, qty: Math.max(1, Math.round(itemSales / 92000)), sales: itemSales };
+  });
+  return {
+    name, region, pharmacist, grade, sales, salesTrend: trend, returnRate, debt,
+    monthGoal, monthCurrent, monthDay: 24, monthDays: 30,
+    daily, proTop, genTop, hsTop, pbThisMonthItems,
+    catRatio, catSales, catTrend,
+    pb3mAvg: Math.round(pbMonthly * 0.92),
+    vet3mAvg: hasVet ? Math.round(vetM * 100000) : 0,
+    news: NEWS,
+    memo: MEMOS[name] || []
+  };
+}
+
+const DATA = {};
+LIST.forEach(arr => DATA[arr[0]] = makeData(arr));
+
+let curName = null;
+let curTab = 'pro';
+
+function fmt(n) {
+  if (n >= 100000000) return (n/100000000).toFixed(1)+'억';
+  if (n >= 10000) return (n/10000).toFixed(0)+'만원';
+  return n.toLocaleString()+'원';
+}
+
+function onQuery() {
+  const q = document.getElementById('Q').value.trim();
+  const dd = document.getElementById('Dropdown');
+  if (!q) {
+    const all = Object.keys(DATA);
+    dd.innerHTML = '<div class="dd-count">데모 거래처 (총 ' + all.length + '곳) — 글자를 입력하면 검색됩니다</div>' +
+      all.slice(0, 6).map(ddRow).join('');
+    dd.style.display = 'block';
+    return;
+  }
+  const matches = Object.keys(DATA).filter(name => name.includes(q));
+  if (matches.length === 0) {
+    dd.innerHTML = '<div class="dd-empty">"' + q + '" 매칭 거래처 없음<br><span style="font-size:12px;">실제 서비스에서는 본인 담당 거래처가 표시됩니다.</span></div>';
+  } else {
+    dd.innerHTML = '<div class="dd-count">' + matches.length + '곳 매칭</div>' + matches.map(ddRow).join('');
+  }
+  dd.style.display = 'block';
+}
+
+function ddRow(name) {
+  const d = DATA[name];
+  const gC = d.grade === 'B' ? 'dd-grade dd-grade-B' : d.grade === 'C' ? 'dd-grade dd-grade-C' : 'dd-grade';
+  return '<div class="dd-item" onclick="pick(\'' + name + '\')"><div><span class="dd-name">' + name + '</span><span class="' + gC + '">' + d.grade + '</span></div><div class="dd-sub">' + d.region + ' · 약사 ' + d.pharmacist + ' · 이번달 ' + fmt(d.sales) + ' (<span class="' + (d.salesTrend.startsWith('+')?'up':'down') + '">' + d.salesTrend + '</span>)</div></div>';
+}
+
+function pick(name) {
+  document.getElementById('Q').value = name;
+  document.getElementById('Dropdown').style.display = 'none';
+  render(name);
+}
+
+function doSearch() {
+  const q = document.getElementById('Q').value.trim();
+  if (!q) return;
+  const found = Object.keys(DATA).find(k => k.includes(q));
+  if (found) pick(found);
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.search')) document.getElementById('Dropdown').style.display = 'none';
+});
+
+function switchTab(tab) {
+  curTab = tab;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('tab-content').innerHTML = renderTab(curName, tab);
+}
+
+function renderTab(name, tab) {
+  const d = DATA[name];
+  let list, label, catClass;
+  if (tab === 'pro') { list = d.proTop; label = '전문약'; catClass = 'pro'; }
+  else if (tab === 'gen') { list = d.genTop; label = '일반약'; catClass = 'gen'; }
+  else if (tab === 'hs') { list = d.hsTop; label = '건기식'; catClass = 'hs'; }
+  else { list = d.pbThisMonthItems; label = 'PB'; catClass = 'pb'; }
+  const total = list.reduce((s, x) => s + x.sales, 0);
+  let h = '<div class="tab-summary">';
+  h += '<div class="tab-sum-item"><span class="tab-sum-label">'+label+' 품목</span><span class="tab-sum-val">'+list.length+'개</span></div>';
+  h += '<div class="tab-sum-item"><span class="tab-sum-label">매출 합계</span><span class="tab-sum-val">'+fmt(total)+'</span></div>';
+  h += '<div class="tab-sum-item"><span class="tab-sum-label">비중</span><span class="tab-sum-val">'+d.catRatio[tab]+'%</span></div>';
+  h += '<div class="tab-sum-item"><span class="tab-sum-label">전월 대비</span><span class="tab-sum-val '+(d.catTrend[tab].startsWith('+')?'up':'down')+'">'+d.catTrend[tab]+'</span></div>';
+  h += '</div>';
+  if (list.length === 0) { h += '<div class="empty">해당 카테고리 매출 내역 없음 — 영업 기회!</div>'; return h; }
+  list.forEach((item, i) => {
+    const rc = tab === 'pb' ? 'top-row top-row-pb' : 'top-row';
+    h += '<div class="'+rc+'"><div class="top-rank"'+(tab==='pb'?' style="color:#3C3489;"':'')+'>'+(i+1)+'</div>';
+    h += '<div class="top-name"'+(tab==='pb'?' style="color:#3C3489;font-weight:600;"':'')+'>'+item.name+(item.qty?' <span style="font-size:11px;color:#7F77DD;">'+item.qty+'개</span>':'')+'</div>';
+    h += '<span class="top-cat cat-'+catClass+'">'+label+'</span>';
+    h += '<div class="top-amount"'+(tab==='pb'?' style="color:#3C3489;"':'')+'>'+fmt(item.sales)+'</div></div>';
+  });
+  return h;
+}
+
+function render(name) {
+  curName = name; curTab = 'pro';
+  const d = DATA[name];
+  const pct = Math.round(d.monthCurrent / d.monthGoal * 100);
+  const remaining = d.monthGoal - d.monthCurrent;
+  const remainingDays = d.monthDays - d.monthDay;
+  const dailyNeed = remainingDays > 0 ? Math.round(remaining / remainingDays) : 0;
+  const pbThisMonth = Math.round(d.sales * d.catRatio.pb / 100);
+  const trendUp = d.salesTrend.startsWith('+');
+  const pbTrendUp = d.catTrend.pb.startsWith('+');
+
+  let html = '<div class="card"><div class="head">';
+  html += '<div><h3 class="title">🏪 '+d.name+'</h3>';
+  html += '<p class="sub">'+d.region+' · 약사 '+d.pharmacist+'</p></div>';
+  html += '<span class="grade">등급 '+d.grade+'</span></div>';
+  html += '<div class="metrics">';
+  html += '<div class="metric"><div class="metric-label">이번달 매출</div><div class="metric-value">'+fmt(d.sales)+'</div><div class="metric-trend '+(trendUp?'up':'down')+'">'+d.salesTrend+'</div></div>';
+  html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div class="metric-trend '+(d.returnRate<3?'up':'down')+'">'+(d.returnRate<3?'양호':'주의')+'</div></div>';
+  html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
+  html += '</div></div>';
+
+  html += '<div class="card"><div class="section" style="margin-top:0">🎯 월 거래 금액 목표 진행률</div>';
+  html += '<div class="goal-box"><div class="goal-row">';
+  html += '<div><span class="goal-pct">'+pct+'%</span> <span style="font-size:13px;color:#6B6963;">달성 ('+d.monthDay+'일 차 / '+d.monthDays+'일)</span></div>';
+  html += '<div style="text-align:right;font-size:13px;"><strong>'+fmt(d.monthCurrent)+'</strong> / '+fmt(d.monthGoal)+'</div></div>';
+  html += '<div class="bar-track"><div class="bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+(pct>=100?'#1D9E75':pct>=80?'#639922':pct>=50?'#BA7517':'#E24B4A')+'"></div></div>';
+  html += '<div class="goal-meta"><span>남은 '+remainingDays+'일</span><span>일평균 '+fmt(dailyNeed)+' 필요</span><span>'+(pct>=100?'목표 달성!':'목표까지 '+fmt(remaining))+'</span></div></div>';
+  html += '<div class="chart-wrap"><canvas id="DailyChart"></canvas></div></div>';
+
+  html += '<div class="card"><div class="section" style="margin-top:0">📊 카테고리 분석</div>';
+  html += '<div class="cat-grid"><div class="chart-square"><canvas id="CatChart"></canvas></div><div>';
+  html += '<div class="cat-item"><div><span class="cat-dot" style="background:#378ADD"></span><strong>전문약</strong> ('+d.catRatio.pro+'%)</div><div>'+fmt(d.catSales.pro)+' <span class="'+(d.catTrend.pro.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pro+'</span></div></div>';
+  html += '<div class="cat-item"><div><span class="cat-dot" style="background:#EF9F27"></span><strong>일반약</strong> ('+d.catRatio.gen+'%)</div><div>'+fmt(d.catSales.gen)+' <span class="'+(d.catTrend.gen.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.gen+'</span></div></div>';
+  html += '<div class="cat-item"><div><span class="cat-dot" style="background:#97C459"></span><strong>건기식</strong> ('+d.catRatio.hs+'%)</div><div>'+fmt(d.catSales.hs)+' <span class="'+(d.catTrend.hs.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.hs+'</span></div></div>';
+  html += '<div class="cat-item" style="background:#F5F4FE;padding:8px 10px;border-radius:6px;border-bottom:none;margin-top:6px;"><div><span class="cat-dot" style="background:#7F77DD"></span><strong style="color:#3C3489;">PB (자체)</strong> ('+d.catRatio.pb+'%)</div><div style="color:#3C3489;font-weight:600;">'+fmt(d.catSales.pb)+' <span class="'+(d.catTrend.pb.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pb+'</span></div></div>';
+  html += '</div></div></div>';
+
+  html += '<div class="card card-pb"><div class="section" style="margin-top:0;color:#3C3489;">💎 PB 제품 (자체 브랜드) 분석</div>';
+  html += '<div class="pb-hero"><div class="pb-hero-row">';
+  html += '<div><span class="pb-pct">'+d.catRatio.pb+'%</span><span class="pb-label">전체 매출 중 PB 비중</span></div>';
+  html += '<div><span class="'+(pbTrendUp?'up':'down')+'" style="font-weight:600;font-size:14px;">전월 대비 '+d.catTrend.pb+'</span></div></div>';
+  html += '<div class="pb-grid">';
+  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB 매출</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">'+d.monthDay+'일 차 누적</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">PB 3개월 평균</div><div class="pb-stat-value">'+fmt(d.pb3mAvg)+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">동물약 3개월 평균</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
+  html += '</div></div>';
+  html += '<div class="insight" style="background:#F5F4FE;color:#3C3489;"><strong>영업 인사이트:</strong> ';
+  if (d.catRatio.pb >= 15) html += '✓ PB 비중 우수. 신제품 PB·동물약 카테고리 확장 권장.';
+  else if (d.catRatio.pb >= 10) html += '○ PB 평균 수준. 동물약 ' + (d.vet3mAvg>0 ? '유지' : '미발주 — 신규 영업 기회') + '.';
+  else html += '⚠ PB 비중 낮음. 마진 큰 PB 신규 도입 + 동물약 영업 우선순위.';
+  html += '</div></div>';
+
+  html += '<div class="card"><div class="section" style="margin-top:0">🏆 매출 상위 품목 <span style="font-size:12px;color:#6B6963;font-weight:normal;margin-left:6px;">(카테고리별로 분리 — 탭 전환)</span></div>';
+  html += '<div class="tabs">';
+  html += '<button class="tab tab-pro active" id="tab-pro" onclick="switchTab(\'pro\')">전문약</button>';
+  html += '<button class="tab tab-gen" id="tab-gen" onclick="switchTab(\'gen\')">일반약</button>';
+  html += '<button class="tab tab-hs" id="tab-hs" onclick="switchTab(\'hs\')">건기식</button>';
+  html += '<button class="tab tab-pb" id="tab-pb" onclick="switchTab(\'pb\')">PB (이달)</button>';
+  html += '</div><div id="tab-content">'+renderTab(name, 'pro')+'</div></div>';
+
+  html += '<div class="card"><div class="section" style="margin-top:0">📰 오늘의 이슈 (카톡 모닝브리핑)</div>';
+  d.news.forEach(n => {
+    html += '<div class="news"><div style="font-weight:600;margin-bottom:4px;">'+n.title+'</div><div style="color:#6B6963;margin-bottom:4px;">'+n.desc+'</div><span style="color:#999;font-size:11px;">'+n.source+'</span></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="card"><div class="section" style="margin-top:0">📝 거래처 메모 + AI 답변</div>';
+  html += '<textarea class="memo-input" id="Memo" placeholder="거래처 문의·미팅 대화를 적어보세요..."></textarea>';
+  html += '<div class="memo-actions"><button onclick="saveMemo(\''+name+'\')">💾 저장</button></div>';
+  if (d.memo.length === 0) {
+    html += '<div style="margin-top:12px;padding:14px;text-align:center;color:#6B6963;font-size:13px;background:#F5F4EE;border-radius:8px;">저장된 메모가 없습니다.</div>';
+  } else {
+    d.memo.forEach(m => {
+      html += '<div class="memo-item"><div class="memo-time">'+m.time+'</div><div>'+m.text+'</div>';
+      if (m.ai) html += '<div class="ai-box"><strong>🤖 AI 답변:</strong> '+m.ai+'</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+
+  document.getElementById('Result').innerHTML = html;
+  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); }, 100);
+}
+
+function drawDaily(data, goal, days) {
+  const ctx = document.getElementById('DailyChart');
+  if (!ctx) return;
+  const goalLine = [];
+  for (let i=0; i<=days; i++) goalLine.push(Math.round(goal/days*i));
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels: data.map((_,i)=>i), datasets: [
+      { label: '실제 누적', data: data, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.1)', fill: true, tension: 0.3, pointRadius: 0 },
+      { label: '목표선', data: goalLine, borderColor: '#888780', borderDash: [4,4], fill: false, pointRadius: 0 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => (v/10000).toFixed(0)+'만' } },
+        x: { ticks: { font: { size: 10 }, callback: (v,i) => i%5===0 ? i+'일' : '' } }
+      }
+    }
+  });
+}
+
+function drawCat(ratio) {
+  const ctx = document.getElementById('CatChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: ['전문약','일반약','건기식','PB'], datasets: [{ data: [ratio.pro, ratio.gen, ratio.hs, ratio.pb], backgroundColor: ['#378ADD','#EF9F27','#97C459','#7F77DD'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
+  });
+}
+
+function saveMemo(name) {
+  const txt = document.getElementById('Memo').value.trim();
+  if (!txt) return;
+  const now = new Date();
+  const t = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  DATA[name].memo.unshift({ time: t, text: txt, ai: null });
+  render(name);
+}
+
+document.getElementById('Result').innerHTML = '<div class="welcome card"><h3>🔍 거래처를 검색해주세요</h3><p>위 검색창을 클릭하면 데모 거래처 15곳이 표시됩니다.<br>글자 입력 시 매칭 거래처가 자동완성됩니다.</p></div>';
+</script>
+
+</body>
+</html>
