@@ -2,26 +2,34 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>원클릭 스몰톡 v0.3.3 — 자동완성 검색 + 15곳 데모</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>원클릭 스몰톡 v0.4.1 — 지도 + 음성메모 + 메모내보내기</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 * { box-sizing: border-box; }
 body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: #F5F4EE; color: #1F1E1D; margin: 0; padding: 20px; font-size: 14px; line-height: 1.5; }
 .container { max-width: 1100px; margin: 0 auto; }
-.header { background: #fff; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid #E8E6DC; }
-.header h1 { margin: 0 0 4px; font-size: 22px; color: #1F1E1D; }
-.header p { margin: 0; font-size: 13px; color: #6B6963; }
+.header { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #E8E6DC; }
+.header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.header h1 { margin: 0 0 2px; font-size: 20px; color: #1F1E1D; }
+.header p { margin: 0; font-size: 12px; color: #6B6963; }
+.map-btn { padding: 10px 18px; background: #1D9E75; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-family: inherit; font-weight: 600; white-space: nowrap; min-height: 44px; }
+.map-btn:active { background: #16785a; }
+.export-btn { padding: 10px 18px; background: #fff; color: #1D9E75; border: 2px solid #1D9E75; border-radius: 10px; cursor: pointer; font-size: 14px; font-family: inherit; font-weight: 600; white-space: nowrap; min-height: 44px; }
+.export-btn:active { background: #F0FBF6; }
 .search { display: flex; gap: 8px; margin-bottom: 6px; position: relative; }
-.search input { flex: 1; padding: 11px 14px; border: 1px solid #E8E6DC; border-radius: 8px; font-size: 14px; background: #fff; font-family: inherit; }
+.search input { flex: 1; padding: 12px 14px; border: 1px solid #E8E6DC; border-radius: 8px; font-size: 15px; background: #fff; font-family: inherit; min-height: 44px; }
 .search input:focus { outline: none; border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
-.search button { padding: 10px 18px; border: 1px solid #E8E6DC; background: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; }
+.search button { padding: 10px 18px; border: 1px solid #E8E6DC; background: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; min-height: 44px; }
 .search button:hover { background: #F5F4EE; }
 .dd { position: absolute; top: 100%; left: 0; right: 80px; background: #fff; border: 1px solid #E8E6DC; border-radius: 10px; margin-top: 6px; max-height: 360px; overflow-y: auto; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 .dd-count { padding: 8px 14px; font-size: 12px; color: #6B6963; border-bottom: 1px solid #F0EEE5; background: #FAFAF6; }
-.dd-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #F0EEE5; transition: background 0.1s; }
+.dd-item { padding: 14px 16px; cursor: pointer; border-bottom: 1px solid #F0EEE5; transition: background 0.1s; }
 .dd-item:last-child { border-bottom: none; }
-.dd-item:hover { background: #F5F4EE; }
+.dd-item:hover, .dd-item:active { background: #F5F4EE; }
 .dd-name { font-size: 15px; font-weight: 600; }
 .dd-grade { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: #E6F1FB; color: #0C447C; margin-left: 6px; font-weight: 600; }
 .dd-grade-B { background: #FAEEDA; color: #633806; }
@@ -31,10 +39,11 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .hint { padding: 10px 14px; background: #FAFAF6; border-radius: 8px; font-size: 12px; color: #6B6963; margin-bottom: 14px; border: 1px dashed #E8E6DC; }
 .card { background: #fff; border: 1px solid #E8E6DC; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
 .card-pb { border: 2px solid #7F77DD; }
-.head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #F0EEE5; }
+.head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #F0EEE5; flex-wrap: wrap; gap: 8px; }
 .title { font-size: 18px; font-weight: 600; margin: 0; }
 .sub { font-size: 13px; color: #6B6963; margin: 2px 0 0; }
 .grade { font-size: 12px; padding: 3px 10px; border-radius: 6px; background: #E6F1FB; color: #0C447C; font-weight: 600; }
+.route-badge { font-size: 12px; padding: 3px 10px; border-radius: 6px; background: #EAF3DE; color: #173404; font-weight: 600; margin-left: 6px; }
 .section { font-size: 15px; font-weight: 600; margin: 14px 0 8px; }
 .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
 .metric { background: #F5F4EE; border-radius: 8px; padding: 12px 14px; }
@@ -52,8 +61,8 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .pb-stat-label { font-size: 12px; color: #534AB7; }
 .pb-stat-value { font-size: 17px; font-weight: 600; color: #3C3489; margin-top: 4px; }
 .pb-stat-sub { font-size: 11px; color: #7F77DD; margin-top: 2px; }
-.tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid #E8E6DC; }
-.tab { padding: 9px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent; color: #6B6963; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; font-weight: 500; }
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid #E8E6DC; overflow-x: auto; }
+.tab { padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent; color: #6B6963; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; font-weight: 500; white-space: nowrap; min-height: 44px; }
 .tab.active { color: #1F1E1D; font-weight: 600; border-bottom-color: #1F1E1D; }
 .tab-pro.active { border-bottom-color: #378ADD; color: #0C447C; }
 .tab-gen.active { border-bottom-color: #EF9F27; color: #633806; }
@@ -64,16 +73,16 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .tab-sum-label { color: #6B6963; font-size: 11px; }
 .tab-sum-val { font-weight: 600; font-size: 14px; }
 .goal-box { background: #F5F4EE; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
-.goal-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.goal-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
 .goal-pct { font-size: 30px; font-weight: 600; color: #1D9E75; }
 .bar-track { height: 14px; background: #fff; border-radius: 7px; overflow: hidden; border: 1px solid #E8E6DC; }
 .bar-fill { height: 100%; background: #1D9E75; transition: width 0.5s ease; }
-.goal-meta { display: flex; justify-content: space-between; font-size: 12px; color: #6B6963; margin-top: 8px; }
+.goal-meta { display: flex; justify-content: space-between; font-size: 12px; color: #6B6963; margin-top: 8px; flex-wrap: wrap; gap: 4px; }
 .chart-wrap { height: 140px; margin: 8px 0; }
 .chart-square { height: 220px; position: relative; }
-.top-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
+.top-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
 .top-row:last-child { border-bottom: none; }
-.top-row-pb { background: #F5F4FE; padding: 8px 10px; border-radius: 6px; border-bottom: none; margin-bottom: 2px; }
+.top-row-pb { background: #F5F4FE; padding: 10px 10px; border-radius: 6px; border-bottom: none; margin-bottom: 2px; }
 .top-rank { width: 28px; text-align: center; font-weight: 600; color: #6B6963; }
 .top-name { flex: 1; }
 .top-cat { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
@@ -82,14 +91,27 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .cat-hs { background: #EAF3DE; color: #173404; }
 .cat-pb { background: #CECBF6; color: #3C3489; }
 .top-amount { font-weight: 600; min-width: 80px; text-align: right; }
-.cat-grid { display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: center; }
+.cat-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: center; }
 .cat-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
 .cat-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
 .news { padding: 12px 14px; background: #F5F4EE; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
-.memo-input { width: 100%; min-height: 80px; resize: vertical; font-size: 14px; padding: 10px 12px; border: 1px solid #E8E6DC; border-radius: 8px; font-family: inherit; }
-.memo-actions { display: flex; gap: 8px; margin-top: 8px; }
-.memo-actions button { padding: 8px 14px; border: 1px solid #E8E6DC; background: #fff; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; }
+/* ===== MEMO SECTION ===== */
+.memo-section { display: flex; flex-direction: column; gap: 10px; }
+.memo-quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.memo-quick-tags span { font-size: 12px; color: #6B6963; align-self: center; }
+.qtag { padding: 8px 14px; border: 1.5px solid #E8E6DC; background: #fff; border-radius: 20px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; min-height: 38px; transition: all 0.15s; }
+.qtag:hover, .qtag:active { background: #F5F4EE; border-color: #1D9E75; }
+.memo-input-row { display: flex; gap: 8px; align-items: flex-start; }
+.memo-input { flex: 1; min-height: 90px; resize: vertical; font-size: 15px; padding: 12px 14px; border: 1px solid #E8E6DC; border-radius: 8px; font-family: inherit; line-height: 1.6; }
+.memo-input:focus { outline: none; border-color: #1D9E75; }
+.voice-btn { width: 52px; height: 52px; border-radius: 50%; border: 2px solid #E8E6DC; background: #fff; cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; margin-top: 2px; }
+.voice-btn:active, .voice-btn.recording { background: #FBE5E5; border-color: #E24B4A; box-shadow: 0 0 0 4px rgba(226,75,74,0.15); }
+.voice-status { font-size: 12px; color: #6B6963; text-align: center; margin-top: 2px; }
+.voice-status.active { color: #E24B4A; font-weight: 600; }
+.memo-actions { display: flex; gap: 8px; }
+.memo-actions button { padding: 10px 16px; border: 1px solid #E8E6DC; background: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; min-height: 44px; }
 .memo-actions button:hover { background: #F5F4EE; }
+.memo-save-btn { background: #1D9E75 !important; color: #fff !important; border-color: #1D9E75 !important; font-weight: 600 !important; }
 .memo-item { background: #F5F4EE; border-radius: 8px; padding: 12px 14px; margin: 8px 0; font-size: 13px; }
 .memo-time { font-size: 11px; color: #6B6963; margin-bottom: 4px; }
 .ai-box { background: #EAF3DE; border-left: 3px solid #639922; padding: 10px 12px; margin-top: 8px; font-size: 13px; color: #173404; border-radius: 0 6px 6px 0; }
@@ -97,14 +119,92 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .empty { padding: 16px; text-align: center; color: #6B6963; font-size: 12px; background: #F5F4EE; border-radius: 8px; }
 .welcome { text-align: center; padding: 48px 24px; color: #6B6963; }
 .welcome h3 { color: #1F1E1D; margin: 0 0 8px; font-size: 18px; }
+
+/* ===== MAP MODAL ===== */
+#MapModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #fff;
+  z-index: 2000;
+  flex-direction: column;
+}
+#MapModal.open { display: flex; }
+.map-header {
+  padding: 14px 20px;
+  background: #fff;
+  border-bottom: 1px solid #E8E6DC;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.map-close-btn {
+  padding: 8px 16px;
+  border: 1px solid #E8E6DC;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  min-height: 44px;
+}
+.map-title { font-size: 16px; font-weight: 600; flex: 1; }
+.map-legend { display: flex; gap: 14px; font-size: 13px; align-items: center; }
+.legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.map-locate-btn {
+  padding: 8px 14px;
+  background: #1D9E75;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  min-height: 44px;
+}
+#map { flex: 1; min-height: 0; }
+
+/* Custom Leaflet popup */
+.lf-popup h4 { margin: 0 0 6px; font-size: 15px; }
+.lf-popup .lf-sub { font-size: 12px; color: #6B6963; margin-bottom: 8px; }
+.lf-popup .lf-route { background: #EAF3DE; color: #173404; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px; }
+.lf-popup .lf-route-list { font-size: 11px; color: #6B6963; margin-bottom: 8px; line-height: 1.6; }
+.lf-popup .lf-sales { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.lf-popup .lf-btn { display: block; width: 100%; padding: 8px; background: #1D9E75; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; margin-top: 6px; }
+.lf-popup .lf-btn-new { background: #2d9c5a; }
+.lf-popup .lf-new-badge { background: #EAF3DE; color: #1a6635; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px; }
+.lf-popup .lf-grade { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: #E6F1FB; color: #0C447C; margin-left: 4px; font-weight: 600; }
 </style>
 </head>
 <body>
+
+<!-- ====== MAP MODAL ====== -->
+<div id="MapModal">
+  <div class="map-header">
+    <button class="map-close-btn" onclick="closeMap()">← 닫기</button>
+    <div class="map-title">📍 주변 약국 지도</div>
+    <div class="map-legend">
+      <span><span class="legend-dot" style="background:#1D74C8"></span>기존 거래처</span>
+      <span><span class="legend-dot" style="background:#2d9c5a"></span>신규 가능</span>
+    </div>
+    <button class="map-locate-btn" onclick="locateMe()">📍 내 위치</button>
+  </div>
+  <div id="map"></div>
+</div>
+
+<!-- ====== MAIN APP ====== -->
 <div class="container">
 
 <div class="header">
-  <h1>원클릭 스몰톡 — 거래처 한눈에 보기</h1>
-  <p>2팀 전광석화 · v0.3.5 (메모 영구 저장 + 뉴스 4개 + 링크)</p>
+  <div class="header-row">
+    <div>
+      <h1>원클릭 스몰톡 — 거래처 한눈에 보기</h1>
+      <p>2팀 전광석화 · v0.4.0 (지도 + 음성메모 + 빠른태그)</p>
+    </div>
+    <button class="map-btn" onclick="openMap()">📍 지도 보기</button>
+  </div>
 </div>
 
 <div class="search">
@@ -112,38 +212,57 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
   <button onclick="doSearch()">검색</button>
   <div id="Dropdown" class="dd" style="display:none;"></div>
 </div>
-<div class="hint">💡 데모용 15곳이 등록되어 있습니다. 검색창을 클릭하면 전체 목록이, 글자를 입력하면 매칭 거래처가 표시됩니다. 실제 서비스 시 본인 담당 거래처가 ERP에서 자동 로드됩니다.</div>
+<div class="hint">💡 데모용 15곳이 등록되어 있습니다. 검색창을 클릭하면 전체 목록이, 글자를 입력하면 매칭 거래처가 표시됩니다. <strong>지도 보기</strong>로 주변 약국을 확인하세요.</div>
 
 <div id="Result"></div>
 
 </div>
 
 <script>
+// ============ 데이터 ============
+// name, region, pharmacist, grade, sales, trend, returnRate, debt, monthGoal, pbRatio, hasVet, vetM, route, lat, lng
 const LIST = [
-  ['행복약국','전북 익산시','김약사','A',4800000,'+8%',2.3,300000,6000000,12,true,2.8],
-  ['미소약국','전북 익산시 어양동','박약사','B',2400000,'-12%',5.8,1200000,3500000,8,false,0],
-  ['새약국','전북 익산시 신동','최약사','A',5600000,'+15%',1.8,0,5500000,18,true,4.5],
-  ['건강약국','전북 익산시 송학동','이약사','A',7200000,'+22%',1.5,0,7000000,15,true,5.2],
-  ['햇살약국','전북 익산시 영등동','정약사','B',3200000,'+3%',3.2,450000,4000000,10,false,0],
-  ['동네약국','전북 익산시 동산동','강약사','C',1800000,'-5%',4.8,800000,2500000,6,false,0],
-  ['가족약국','전북 익산시 모현동','윤약사','A',4100000,'+18%',2.1,150000,5000000,14,true,3.2],
-  ['친절약국','전북 익산시 부송동','임약사','B',2800000,'-8%',4.5,600000,3500000,7,false,0],
-  ['푸른약국','전북 익산시 마동','한약사','A',5300000,'+12%',2.0,200000,6000000,13,true,3.8],
-  ['신뢰약국','전북 익산시 인화동','오약사','B',2300000,'+5%',3.8,400000,3000000,9,false,0],
-  ['우리약국','전북 익산시 신용동','서약사','A',4800000,'+20%',1.7,0,5500000,16,true,4.1],
-  ['큰마음약국','전북 익산시 평화동','문약사','B',3500000,'-2%',3.5,700000,4200000,8,false,0],
-  ['사랑약국','전북 익산시 갈산동','조약사','A',6200000,'+9%',2.2,250000,6500000,11,true,2.5],
-  ['평화약국','전북 익산시 남중동','신약사','C',1500000,'-15%',6.2,1500000,2500000,5,false,0],
-  ['행운약국','전북 익산시 창인동','권약사','A',5800000,'+25%',1.6,0,5500000,17,true,4.8],
+  ['행복약국','전북 익산시','김약사','A',4800000,'+8%',2.3,300000,6000000,12,true,2.8,'A노선',35.9483,126.9575],
+  ['미소약국','전북 익산시 어양동','박약사','B',2400000,'-12%',5.8,1200000,3500000,8,false,0,'C노선',35.9520,126.9482],
+  ['새약국','전북 익산시 신동','최약사','A',5600000,'+15%',1.8,0,5500000,18,true,4.5,'A노선',35.9440,126.9620],
+  ['건강약국','전북 익산시 송학동','이약사','A',7200000,'+22%',1.5,0,7000000,15,true,5.2,'A노선',35.9550,126.9530],
+  ['햇살약국','전북 익산시 영등동','정약사','B',3200000,'+3%',3.2,450000,4000000,10,false,0,'C노선',35.9388,126.9680],
+  ['동네약국','전북 익산시 동산동','강약사','C',1800000,'-5%',4.8,800000,2500000,6,false,0,'C노선',35.9458,126.9450],
+  ['가족약국','전북 익산시 모현동','윤약사','A',4100000,'+18%',2.1,150000,5000000,14,true,3.2,'B노선',35.9512,126.9602],
+  ['친절약국','전북 익산시 부송동','임약사','B',2800000,'-8%',4.5,600000,3500000,7,false,0,'C노선',35.9428,126.9520],
+  ['푸른약국','전북 익산시 마동','한약사','A',5300000,'+12%',2.0,200000,6000000,13,true,3.8,'B노선',35.9568,126.9682],
+  ['신뢰약국','전북 익산시 인화동','오약사','B',2300000,'+5%',3.8,400000,3000000,9,false,0,'B노선',35.9398,126.9558],
+  ['우리약국','전북 익산시 신용동','서약사','A',4800000,'+20%',1.7,0,5500000,16,true,4.1,'A노선',35.9488,126.9641],
+  ['큰마음약국','전북 익산시 평화동','문약사','B',3500000,'-2%',3.5,700000,4200000,8,false,0,'C노선',35.9532,126.9491],
+  ['사랑약국','전북 익산시 갈산동','조약사','A',6200000,'+9%',2.2,250000,6500000,11,true,2.5,'B노선',35.9461,126.9702],
+  ['평화약국','전북 익산시 남중동','신약사','C',1500000,'-15%',6.2,1500000,2500000,5,false,0,'C노선',35.9378,126.9440],
+  ['행운약국','전북 익산시 창인동','권약사','A',5800000,'+25%',1.6,0,5500000,17,true,4.8,'A노선',35.9602,126.9558],
 ];
+
+// 신규 개척 가능 약국 (지도에만 표시)
+const NEW_PHARMACIES = [
+  { name: '미래약국', region: '전북 익산시 동산동', lat: 35.9472, lng: 126.9592 },
+  { name: '희망약국', region: '전북 익산시 창인동', lat: 35.9546, lng: 126.9553 },
+  { name: '정성약국', region: '전북 익산시 모현동', lat: 35.9503, lng: 126.9516 },
+  { name: '보람약국', region: '전북 익산시 영등동', lat: 35.9419, lng: 126.9644 },
+  { name: '꿈약국', region: '전북 익산시 인화동', lat: 35.9582, lng: 126.9498 },
+];
+
+// 배송노선 정보
+const ROUTE_INFO = {
+  'A노선': { days: '화·목', members: ['행복약국','새약국','건강약국','우리약국','행운약국'] },
+  'B노선': { days: '월·수·금', members: ['가족약국','푸른약국','사랑약국','신뢰약국'] },
+  'C노선': { days: '화·목·토', members: ['미소약국','햇살약국','동네약국','큰마음약국','친절약국','평화약국'] },
+};
+
 const NEWS = {
   market: [
-    { title: '"쇼핑하러" 다시 \'핫플\' 된 이곳…MZ들 몰린다', desc: '특히, 그릇 상가와 꽃시장은 MZ세대 사이에서 감성 쇼핑 코스로 떠오르고 있습니다. 명동은', source: 'news.sbs.co.kr', link: 'https://news.sbs.co.kr/news/endPage.do?news_id=N1008617660&plink=ORI&cooper=NAVER' },
-    { title: '탈모약 급여화의 엉뚱한 결말... 진짜 수혜자는 따로 있다', desc: '간단히 설명하면, 시장의 치열한 제네릭(복제약) 경쟁 덕분에 비급여 약이 급여 약보다 훨씬', source: 'www.ohmynews.com', link: 'https://www.ohmynews.com/NWS_Web/View/at_pg.aspx?CNTN_CD=A0003243704&CMPT_CD=P0010&utm_source=naver&utm_medium=newsearch&utm_campaign=naver_news' },
+    { title: '창고형 약국 1년 새 40곳 확산', desc: '약국계 코스트코 인기', source: 'dailypharm.com', link: 'https://www.dailypharm.com' },
+    { title: '약사회 시장 동향 발표', desc: '2026년 전망 보고서 공개', source: 'kpanews.co.kr', link: 'https://www.kpanews.co.kr' },
   ],
   local: [
-    { title: '[약사, 문학을 말하다] 청학동 여행', desc: '구례단감이 몸과 마음을 미소짓게 한다. 인연, 因은 씨앗이고 緣은 환경이라고 한다. 좋은 ', source: 'www.kpanews.co.kr', link: 'https://www.kpanews.co.kr/news/articleView.html?idxno=536955' },
-    { title: '강원도약 임상약학·약국경영 초점 2026년 연수교육 개최', desc: '이날 강원도약사회는 오후 시간 제1차 회장단·시군 분회장 연석회의를 개최하고 2026년도 ', source: 'www.kpanews.co.kr', link: 'https://www.kpanews.co.kr/news/articleView.html?idxno=536778' },
+    { title: '익산시장직 인수위 9일 출범', desc: '박은숙 전 부총장 위원장', source: 'domin.co.kr', link: 'https://www.domin.co.kr' },
+    { title: '전북 약사회 정기총회 개최', desc: '신년 사업계획 의결', source: 'jbnews.com', link: 'https://www.jbnews.com' },
   ]
 };
 const MEMOS = {
@@ -152,7 +271,7 @@ const MEMOS = {
 };
 
 function makeData(arr) {
-  const [name, region, pharmacist, grade, sales, trend, returnRate, debt, monthGoal, pbRatio, hasVet, vetM] = arr;
+  const [name, region, pharmacist, grade, sales, trend, returnRate, debt, monthGoal, pbRatio, hasVet, vetM, route, lat, lng] = arr;
   const annual = sales * 11;
   let proR;
   if (pbRatio >= 15) proR = 18;
@@ -202,7 +321,8 @@ function makeData(arr) {
     pb3mAvg: Math.round(pbMonthly * 0.92),
     vet3mAvg: hasVet ? Math.round(vetM * 100000) : 0,
     news: NEWS,
-    memo: MEMOS[name] || []
+    memo: MEMOS[name] || [],
+    route, lat, lng
   };
 }
 
@@ -218,19 +338,19 @@ function fmt(n) {
   return n.toLocaleString()+'원';
 }
 
+// ============ 검색 ============
 function onQuery() {
   const q = document.getElementById('Q').value.trim();
   const dd = document.getElementById('Dropdown');
   if (!q) {
     const all = Object.keys(DATA);
-    dd.innerHTML = '<div class="dd-count">데모 거래처 (총 ' + all.length + '곳) — 글자를 입력하면 검색됩니다</div>' +
+    dd.innerHTML = '<div class="dd-count">데모 거래처 (총 ' + all.length + '곳)</div>' +
       all.slice(0, 6).map(ddRow).join('');
-    dd.style.display = 'block';
-    return;
+    dd.style.display = 'block'; return;
   }
   const matches = Object.keys(DATA).filter(name => name.includes(q));
   if (matches.length === 0) {
-    dd.innerHTML = '<div class="dd-empty">"' + q + '" 매칭 거래처 없음<br><span style="font-size:12px;">실제 서비스에서는 본인 담당 거래처가 표시됩니다.</span></div>';
+    dd.innerHTML = '<div class="dd-empty">"' + q + '" 매칭 거래처 없음</div>';
   } else {
     dd.innerHTML = '<div class="dd-count">' + matches.length + '곳 매칭</div>' + matches.map(ddRow).join('');
   }
@@ -240,7 +360,7 @@ function onQuery() {
 function ddRow(name) {
   const d = DATA[name];
   const gC = d.grade === 'B' ? 'dd-grade dd-grade-B' : d.grade === 'C' ? 'dd-grade dd-grade-C' : 'dd-grade';
-  return '<div class="dd-item" onclick="pick(\'' + name + '\')"><div><span class="dd-name">' + name + '</span><span class="' + gC + '">' + d.grade + '</span></div><div class="dd-sub">' + d.region + ' · 약사 ' + d.pharmacist + ' · 이번달 ' + fmt(d.sales) + ' (<span class="' + (d.salesTrend.startsWith('+')?'up':'down') + '">' + d.salesTrend + '</span>)</div></div>';
+  return '<div class="dd-item" onclick="pick(\'' + name + '\')"><div><span class="dd-name">' + name + '</span><span class="' + gC + '">' + d.grade + '</span></div><div class="dd-sub">' + d.region + ' · 약사 ' + d.pharmacist + ' · ' + fmt(d.sales) + ' (<span class="' + (d.salesTrend.startsWith('+')?'up':'down') + '">' + d.salesTrend + '</span>)</div></div>';
 }
 
 function pick(name) {
@@ -260,6 +380,7 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('.search')) document.getElementById('Dropdown').style.display = 'none';
 });
 
+// ============ 탭 ============
 function switchTab(tab) {
   curTab = tab;
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -292,6 +413,7 @@ function renderTab(name, tab) {
   return h;
 }
 
+// ============ 렌더 ============
 function render(name) {
   curName = name; curTab = 'pro';
   const d = DATA[name];
@@ -302,15 +424,25 @@ function render(name) {
   const pbThisMonth = Math.round(d.sales * d.catRatio.pb / 100);
   const trendUp = d.salesTrend.startsWith('+');
   const pbTrendUp = d.catTrend.pb.startsWith('+');
+  const routeInfo = ROUTE_INFO[d.route] || {};
+  const routeMembers = routeInfo.members || [];
 
   let html = '<div class="card"><div class="head">';
   html += '<div><h3 class="title">🏪 '+d.name+'</h3>';
   html += '<p class="sub">'+d.region+' · 약사 '+d.pharmacist+'</p></div>';
-  html += '<span class="grade">등급 '+d.grade+'</span></div>';
+  html += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">';
+  html += '<span class="grade">등급 '+d.grade+'</span>';
+  html += '<span class="route-badge">📦 '+d.route+' ('+routeInfo.days+')</span>';
+  html += '</div></div>';
   html += '<div class="metrics">';
   html += '<div class="metric"><div class="metric-label">이번달 매출</div><div class="metric-value">'+fmt(d.sales)+'</div><div class="metric-trend '+(trendUp?'up':'down')+'">'+d.salesTrend+'</div></div>';
   html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div class="metric-trend '+(d.returnRate<3?'up':'down')+'">'+(d.returnRate<3?'양호':'주의')+'</div></div>';
   html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
+  html += '</div>';
+  // 노선 동선
+  html += '<div style="background:#F5F4EE;border-radius:8px;padding:10px 14px;margin-top:4px;font-size:13px;">';
+  html += '<span style="color:#173404;font-weight:600;">'+d.route+' 배송 동선 ('+routeInfo.days+') :</span> ';
+  html += routeMembers.map(m => m === name ? '<strong style="color:#1D9E75;">'+m+'</strong>' : m).join(' → ');
   html += '</div></div>';
 
   html += '<div class="card"><div class="section" style="margin-top:0">🎯 월 거래 금액 목표 진행률</div>';
@@ -344,7 +476,7 @@ function render(name) {
   else html += '⚠ PB 비중 낮음. 마진 큰 PB 신규 도입 + 동물약 영업 우선순위.';
   html += '</div></div>';
 
-  html += '<div class="card"><div class="section" style="margin-top:0">🏆 매출 상위 품목 <span style="font-size:12px;color:#6B6963;font-weight:normal;margin-left:6px;">(카테고리별로 분리 — 탭 전환)</span></div>';
+  html += '<div class="card"><div class="section" style="margin-top:0">🏆 매출 상위 품목</div>';
   html += '<div class="tabs">';
   html += '<button class="tab tab-pro active" id="tab-pro" onclick="switchTab(\'pro\')">전문약</button>';
   html += '<button class="tab tab-gen" id="tab-gen" onclick="switchTab(\'gen\')">일반약</button>';
@@ -352,16 +484,14 @@ function render(name) {
   html += '<button class="tab tab-pb" id="tab-pb" onclick="switchTab(\'pb\')">PB (이달)</button>';
   html += '</div><div id="tab-content">'+renderTab(name, 'pro')+'</div></div>';
 
-  html += '<div class="card"><div class="section" style="margin-top:0">📰 오늘의 이슈 (카톡 모닝브리핑)</div>';
-  // 전국 약국 시장
+  html += '<div class="card"><div class="section" style="margin-top:0">📰 오늘의 이슈</div>';
   html += '<div style="font-size:12px;color:#1D9E75;margin-bottom:8px;font-weight:600;">🌐 전국 약국 시장</div>';
-  const marketNews = (d.news && d.news.market) ? d.news.market : (Array.isArray(d.news) ? d.news.slice(0,2) : []);
+  const marketNews = (d.news && d.news.market) ? d.news.market : [];
   marketNews.forEach(n => {
     html += '<div class="news"><div style="font-weight:600;margin-bottom:4px;">'+n.title+'</div><div style="color:#6B6963;margin-bottom:6px;">'+n.desc+'</div>';
     if (n.link) html += '<a href="'+n.link+'" target="_blank" style="color:#1D9E75;font-size:12px;text-decoration:none;font-weight:500;">기사 보기 →</a> · ';
     html += '<span style="color:#999;font-size:11px;">'+n.source+'</span></div>';
   });
-  // 전북 지역
   html += '<div style="font-size:12px;color:#3C3489;margin:14px 0 8px;font-weight:600;">📍 전북 지역</div>';
   const localNews = (d.news && d.news.local) ? d.news.local : [];
   localNews.forEach(n => {
@@ -371,24 +501,137 @@ function render(name) {
   });
   html += '</div>';
 
-  html += '<div class="card"><div class="section" style="margin-top:0">📝 거래처 메모 + AI 답변</div>';
-  html += '<textarea class="memo-input" id="Memo" placeholder="거래처 문의·미팅 대화를 적어보세요..."></textarea>';
-  html += '<div class="memo-actions"><button onclick="saveMemo(\''+name+'\')">💾 저장</button></div>';
+  // ===== 메모 섹션 (음성 + 빠른태그) =====
+  html += '<div class="card"><div class="section" style="margin-top:0">📝 거래처 메모</div>';
+  html += '<div class="memo-section">';
+  // 빠른 태그
+  html += '<div class="memo-quick-tags">';
+  html += '<span>빠른입력:</span>';
+  const qtags = ['✅ 방문 완료','📞 전화 통화','📦 주문 완료','↩️ 반품 접수','💰 미수금 확인','🤝 신규 상담','⚠️ 이슈 발생'];
+  qtags.forEach(tag => {
+    html += '<button class="qtag" onclick="insertTag(\''+tag+'\')">' + tag + '</button>';
+  });
+  html += '</div>';
+  // 텍스트 + 음성버튼
+  html += '<div class="memo-input-row">';
+  html += '<textarea class="memo-input" id="Memo" placeholder="방문 내용, 대화, 특이사항 등을 기록하세요...&#10;(🎤 버튼으로 음성 입력 가능)"></textarea>';
+  html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">';
+  html += '<button class="voice-btn" id="VoiceBtn" onclick="toggleVoice(\'' + name + '\')" title="음성으로 메모 입력">🎤</button>';
+  html += '<div class="voice-status" id="VoiceStatus">음성</div>';
+  html += '</div></div>';
+  html += '<div class="memo-actions">';
+  html += '<button class="memo-save-btn" onclick="saveMemo(\''+name+'\')">💾 저장</button>';
+  html += '<button onclick="clearMemoInput()">✕ 지우기</button>';
+  html += '<button onclick="exportMemos()" style="margin-left:auto;padding:10px 16px;border:2px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📥 메모 내보내기</button>';
+  html += '</div>';
+  // 기존 메모 목록
   if (d.memo.length === 0) {
-    html += '<div style="margin-top:12px;padding:14px;text-align:center;color:#6B6963;font-size:13px;background:#F5F4EE;border-radius:8px;">저장된 메모가 없습니다.</div>';
+    html += '<div style="padding:14px;text-align:center;color:#6B6963;font-size:13px;background:#F5F4EE;border-radius:8px;">저장된 메모가 없습니다.</div>';
   } else {
-    d.memo.forEach(m => {
-      html += '<div class="memo-item"><div class="memo-time">'+m.time+'</div><div>'+m.text+'</div>';
+    d.memo.forEach((m, idx) => {
+      html += '<div class="memo-item"><div class="memo-time">'+m.time+' <button onclick="deleteMemo(\''+name+'\','+idx+')" style="float:right;background:none;border:none;cursor:pointer;font-size:11px;color:#aaa;">삭제</button></div><div>'+m.text+'</div>';
       if (m.ai) html += '<div class="ai-box"><strong>🤖 AI 답변:</strong> '+m.ai+'</div>';
       html += '</div>';
     });
   }
-  html += '</div>';
+  html += '</div></div>';
 
   document.getElementById('Result').innerHTML = html;
   setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); }, 100);
 }
 
+// ============ 빠른 태그 ============
+function insertTag(tag) {
+  const el = document.getElementById('Memo');
+  if (!el) return;
+  const now = new Date();
+  const t = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const text = '['+t+'] ' + tag + ' — ';
+  const pos = el.selectionStart;
+  el.value = el.value.slice(0, pos) + (el.value.length > 0 && el.value[el.value.length-1] !== '\n' && pos === el.value.length ? '\n' : '') + text;
+  el.focus();
+  el.selectionStart = el.selectionEnd = el.value.length;
+}
+
+function clearMemoInput() {
+  const el = document.getElementById('Memo');
+  if (el) { el.value = ''; el.focus(); }
+}
+
+// ============ 음성 입력 ============
+let recognition = null;
+let isRecording = false;
+
+function initRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.lang = 'ko-KR';
+  r.continuous = true;
+  r.interimResults = true;
+  return r;
+}
+
+function toggleVoice(name) {
+  const btn = document.getElementById('VoiceBtn');
+  const status = document.getElementById('VoiceStatus');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SR) {
+    alert('이 브라우저는 음성 입력을 지원하지 않습니다.\nSafari(iOS 14.5+) 또는 Chrome에서 이용하세요.');
+    return;
+  }
+
+  if (isRecording) {
+    // 중지
+    if (recognition) recognition.stop();
+    isRecording = false;
+    btn.classList.remove('recording');
+    btn.textContent = '🎤';
+    status.textContent = '음성';
+    status.classList.remove('active');
+  } else {
+    // 시작
+    recognition = initRecognition();
+    if (!recognition) return;
+    isRecording = true;
+    btn.classList.add('recording');
+    btn.textContent = '⏹';
+    status.textContent = '녹음 중...';
+    status.classList.add('active');
+
+    const el = document.getElementById('Memo');
+    let baseText = el.value;
+    let interim = '';
+
+    recognition.onresult = function(e) {
+      interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      if (final) { baseText += final + ' '; }
+      el.value = baseText + interim;
+      el.scrollTop = el.scrollHeight;
+    };
+
+    recognition.onerror = function(e) {
+      isRecording = false;
+      if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+      if (status) { status.textContent = '음성'; status.classList.remove('active'); }
+      if (e.error !== 'aborted') alert('음성 인식 오류: ' + e.error + '\nHTTPS 환경 또는 Safari/Chrome에서 이용해주세요.');
+    };
+
+    recognition.onend = function() {
+      if (isRecording) recognition.start(); // 연속 모드 유지
+    };
+
+    recognition.start();
+  }
+}
+
+// ============ 차트 ============
 function drawDaily(data, goal, days) {
   const ctx = document.getElementById('DailyChart');
   if (!ctx) return;
@@ -420,36 +663,24 @@ function drawCat(ratio) {
   });
 }
 
-// ============ 메모 영구 저장 (LocalStorage) ============
-const MEMO_KEY = 'oneclick-smalltalk-memos';
+// ============ 메모 저장 ============
+const MEMO_KEY = 'oneclick-smalltalk-memos-v4';
 
 function loadMemosFromStorage() {
   try {
     const saved = localStorage.getItem(MEMO_KEY);
     if (!saved) return;
     const memos = JSON.parse(saved);
-    Object.keys(memos).forEach(name => {
-      if (DATA[name]) {
-        DATA[name].memo = memos[name];
-      }
-    });
-  } catch (e) {
-    console.warn('메모 로드 실패:', e);
-  }
+    Object.keys(memos).forEach(name => { if (DATA[name]) DATA[name].memo = memos[name]; });
+  } catch(e) {}
 }
 
 function saveMemosToStorage() {
   try {
     const memos = {};
-    Object.keys(DATA).forEach(name => {
-      if (DATA[name].memo && DATA[name].memo.length > 0) {
-        memos[name] = DATA[name].memo;
-      }
-    });
+    Object.keys(DATA).forEach(name => { if (DATA[name].memo && DATA[name].memo.length > 0) memos[name] = DATA[name].memo; });
     localStorage.setItem(MEMO_KEY, JSON.stringify(memos));
-  } catch (e) {
-    console.warn('메모 저장 실패:', e);
-  }
+  } catch(e) {}
 }
 
 function saveMemo(name) {
@@ -469,18 +700,112 @@ function deleteMemo(name, index) {
   render(name);
 }
 
-function clearAllMemos(name) {
-  if (!confirm(name+'의 모든 메모를 삭제하시겠습니까?\n(데모 메모도 함께 삭제됩니다)')) return;
-  DATA[name].memo = [];
-  saveMemosToStorage();
-  render(name);
-}
-
-// 페이지 로드 시 LocalStorage 메모 복원
 loadMemosFromStorage();
 
-document.getElementById('Result').innerHTML = '<div class="welcome card"><h3>🔍 거래처를 검색해주세요</h3><p>위 검색창을 클릭하면 데모 거래처 15곳이 표시됩니다.<br>글자 입력 시 매칭 거래처가 자동완성됩니다.<br><br><span style="font-size:12px;color:#1D9E75;">✓ v0.3.5: 메모 영구 저장 + 뉴스 4개 (전국 + 지역) + 기사 링크</span></p></div>';
-</script>
+// ============ 메모 엑셀 내보내기 ============
+function exportMemos() {
+  const rows = [];
+  rows.push(['거래처명', '등급', '담당루트', '작성일시', '메모내용']);
+  let totalCount = 0;
+  Object.keys(DATA).forEach(name => {
+    const d = DATA[name];
+    if (d.memo && d.memo.length > 0) {
+      d.memo.forEach(m => {
+        rows.push([name, d.grade || '', d.route || '', m.time || '', m.text || '']);
+        totalCount++;
+      });
+    }
+  });
+  if (totalCount === 0) {
+    alert('저장된 메모가 없습니다.');
+    return;
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 20 }, { wch: 8 }, { wch: 12 }, { wch: 20 }, { wch: 60 }
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '거래처 메모');
+  const today = new Date();
+  const dateStr = today.getFullYear() + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2);
+  XLSX.writeFile(wb, '원클릭스몰톡_메모_' + dateStr + '.xlsx');
+}
 
-</body>
-</html>
+// ============ 지도 ============
+let leafletMap = null;
+let locMarker = null;
+
+function openMap() {
+  document.getElementById('MapModal').classList.add('open');
+  setTimeout(initMap, 100);
+}
+
+function closeMap() {
+  document.getElementById('MapModal').classList.remove('open');
+}
+
+function initMap() {
+  if (leafletMap) { leafletMap.invalidateSize(); return; }
+
+  // 익산시 중심
+  leafletMap = L.map('map').setView([35.948, 126.958], 14);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(leafletMap);
+
+  // 기존 거래처 — 파란색 마커
+  Object.values(DATA).forEach(d => {
+    const routeInfo = ROUTE_INFO[d.route] || {};
+    const routeMembers = routeInfo.members || [];
+    const routeLine = routeMembers.map(m => m === d.name ? '<strong>'+m+'</strong>' : m).join(' → ');
+    const gradeColor = d.grade === 'A' ? '#0C447C' : d.grade === 'B' ? '#633806' : '#7C0C0C';
+
+    const marker = L.circleMarker([d.lat, d.lng], {
+      radius: 10,
+      fillColor: '#1D74C8',
+      color: '#fff',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.9
+    }).addTo(leafletMap);
+
+    const popupHtml = `<div class="lf-popup" style="min-width:200px;">
+      <h4>🏪 ${d.name} <span class="lf-grade" style="background:${d.grade==='A'?'#E6F1FB':d.grade==='B'?'#FAEEDA':'#FBE5E5'};color:${gradeColor};">등급 ${d.grade}</span></h4>
+      <div class="lf-sub">${d.region} · 약사 ${d.pharmacist}</div>
+      <div class="lf-sales">${fmt(d.sales)} <span style="color:${d.salesTrend.startsWith('+')?'#639922':'#E24B4A'};font-size:12px;">${d.salesTrend}</span></div>
+      <div class="lf-route">📦 ${d.route} (${routeInfo.days||''})</div>
+      <div class="lf-route-list">${routeLine}</div>
+      <button class="lf-btn" onclick="pickFromMap('${d.name}')">자세히 보기 →</button>
+    </div>`;
+
+    marker.bindPopup(popupHtml, { maxWidth: 260 });
+  });
+
+  // 신규 가능 약국 — 초록색 마커
+  NEW_PHARMACIES.forEach(p => {
+    const marker = L.circleMarker([p.lat, p.lng], {
+      radius: 10,
+      fillColor: '#2d9c5a',
+      color: '#fff',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.9
+    }).addTo(leafletMap);
+
+    const popupHtml = `<div class="lf-popup" style="min-width:180px;">
+      <h4>🏪 ${p.name}</h4>
+      <div class="lf-sub">${p.region}</div>
+      <div class="lf-new-badge">🟢 신규 개척 가능</div>
+      <div style="font-size:12px;color:#6B6963;margin-bottom:8px;">거래 이력 없음 — 개척 대상</div>
+      <button class="lf-btn lf-btn-new" onclick="newPharmacyNote('${p.name}', '${p.region}')">📝 메모 작성</button>
+    </div>`;
+
+    marker.bindPopup(popupHtml, { maxWidth: 220 });
+  });
+}
+
+function pickFromMap(name) {
+  closeMap();
+  document.getElementById('Q').value 
