@@ -146,11 +146,13 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 24px;
+  justify-content: flex-start;
+  padding-top: 60px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 #UserSelect.hidden { display: none; }
-.us-logo { font-size: 48px; margin-bottom: 10px; }
+.us-logo { margin-bottom: 10px; line-height: 0; }
 .us-title { text-align: center; margin-bottom: 32px; }
 .us-title h1 { font-size: 24px; margin: 0 0 6px; color: #1F1E1D; }
 .us-title p { font-size: 13px; color: #6B6963; margin: 0; }
@@ -166,7 +168,8 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .us-dropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0;
   background: #fff; border: 1px solid #E8E6DC; border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 10; overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 10;
+  overflow-y: auto; max-height: 380px;
   display: none;
 }
 .us-dropdown.open { display: block; }
@@ -191,7 +194,18 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 <!-- ====== USER SELECT OVERLAY ====== -->
 <div id="UserSelect">
   <div id="UsSelectContent">
-    <div class="us-logo">🏥</div>
+    <div class="us-logo">
+      <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+        <!-- 초록 원 -->
+        <circle cx="40" cy="45" r="36" fill="#1D9E75"/>
+        <!-- one 텍스트 -->
+        <text x="40" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#fff" letter-spacing="1">one</text>
+        <!-- 마우스 커서 -->
+        <g transform="translate(60, 58)">
+          <polygon points="0,0 0,22 6,17 10,26 13,25 9,16 16,16" fill="#fff" stroke="#1D9E75" stroke-width="1.5" stroke-linejoin="round"/>
+        </g>
+      </svg>
+    </div>
     <div class="us-title">
       <h1>원클릭 스몰톡</h1>
       <p>2팀 전광석화</p>
