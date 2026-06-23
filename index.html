@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>원클릭 스몰톡 v0.4.1 — 지도 + 음성메모 + 메모내보내기</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -704,8 +703,7 @@ loadMemosFromStorage();
 
 // ============ 메모 엑셀 내보내기 ============
 function exportMemos() {
-  const rows = [];
-  rows.push(['거래처명', '등급', '담당루트', '작성일시', '메모내용']);
+  const rows = [['거래처명', '등급', '담당루트', '작성일시', '메모내용']];
   let totalCount = 0;
   Object.keys(DATA).forEach(name => {
     const d = DATA[name];
@@ -716,19 +714,16 @@ function exportMemos() {
       });
     }
   });
-  if (totalCount === 0) {
-    alert('저장된 메모가 없습니다.');
-    return;
-  }
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [
-    { wch: 20 }, { wch: 8 }, { wch: 12 }, { wch: 20 }, { wch: 60 }
-  ];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, '거래처 메모');
+  if (totalCount === 0) { alert('저장된 메모가 없습니다.'); return; }
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const bom = '﻿';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
   const today = new Date();
   const dateStr = today.getFullYear() + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2);
-  XLSX.writeFile(wb, '원클릭스몰톡_메모_' + dateStr + '.xlsx');
+  a.href = url; a.download = '원클릭스몰톡_메모_' + dateStr + '.csv';
+  a.click(); URL.revokeObjectURL(url);
 }
 
 // ============ 지도 ============
@@ -808,4 +803,5 @@ function initMap() {
 
 function pickFromMap(name) {
   closeMap();
-  document.getElementById('Q').value 
+  document.getElementById('Q').value = name;
+  pick(name
