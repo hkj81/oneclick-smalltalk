@@ -533,7 +533,9 @@ function makeData(arr) {
     vet3mAvg: hasVet ? Math.round(vetM * 100000) : 0,
     news: NEWS,
     memo: [],
-    route, lat, lng
+    route, lat, lng,
+    // 전문약 등급별 비율 (실제 데이터 입력 전 샘플)
+    proGrade: { A: 30, B: 25, C: 20, D: 15, E: 7, F: 3 }
   };
 }
 
@@ -677,12 +679,31 @@ function render(name) {
   html += '<div class="chart-wrap"><canvas id="DailyChart"></canvas></div></div>';
 
   html += '<div class="card"><div class="section" style="margin-top:0">📊 카테고리 분석</div>';
-  html += '<div class="cat-grid"><div class="chart-square"><canvas id="CatChart"></canvas></div><div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">';
+
+  // ── 왼쪽: 카테고리별 ──
+  html += '<div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;text-align:center;">카테고리별</div>';
+  html += '<div class="chart-square"><canvas id="CatChart"></canvas></div>';
   html += '<div class="cat-item"><div><span class="cat-dot" style="background:#378ADD"></span><strong>전문약</strong> ('+d.catRatio.pro+'%)</div><div>'+fmt(d.catSales.pro)+' <span class="'+(d.catTrend.pro.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pro+'</span></div></div>';
   html += '<div class="cat-item"><div><span class="cat-dot" style="background:#EF9F27"></span><strong>일반약</strong> ('+d.catRatio.gen+'%)</div><div>'+fmt(d.catSales.gen)+' <span class="'+(d.catTrend.gen.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.gen+'</span></div></div>';
   html += '<div class="cat-item"><div><span class="cat-dot" style="background:#97C459"></span><strong>건기식</strong> ('+d.catRatio.hs+'%)</div><div>'+fmt(d.catSales.hs)+' <span class="'+(d.catTrend.hs.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.hs+'</span></div></div>';
-  html += '<div class="cat-item" style="background:#F5F4FE;padding:8px 10px;border-radius:6px;border-bottom:none;margin-top:6px;"><div><span class="cat-dot" style="background:#7F77DD"></span><strong style="color:#3C3489;">PB (자체)</strong> ('+d.catRatio.pb+'%)</div><div style="color:#3C3489;font-weight:600;">'+fmt(d.catSales.pb)+' <span class="'+(d.catTrend.pb.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pb+'</span></div></div>';
-  html += '</div></div></div>';
+  html += '<div class="cat-item" style="background:#F5F4FE;padding:8px 10px;border-radius:6px;border-bottom:none;margin-top:6px;"><div><span class="cat-dot" style="background:#7F77DD"></span><strong style="color:#3C3489;">PB</strong> ('+d.catRatio.pb+'%)</div><div style="color:#3C3489;font-weight:600;">'+fmt(d.catSales.pb)+' <span class="'+(d.catTrend.pb.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pb+'</span></div></div>';
+  html += '</div>';
+
+  // ── 오른쪽: 전문약 등급별 ──
+  const gradeColors = { A:'#1D9E75', B:'#378ADD', C:'#EF9F27', D:'#E24B4A', E:'#7F77DD', F:'#888780' };
+  const proTotal = d.catSales.pro;
+  html += '<div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;text-align:center;">전문약 등급별 <span style="font-size:10px;color:#aaa;">(샘플)</span></div>';
+  html += '<div class="chart-square"><canvas id="GradeChart"></canvas></div>';
+  Object.entries(d.proGrade).forEach(([g, pct]) => {
+    const amt = Math.round(proTotal * pct / 100);
+    html += '<div class="cat-item"><div><span class="cat-dot" style="background:'+gradeColors[g]+'"></span><strong>'+g+'등급</strong> ('+pct+'%)</div><div>'+fmt(amt)+'</div></div>';
+  });
+  html += '</div>';
+
+  html += '</div></div>';
 
   html += '<div class="card card-pb"><div class="section" style="margin-top:0;color:#3C3489;">💎 PB 제품 (자체 브랜드) 분석</div>';
   html += '<div class="pb-hero"><div class="pb-hero-row">';
@@ -754,7 +775,7 @@ function render(name) {
   html += '</div></div>';
 
   document.getElementById('Result').innerHTML = html;
-  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); }, 100);
+  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 100);
 }
 
 // ============================================================
@@ -875,6 +896,21 @@ function drawCat(ratio) {
     new Chart(ctx, {
       type: 'doughnut',
       data: { labels: ['전문약','일반약','건기식','PB'], datasets: [{ data: [ratio.pro, ratio.gen, ratio.hs, ratio.pb], backgroundColor: ['#378ADD','#EF9F27','#97C459','#7F77DD'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
+    });
+  }).catch(() => {});
+}
+
+function drawGrade(proGrade) {
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
+    const ctx = document.getElementById('GradeChart');
+    if (!ctx) return;
+    const labels = Object.keys(proGrade).map(g => g+'등급');
+    const values = Object.values(proGrade);
+    const colors = ['#1D9E75','#378ADD','#EF9F27','#E24B4A','#7F77DD','#888780'];
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
     });
   }).catch(() => {});
