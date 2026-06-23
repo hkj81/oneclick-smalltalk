@@ -148,36 +148,38 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
   align-items: center;
   justify-content: center;
   padding: 24px;
-  overflow-y: auto;
 }
 #UserSelect.hidden { display: none; }
-.us-logo { font-size: 40px; margin-bottom: 8px; }
-.us-title { text-align: center; margin-bottom: 28px; }
-.us-title h1 { font-size: 22px; margin: 0 0 6px; color: #1F1E1D; }
+.us-logo { font-size: 48px; margin-bottom: 10px; }
+.us-title { text-align: center; margin-bottom: 32px; }
+.us-title h1 { font-size: 24px; margin: 0 0 6px; color: #1F1E1D; }
 .us-title p { font-size: 13px; color: #6B6963; margin: 0; }
-.us-wrap { width: 100%; max-width: 540px; }
-.us-group { margin-bottom: 20px; }
-.us-group-label { font-size: 12px; font-weight: 700; color: #6B6963; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 2px; }
-.us-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.us-card {
-  background: #fff;
-  border: 2px solid #E8E6DC;
-  border-radius: 12px;
-  padding: 16px 12px;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.15s;
-  min-height: 70px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
+.us-box { width: 100%; max-width: 360px; }
+.us-search-wrap { position: relative; margin-bottom: 8px; }
+.us-search-input {
+  width: 100%; padding: 14px 18px; font-size: 16px;
+  border: 2px solid #E8E6DC; border-radius: 12px;
+  background: #fff; font-family: inherit; color: #1F1E1D;
+  outline: none; cursor: pointer;
 }
-.us-card:hover { border-color: #1D9E75; background: #F0FBF6; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(29,158,117,0.12); }
-.us-name { font-size: 15px; font-weight: 600; color: #1F1E1D; }
-.us-team-label { font-size: 11px; color: #6B6963; }
-.us-footer { font-size: 12px; color: #aaa; text-align: center; margin-top: 12px; }
+.us-search-input:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
+.us-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: #fff; border: 1px solid #E8E6DC; border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 10; overflow: hidden;
+  display: none;
+}
+.us-dropdown.open { display: block; }
+.us-dd-group-label { padding: 8px 14px 4px; font-size: 11px; font-weight: 700; color: #aaa; letter-spacing: 0.5px; background: #FAFAF6; }
+.us-dd-item {
+  padding: 12px 18px; cursor: pointer; font-size: 15px; font-weight: 600;
+  color: #1F1E1D; border-bottom: 1px solid #F5F4EE; display: flex;
+  align-items: center; justify-content: space-between;
+}
+.us-dd-item:last-child { border-bottom: none; }
+.us-dd-item:hover { background: #F0FBF6; color: #1D9E75; }
+.us-dd-item .us-dd-team { font-size: 11px; color: #aaa; font-weight: 400; }
+.us-footer { font-size: 12px; color: #bbb; text-align: center; margin-top: 16px; }
 #UsLoadMsg { text-align: center; padding: 40px 20px; }
 #UsLoadMsg .load-icon { font-size: 36px; margin-bottom: 12px; }
 #UsLoadMsg .load-text { font-size: 15px; color: #1F1E1D; font-weight: 600; margin-bottom: 4px; }
@@ -192,19 +194,19 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
     <div class="us-logo">🏥</div>
     <div class="us-title">
       <h1>원클릭 스몰톡</h1>
-      <p>2팀 전광석화 · 사용자를 선택해주세요</p>
+      <p>2팀 전광석화</p>
     </div>
-    <div class="us-wrap">
-      <div class="us-group">
-        <div class="us-group-label">📊 영업팀 (5명)</div>
-        <div class="us-grid" id="TeamGrid"></div>
+    <div class="us-box">
+      <div class="us-search-wrap">
+        <input class="us-search-input" id="UsSearchInput" type="text"
+          placeholder="이름을 선택하세요 ▾"
+          readonly
+          onclick="toggleUsDropdown()"
+          autocomplete="off" />
+        <div class="us-dropdown" id="UsDropdown"></div>
       </div>
-      <div class="us-group">
-        <div class="us-group-label">👥 외부 참여 (5명)</div>
-        <div class="us-grid" id="ExtGrid"></div>
-      </div>
+      <div class="us-footer">선택한 사용자의 메모가 모든 기기에서 동기화됩니다</div>
     </div>
-    <div class="us-footer">선택한 사용자의 메모가 모든 기기에서 동기화됩니다</div>
   </div>
   <div id="UsLoadMsg" style="display:none;">
     <div class="load-icon">⏳</div>
@@ -324,19 +326,52 @@ const USER_KEY = 'oneclick-user-v1';
 function initUserSelect() {
   document.getElementById('UsSelectContent').style.display = '';
   document.getElementById('UsLoadMsg').style.display = 'none';
-  const teamGrid = document.getElementById('TeamGrid');
-  const extGrid = document.getElementById('ExtGrid');
-  teamGrid.innerHTML = '';
-  extGrid.innerHTML = '';
-  USERS.forEach(u => {
-    const card = document.createElement('div');
-    card.className = 'us-card';
-    card.innerHTML = '<div class="us-name">' + u.name + '</div><div class="us-team-label">' + u.team + '</div>';
-    card.onclick = () => selectUser(u);
-    if (u.type === 'team') teamGrid.appendChild(card);
-    else extGrid.appendChild(card);
+  document.getElementById('UsSearchInput').value = '';
+  const dd = document.getElementById('UsDropdown');
+  dd.innerHTML = '';
+
+  const teamUsers = USERS.filter(u => u.type === 'team');
+  const extUsers = USERS.filter(u => u.type === 'ext');
+
+  const teamLabel = document.createElement('div');
+  teamLabel.className = 'us-dd-group-label';
+  teamLabel.textContent = '📊 영업팀';
+  dd.appendChild(teamLabel);
+
+  teamUsers.forEach(u => {
+    const item = document.createElement('div');
+    item.className = 'us-dd-item';
+    item.innerHTML = u.name + '<span class="us-dd-team">' + u.team + '</span>';
+    item.onclick = () => { closeUsDropdown(); selectUser(u); };
+    dd.appendChild(item);
+  });
+
+  const extLabel = document.createElement('div');
+  extLabel.className = 'us-dd-group-label';
+  extLabel.textContent = '👥 외부 참여';
+  dd.appendChild(extLabel);
+
+  extUsers.forEach(u => {
+    const item = document.createElement('div');
+    item.className = 'us-dd-item';
+    item.innerHTML = u.name + '<span class="us-dd-team">' + u.team + '</span>';
+    item.onclick = () => { closeUsDropdown(); selectUser(u); };
+    dd.appendChild(item);
   });
 }
+
+function toggleUsDropdown() {
+  const dd = document.getElementById('UsDropdown');
+  dd.classList.toggle('open');
+}
+
+function closeUsDropdown() {
+  document.getElementById('UsDropdown').classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.us-search-wrap')) closeUsDropdown();
+});
 
 async function selectUser(user) {
   currentUser = user;
