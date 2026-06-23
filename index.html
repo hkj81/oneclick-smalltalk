@@ -655,7 +655,7 @@ function render(name) {
   html += '<span class="route-badge">📦 '+d.route+' ('+routeInfo.days+')</span>';
   html += '</div></div>';
   html += '<div class="metrics">';
-  html += '<div class="metric"><div class="metric-label">이번달 매출</div><div class="metric-value">'+fmt(d.sales)+'</div><div class="metric-trend '+(trendUp?'up':'down')+'">'+d.salesTrend+'</div></div>';
+  html += '<div class="metric" style="cursor:pointer;position:relative;" onclick="editSales(\''+name+'\')" title="클릭하여 수정"><div class="metric-label">이번달 매출 <span style="font-size:10px;color:#1D9E75;">✏️</span></div><div class="metric-value">'+fmt(d.sales)+'</div><div class="metric-trend '+(trendUp?'up':'down')+'">'+d.salesTrend+'</div></div>';
   html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div class="metric-trend '+(d.returnRate<3?'up':'down')+'">'+(d.returnRate<3?'양호':'주의')+'</div></div>';
   html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
   html += '</div>';
@@ -667,7 +667,7 @@ function render(name) {
   html += '<div class="card">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
   html += '<div class="section" style="margin:0">🎯 월 거래 금액 목표 진행률</div>';
-  html += '<button onclick="editGoal(\''+name+'\')" style="padding:5px 12px;border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;">✏️ 목표 수정</button>';
+  html += '<button onclick="editGoal(\''+name+'\')" style="padding:6px 14px;border:1.5px solid #1D9E75;background:#F0FBF6;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:36px;">✏️ 목표 수정</button>';
   html += '</div>';
   html += '<div class="goal-box"><div class="goal-row">';
   html += '<div><span class="goal-pct">'+pct+'%</span> <span style="font-size:13px;color:#6B6963;">달성 ('+d.monthDay+'일 차 / '+d.monthDays+'일)</span></div>';
@@ -881,8 +881,34 @@ function drawCat(ratio) {
 }
 
 // ============================================================
-// 목표액 수정
+// 매출·목표액 수정
 // ============================================================
+function editSales(name) {
+  const d = DATA[name];
+  const input = prompt(
+    '[ ' + name + ' ] 이번달 매출 수정\n현재: ' + d.sales.toLocaleString() + '원\n\n실제 매출 금액을 입력하세요 (숫자만):',
+    d.sales
+  );
+  if (input === null) return;
+  const newSales = parseInt(String(input).replace(/[^0-9]/g, ''));
+  if (isNaN(newSales) || newSales < 0) { alert('올바른 금액을 입력해주세요.'); return; }
+  DATA[name].sales = newSales;
+  DATA[name].monthCurrent = Math.round(newSales * 0.81);
+  saveSalesToFirestore();
+  render(name);
+}
+
+async function saveSalesToFirestore() {
+  if (!currentUser) return;
+  try {
+    const ok = await initFirebase();
+    if (!ok) return;
+    const sales = {};
+    Object.keys(DATA).forEach(n => { sales[n] = DATA[n].sales; });
+    await _db.collection('users').doc(currentUser.id).set({ sales }, { merge: true });
+  } catch(e) { console.warn('Sales save failed:', e); }
+}
+
 function editGoal(name) {
   const d = DATA[name];
   const input = prompt(
@@ -944,6 +970,15 @@ async function loadMemosFromFirestore(userId) {
       // 목표액 불러오기
       if (data.goals) {
         Object.keys(data.goals).forEach(name => { if (DATA[name]) DATA[name].monthGoal = data.goals[name]; });
+      }
+      // 매출 불러오기
+      if (data.sales) {
+        Object.keys(data.sales).forEach(name => {
+          if (DATA[name]) {
+            DATA[name].sales = data.sales[name];
+            DATA[name].monthCurrent = Math.round(data.sales[name] * 0.81);
+          }
+        });
       }
     }
   } catch(e) {
