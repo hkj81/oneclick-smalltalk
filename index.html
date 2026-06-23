@@ -825,4 +825,27 @@ function initMap() {
 function pickFromMap(name) {
   closeMap();
   document.getElementById('Q').value = name;
-  pick(name
+  pick(name);
+}
+
+function newPharmacyNote(name, region) {
+  closeMap();
+  alert(name + ' (' + region + ')\n신규 개척 대상입니다.\n검색창에서 이름을 입력하면 메모를 작성할 수 있습니다.');
+}
+
+function locateMe() {
+  if (!navigator.geolocation) { alert('이 브라우저는 위치 서비스를 지원하지 않습니다.'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (!leafletMap) return;
+    if (locMarker) locMarker.remove();
+    locMarker = L.circleMarker([lat, lng], { radius: 8, fillColor: '#E24B4A', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(leafletMap);
+    locMarker.bindPopup('📍 내 현재 위치').openPopup();
+    leafletMap.setView([lat, lng], 14);
+  }, () => { alert('위치를 가져올 수 없습니다. 위치 권한을 허용해주세요.'); });
+}
+
+document.getElementById('Result').innerHTML = '<div class="card" style="text-align:center;padding:40px 20px;color:#6B6963;"><h3 style="color:#1F1E1D;margin:0 0 8px;">🔍 거래처를 검색해주세요</h3><p style="margin:0;font-size:13px;">위 검색창을 클릭하면 데모 거래처 15곳이 표시됩니다.<br>글자 입력 시 매칭 거래처가 자동완성됩니다.</p></div>';
+</script>
+</body>
+</html>
