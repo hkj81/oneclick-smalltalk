@@ -3,19 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>원클릭 스몰톡 v0.4.1 — 지도 + 음성메모 + 메모내보내기</title>
+<title>원클릭 스몰톡 v0.5.0 — 멀티유저 클라우드</title>
 <style>
 * { box-sizing: border-box; }
 body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: #F5F4EE; color: #1F1E1D; margin: 0; padding: 20px; font-size: 14px; line-height: 1.5; }
 .container { max-width: 1100px; margin: 0 auto; }
 .header { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #E8E6DC; }
-.header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .header h1 { margin: 0 0 2px; font-size: 20px; color: #1F1E1D; }
 .header p { margin: 0; font-size: 12px; color: #6B6963; }
 .map-btn { padding: 10px 18px; background: #1D9E75; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-family: inherit; font-weight: 600; white-space: nowrap; min-height: 44px; }
 .map-btn:active { background: #16785a; }
 .export-btn { padding: 10px 18px; background: #fff; color: #1D9E75; border: 2px solid #1D9E75; border-radius: 10px; cursor: pointer; font-size: 14px; font-family: inherit; font-weight: 600; white-space: nowrap; min-height: 44px; }
 .export-btn:active { background: #F0FBF6; }
+.user-badge { padding: 8px 14px; background: #F0FBF6; color: #1D9E75; border: 1.5px solid #1D9E75; border-radius: 10px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600; white-space: nowrap; min-height: 44px; display: flex; align-items: center; gap: 6px; }
+.user-badge:hover { background: #E0F5EE; }
 .search { display: flex; gap: 8px; margin-bottom: 6px; position: relative; }
 .search input { flex: 1; padding: 12px 14px; border: 1px solid #E8E6DC; border-radius: 8px; font-size: 15px; background: #fff; font-family: inherit; min-height: 44px; }
 .search input:focus { outline: none; border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
@@ -91,7 +93,6 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .cat-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
 .cat-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
 .news { padding: 12px 14px; background: #F5F4EE; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
-/* ===== MEMO SECTION ===== */
 .memo-section { display: flex; flex-direction: column; gap: 10px; }
 .memo-quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
 .memo-quick-tags span { font-size: 12px; color: #6B6963; align-self: center; }
@@ -117,52 +118,15 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .welcome h3 { color: #1F1E1D; margin: 0 0 8px; font-size: 18px; }
 
 /* ===== MAP MODAL ===== */
-#MapModal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: #fff;
-  z-index: 2000;
-  flex-direction: column;
-}
+#MapModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 2000; flex-direction: column; }
 #MapModal.open { display: flex; }
-.map-header {
-  padding: 14px 20px;
-  background: #fff;
-  border-bottom: 1px solid #E8E6DC;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-  z-index: 10;
-}
-.map-close-btn {
-  padding: 8px 16px;
-  border: 1px solid #E8E6DC;
-  background: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-family: inherit;
-  min-height: 44px;
-}
+.map-header { padding: 14px 20px; background: #fff; border-bottom: 1px solid #E8E6DC; display: flex; align-items: center; gap: 14px; flex-shrink: 0; z-index: 10; }
+.map-close-btn { padding: 8px 16px; border: 1px solid #E8E6DC; background: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; min-height: 44px; }
 .map-title { font-size: 16px; font-weight: 600; flex: 1; }
 .map-legend { display: flex; gap: 14px; font-size: 13px; align-items: center; }
 .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
-.map-locate-btn {
-  padding: 8px 14px;
-  background: #1D9E75;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-family: inherit;
-  min-height: 44px;
-}
+.map-locate-btn { padding: 8px 14px; background: #1D9E75; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; min-height: 44px; }
 #map { flex: 1; min-height: 0; }
-
-/* Custom Leaflet popup */
 .lf-popup h4 { margin: 0 0 6px; font-size: 15px; }
 .lf-popup .lf-sub { font-size: 12px; color: #6B6963; margin-bottom: 8px; }
 .lf-popup .lf-route { background: #EAF3DE; color: #173404; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px; }
@@ -172,9 +136,82 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .lf-popup .lf-btn-new { background: #2d9c5a; }
 .lf-popup .lf-new-badge { background: #EAF3DE; color: #1a6635; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px; }
 .lf-popup .lf-grade { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: #E6F1FB; color: #0C447C; margin-left: 4px; font-weight: 600; }
+
+/* ===== USER SELECT OVERLAY ===== */
+#UserSelect {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #F5F4EE;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+#UserSelect.hidden { display: none; }
+.us-logo { font-size: 40px; margin-bottom: 8px; }
+.us-title { text-align: center; margin-bottom: 28px; }
+.us-title h1 { font-size: 22px; margin: 0 0 6px; color: #1F1E1D; }
+.us-title p { font-size: 13px; color: #6B6963; margin: 0; }
+.us-wrap { width: 100%; max-width: 540px; }
+.us-group { margin-bottom: 20px; }
+.us-group-label { font-size: 12px; font-weight: 700; color: #6B6963; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 2px; }
+.us-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.us-card {
+  background: #fff;
+  border: 2px solid #E8E6DC;
+  border-radius: 12px;
+  padding: 16px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.us-card:hover { border-color: #1D9E75; background: #F0FBF6; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(29,158,117,0.12); }
+.us-name { font-size: 15px; font-weight: 600; color: #1F1E1D; }
+.us-team-label { font-size: 11px; color: #6B6963; }
+.us-footer { font-size: 12px; color: #aaa; text-align: center; margin-top: 12px; }
+#UsLoadMsg { text-align: center; padding: 40px 20px; }
+#UsLoadMsg .load-icon { font-size: 36px; margin-bottom: 12px; }
+#UsLoadMsg .load-text { font-size: 15px; color: #1F1E1D; font-weight: 600; margin-bottom: 4px; }
+#UsLoadMsg .load-sub { font-size: 13px; color: #6B6963; }
 </style>
 </head>
 <body>
+
+<!-- ====== USER SELECT OVERLAY ====== -->
+<div id="UserSelect">
+  <div id="UsSelectContent">
+    <div class="us-logo">🏥</div>
+    <div class="us-title">
+      <h1>원클릭 스몰톡</h1>
+      <p>2팀 전광석화 · 사용자를 선택해주세요</p>
+    </div>
+    <div class="us-wrap">
+      <div class="us-group">
+        <div class="us-group-label">📊 영업팀 (5명)</div>
+        <div class="us-grid" id="TeamGrid"></div>
+      </div>
+      <div class="us-group">
+        <div class="us-group-label">👥 외부 참여 (5명)</div>
+        <div class="us-grid" id="ExtGrid"></div>
+      </div>
+    </div>
+    <div class="us-footer">선택한 사용자의 메모가 모든 기기에서 동기화됩니다</div>
+  </div>
+  <div id="UsLoadMsg" style="display:none;">
+    <div class="load-icon">⏳</div>
+    <div class="load-text" id="UsLoadName"></div>
+    <div class="load-sub">데이터를 불러오는 중...</div>
+  </div>
+</div>
 
 <!-- ====== MAP MODAL ====== -->
 <div id="MapModal">
@@ -197,9 +234,12 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
   <div class="header-row">
     <div>
       <h1>원클릭 스몰톡 — 거래처 한눈에 보기</h1>
-      <p>2팀 전광석화 · v0.4.0 (지도 + 음성메모 + 빠른태그)</p>
+      <p>2팀 전광석화 · v0.5.0 (멀티유저 + 클라우드 동기화)</p>
     </div>
-    <button class="map-btn" onclick="openMap()">📍 지도 보기</button>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="user-badge" id="UserBadge" onclick="changeUser()">👤 <span id="UserBadgeName">로딩 중...</span> <span style="font-size:11px;opacity:0.7;">변경</span></button>
+      <button class="map-btn" onclick="openMap()">📍 지도 보기</button>
+    </div>
   </div>
 </div>
 
@@ -208,15 +248,137 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
   <button onclick="doSearch()">검색</button>
   <div id="Dropdown" class="dd" style="display:none;"></div>
 </div>
-<div class="hint">💡 데모용 15곳이 등록되어 있습니다. 검색창을 클릭하면 전체 목록이, 글자를 입력하면 매칭 거래처가 표시됩니다. <strong>지도 보기</strong>로 주변 약국을 확인하세요.</div>
+<div class="hint">💡 검색창을 클릭하면 전체 거래처 목록이, 글자를 입력하면 매칭 거래처가 표시됩니다. <strong>지도 보기</strong>로 주변 약국을 확인하세요.</div>
 
 <div id="Result"></div>
 
 </div>
 
 <script>
-// ============ 데이터 ============
-// name, region, pharmacist, grade, sales, trend, returnRate, debt, monthGoal, pbRatio, hasVet, vetM, route, lat, lng
+// ============================================================
+// Firebase 설정
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBfbGq6nEBWTGc-4-8Ubwe6Ag270iAujBQ",
+  authDomain: "oneclick-smalltalk.firebaseapp.com",
+  projectId: "oneclick-smalltalk",
+  storageBucket: "oneclick-smalltalk.firebasestorage.app",
+  messagingSenderId: "570399369244",
+  appId: "1:570399369244:web:85ecfe9fe80edb299057d9"
+};
+
+let _db = null;
+let _fbReady = false;
+
+async function initFirebase() {
+  if (_fbReady) return true;
+  try {
+    await new Promise((res, rej) => {
+      if (window.firebase) { res(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    await new Promise((res, rej) => {
+      if (window.firebase && window.firebase.firestore) { res(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    _db = firebase.firestore();
+    _fbReady = true;
+    return true;
+  } catch(e) {
+    console.warn('Firebase 초기화 실패, localStorage 사용:', e);
+    return false;
+  }
+}
+
+// ============================================================
+// 사용자 목록 (이름은 여기서 수정하세요)
+// ============================================================
+const USERS = [
+  // 영업팀 5명
+  { id: 'hong_gj',  name: '홍경진', team: '2팀 영업', type: 'team' },
+  { id: 'team2_01', name: '팀원2',  team: '2팀 영업', type: 'team' },
+  { id: 'team2_02', name: '팀원3',  team: '2팀 영업', type: 'team' },
+  { id: 'team2_03', name: '팀원4',  team: '2팀 영업', type: 'team' },
+  { id: 'team2_04', name: '팀원5',  team: '2팀 영업', type: 'team' },
+  // 외부 참여 5명
+  { id: 'ext_01', name: '외부1', team: '외부 참여', type: 'ext' },
+  { id: 'ext_02', name: '외부2', team: '외부 참여', type: 'ext' },
+  { id: 'ext_03', name: '외부3', team: '외부 참여', type: 'ext' },
+  { id: 'ext_04', name: '외부4', team: '외부 참여', type: 'ext' },
+  { id: 'ext_05', name: '외부5', team: '외부 참여', type: 'ext' },
+];
+
+let currentUser = null;
+const USER_KEY = 'oneclick-user-v1';
+
+// ============================================================
+// 사용자 선택 UI
+// ============================================================
+function initUserSelect() {
+  document.getElementById('UsSelectContent').style.display = '';
+  document.getElementById('UsLoadMsg').style.display = 'none';
+  const teamGrid = document.getElementById('TeamGrid');
+  const extGrid = document.getElementById('ExtGrid');
+  teamGrid.innerHTML = '';
+  extGrid.innerHTML = '';
+  USERS.forEach(u => {
+    const card = document.createElement('div');
+    card.className = 'us-card';
+    card.innerHTML = '<div class="us-name">' + u.name + '</div><div class="us-team-label">' + u.team + '</div>';
+    card.onclick = () => selectUser(u);
+    if (u.type === 'team') teamGrid.appendChild(card);
+    else extGrid.appendChild(card);
+  });
+}
+
+async function selectUser(user) {
+  currentUser = user;
+  localStorage.setItem(USER_KEY, user.id);
+
+  // 로딩 화면 표시
+  document.getElementById('UsSelectContent').style.display = 'none';
+  document.getElementById('UsLoadMsg').style.display = 'block';
+  document.getElementById('UsLoadName').textContent = user.name + '님의 데이터를 불러오는 중...';
+
+  // 메모 초기화 (이전 사용자 데이터 제거)
+  Object.keys(DATA).forEach(name => {
+    DATA[name].memo = (MEMOS[name] && MEMOS[name].length > 0) ? JSON.parse(JSON.stringify(MEMOS[name])) : [];
+  });
+
+  // Firestore에서 메모 불러오기
+  await loadMemosFromFirestore(user.id);
+
+  // 오버레이 숨기기
+  document.getElementById('UserSelect').classList.add('hidden');
+  document.getElementById('UserBadgeName').textContent = user.name;
+
+  // 환영 메시지
+  document.getElementById('Result').innerHTML =
+    '<div class="card" style="text-align:center;padding:40px 20px;color:#6B6963;">' +
+    '<h3 style="color:#1D9E75;margin:0 0 8px;">👋 ' + user.name + '님, 환영합니다!</h3>' +
+    '<p style="margin:0;font-size:13px;">위 검색창을 클릭하면 거래처 목록이 표시됩니다.<br>메모는 자동으로 클라우드에 저장됩니다.</p></div>';
+}
+
+function changeUser() {
+  currentUser = null;
+  localStorage.removeItem(USER_KEY);
+  document.getElementById('UserSelect').classList.remove('hidden');
+  document.getElementById('Q').value = '';
+  document.getElementById('Dropdown').style.display = 'none';
+  document.getElementById('Result').innerHTML = '';
+  initUserSelect();
+}
+
+// ============================================================
+// 데이터
+// ============================================================
 const LIST = [
   ['행복약국','전북 익산시','김약사','A',4800000,'+8%',2.3,300000,6000000,12,true,2.8,'A노선',35.9483,126.9575],
   ['미소약국','전북 익산시 어양동','박약사','B',2400000,'-12%',5.8,1200000,3500000,8,false,0,'C노선',35.9520,126.9482],
@@ -235,7 +397,6 @@ const LIST = [
   ['행운약국','전북 익산시 창인동','권약사','A',5800000,'+25%',1.6,0,5500000,17,true,4.8,'A노선',35.9602,126.9558],
 ];
 
-// 신규 개척 가능 약국 (지도에만 표시)
 const NEW_PHARMACIES = [
   { name: '미래약국', region: '전북 익산시 동산동', lat: 35.9472, lng: 126.9592 },
   { name: '희망약국', region: '전북 익산시 창인동', lat: 35.9546, lng: 126.9553 },
@@ -244,7 +405,6 @@ const NEW_PHARMACIES = [
   { name: '꿈약국', region: '전북 익산시 인화동', lat: 35.9582, lng: 126.9498 },
 ];
 
-// 배송노선 정보
 const ROUTE_INFO = {
   'A노선': { days: '화·목', members: ['행복약국','새약국','건강약국','우리약국','행운약국'] },
   'B노선': { days: '월·수·금', members: ['가족약국','푸른약국','사랑약국','신뢰약국'] },
@@ -261,6 +421,8 @@ const NEWS = {
     { title: '전북 약사회 정기총회 개최', desc: '신년 사업계획 의결', source: 'jbnews.com', link: 'https://www.jbnews.com' },
   ]
 };
+
+// 기본 메모 (앱에 기본 탑재된 샘플)
 const MEMOS = {
   '행복약국': [{ time: '2026-06-08 14:23', text: '약사님이 위고비 문의. 약국 도입 시 매출 효과 궁금해함.', ai: '위고비 도입 검토 단계. 다음 방문 시 약국 매출 사례, 처방 흐름, 보험 적용 자료 준비.' }],
   '새약국': [{ time: '2026-06-05 09:45', text: '최약사님 골프 좋아하심. 다음 주말 라운드 예정.', ai: '취미 공통점 라포 형성. 다음 방문 시 골프 화제 자연스럽게.' }],
@@ -317,13 +479,16 @@ function makeData(arr) {
     pb3mAvg: Math.round(pbMonthly * 0.92),
     vet3mAvg: hasVet ? Math.round(vetM * 100000) : 0,
     news: NEWS,
-    memo: MEMOS[name] || [],
+    memo: [],
     route, lat, lng
   };
 }
 
 const DATA = {};
 LIST.forEach(arr => DATA[arr[0]] = makeData(arr));
+
+// 기본 메모 세팅
+Object.keys(MEMOS).forEach(name => { if (DATA[name]) DATA[name].memo = JSON.parse(JSON.stringify(MEMOS[name])); });
 
 let curName = null;
 let curTab = 'pro';
@@ -334,13 +499,15 @@ function fmt(n) {
   return n.toLocaleString()+'원';
 }
 
-// ============ 검색 ============
+// ============================================================
+// 검색
+// ============================================================
 function onQuery() {
   const q = document.getElementById('Q').value.trim();
   const dd = document.getElementById('Dropdown');
   if (!q) {
     const all = Object.keys(DATA);
-    dd.innerHTML = '<div class="dd-count">데모 거래처 (총 ' + all.length + '곳)</div>' +
+    dd.innerHTML = '<div class="dd-count">거래처 (총 ' + all.length + '곳)</div>' +
       all.slice(0, 6).map(ddRow).join('');
     dd.style.display = 'block'; return;
   }
@@ -376,7 +543,9 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('.search')) document.getElementById('Dropdown').style.display = 'none';
 });
 
-// ============ 탭 ============
+// ============================================================
+// 탭
+// ============================================================
 function switchTab(tab) {
   curTab = tab;
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -409,7 +578,9 @@ function renderTab(name, tab) {
   return h;
 }
 
-// ============ 렌더 ============
+// ============================================================
+// 렌더
+// ============================================================
 function render(name) {
   curName = name; curTab = 'pro';
   const d = DATA[name];
@@ -435,7 +606,6 @@ function render(name) {
   html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div class="metric-trend '+(d.returnRate<3?'up':'down')+'">'+(d.returnRate<3?'양호':'주의')+'</div></div>';
   html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
   html += '</div>';
-  // 노선 동선
   html += '<div style="background:#F5F4EE;border-radius:8px;padding:10px 14px;margin-top:4px;font-size:13px;">';
   html += '<span style="color:#173404;font-weight:600;">'+d.route+' 배송 동선 ('+routeInfo.days+') :</span> ';
   html += routeMembers.map(m => m === name ? '<strong style="color:#1D9E75;">'+m+'</strong>' : m).join(' → ');
@@ -497,18 +667,13 @@ function render(name) {
   });
   html += '</div>';
 
-  // ===== 메모 섹션 (음성 + 빠른태그) =====
+  // 메모 섹션
   html += '<div class="card"><div class="section" style="margin-top:0">📝 거래처 메모</div>';
   html += '<div class="memo-section">';
-  // 빠른 태그
-  html += '<div class="memo-quick-tags">';
-  html += '<span>빠른입력:</span>';
+  html += '<div class="memo-quick-tags"><span>빠른입력:</span>';
   const qtags = ['✅ 방문 완료','📞 전화 통화','📦 주문 완료','↩️ 반품 접수','💰 미수금 확인','🤝 신규 상담','⚠️ 이슈 발생'];
-  qtags.forEach(tag => {
-    html += '<button class="qtag" onclick="insertTag(\''+tag+'\')">' + tag + '</button>';
-  });
+  qtags.forEach(tag => { html += '<button class="qtag" onclick="insertTag(\''+tag+'\')">' + tag + '</button>'; });
   html += '</div>';
-  // 텍스트 + 음성버튼
   html += '<div class="memo-input-row">';
   html += '<textarea class="memo-input" id="Memo" placeholder="방문 내용, 대화, 특이사항 등을 기록하세요...&#10;(🎤 버튼으로 음성 입력 가능)"></textarea>';
   html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">';
@@ -520,7 +685,6 @@ function render(name) {
   html += '<button onclick="clearMemoInput()">✕ 지우기</button>';
   html += '<button onclick="exportMemos()" style="margin-left:auto;padding:10px 16px;border:2px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📥 메모 내보내기</button>';
   html += '</div>';
-  // 기존 메모 목록
   if (d.memo.length === 0) {
     html += '<div style="padding:14px;text-align:center;color:#6B6963;font-size:13px;background:#F5F4EE;border-radius:8px;">저장된 메모가 없습니다.</div>';
   } else {
@@ -536,7 +700,9 @@ function render(name) {
   setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); }, 100);
 }
 
-// ============ 빠른 태그 ============
+// ============================================================
+// 빠른 태그
+// ============================================================
 function insertTag(tag) {
   const el = document.getElementById('Memo');
   if (!el) return;
@@ -554,7 +720,9 @@ function clearMemoInput() {
   if (el) { el.value = ''; el.focus(); }
 }
 
-// ============ 음성 입력 ============
+// ============================================================
+// 음성 입력
+// ============================================================
 let recognition = null;
 let isRecording = false;
 
@@ -562,9 +730,7 @@ function initRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return null;
   const r = new SR();
-  r.lang = 'ko-KR';
-  r.continuous = true;
-  r.interimResults = true;
+  r.lang = 'ko-KR'; r.continuous = true; r.interimResults = true;
   return r;
 }
 
@@ -572,37 +738,22 @@ function toggleVoice(name) {
   const btn = document.getElementById('VoiceBtn');
   const status = document.getElementById('VoiceStatus');
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SR) {
-    alert('이 브라우저는 음성 입력을 지원하지 않습니다.\nSafari(iOS 14.5+) 또는 Chrome에서 이용하세요.');
-    return;
-  }
-
+  if (!SR) { alert('이 브라우저는 음성 입력을 지원하지 않습니다.\nSafari(iOS 14.5+) 또는 Chrome에서 이용하세요.'); return; }
   if (isRecording) {
-    // 중지
     if (recognition) recognition.stop();
     isRecording = false;
-    btn.classList.remove('recording');
-    btn.textContent = '🎤';
-    status.textContent = '음성';
-    status.classList.remove('active');
+    btn.classList.remove('recording'); btn.textContent = '🎤';
+    status.textContent = '음성'; status.classList.remove('active');
   } else {
-    // 시작
     recognition = initRecognition();
     if (!recognition) return;
     isRecording = true;
-    btn.classList.add('recording');
-    btn.textContent = '⏹';
-    status.textContent = '녹음 중...';
-    status.classList.add('active');
-
+    btn.classList.add('recording'); btn.textContent = '⏹';
+    status.textContent = '녹음 중...'; status.classList.add('active');
     const el = document.getElementById('Memo');
     let baseText = el.value;
-    let interim = '';
-
     recognition.onresult = function(e) {
-      interim = '';
-      let final = '';
+      let interim = '', final = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) final += e.results[i][0].transcript;
         else interim += e.results[i][0].transcript;
@@ -611,23 +762,20 @@ function toggleVoice(name) {
       el.value = baseText + interim;
       el.scrollTop = el.scrollHeight;
     };
-
     recognition.onerror = function(e) {
       isRecording = false;
       if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
       if (status) { status.textContent = '음성'; status.classList.remove('active'); }
-      if (e.error !== 'aborted') alert('음성 인식 오류: ' + e.error + '\nHTTPS 환경 또는 Safari/Chrome에서 이용해주세요.');
+      if (e.error !== 'aborted') alert('음성 인식 오류: ' + e.error);
     };
-
-    recognition.onend = function() {
-      if (isRecording) recognition.start(); // 연속 모드 유지
-    };
-
+    recognition.onend = function() { if (isRecording) recognition.start(); };
     recognition.start();
   }
 }
 
-// ============ 라이브러리 동적 로드 ============
+// ============================================================
+// 라이브러리 동적 로드
+// ============================================================
 function loadScript(src, check) {
   return new Promise((resolve, reject) => {
     if (window[check]) { resolve(); return; }
@@ -637,7 +785,9 @@ function loadScript(src, check) {
   });
 }
 
-// ============ 차트 ============
+// ============================================================
+// 차트
+// ============================================================
 function drawDaily(data, goal, days) {
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
     const ctx = document.getElementById('DailyChart');
@@ -673,7 +823,9 @@ function drawCat(ratio) {
   }).catch(() => {});
 }
 
-// ============ 메모 저장 ============
+// ============================================================
+// 메모 — Firestore + localStorage 이중 저장
+// ============================================================
 const MEMO_KEY = 'oneclick-smalltalk-memos-v4';
 
 function loadMemosFromStorage() {
@@ -693,26 +845,56 @@ function saveMemosToStorage() {
   } catch(e) {}
 }
 
+async function loadMemosFromFirestore(userId) {
+  try {
+    const ok = await initFirebase();
+    if (!ok) { loadMemosFromStorage(); return; }
+    const doc = await _db.collection('users').doc(userId).get();
+    if (doc.exists && doc.data().memos) {
+      const memos = doc.data().memos;
+      Object.keys(memos).forEach(name => { if (DATA[name]) DATA[name].memo = memos[name]; });
+    }
+  } catch(e) {
+    console.warn('Firestore 불러오기 실패, localStorage 사용:', e);
+    loadMemosFromStorage();
+  }
+}
+
+async function saveMemosToFirestore() {
+  if (!currentUser) { saveMemosToStorage(); return; }
+  try {
+    const ok = await initFirebase();
+    if (!ok) { saveMemosToStorage(); return; }
+    const memos = {};
+    Object.keys(DATA).forEach(name => { if (DATA[name].memo && DATA[name].memo.length > 0) memos[name] = DATA[name].memo; });
+    await _db.collection('users').doc(currentUser.id).set({ memos }, { merge: true });
+    saveMemosToStorage();
+  } catch(e) {
+    console.warn('Firestore 저장 실패, localStorage 사용:', e);
+    saveMemosToStorage();
+  }
+}
+
 function saveMemo(name) {
   const txt = document.getElementById('Memo').value.trim();
   if (!txt) return;
   const now = new Date();
   const t = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   DATA[name].memo.unshift({ time: t, text: txt, ai: null });
-  saveMemosToStorage();
+  saveMemosToFirestore();
   render(name);
 }
 
 function deleteMemo(name, index) {
   if (!confirm('이 메모를 삭제하시겠습니까?')) return;
   DATA[name].memo.splice(index, 1);
-  saveMemosToStorage();
+  saveMemosToFirestore();
   render(name);
 }
 
-loadMemosFromStorage();
-
-// ============ 메모 엑셀 내보내기 ============
+// ============================================================
+// 메모 내보내기 (CSV)
+// ============================================================
 function exportMemos() {
   const rows = [['거래처명', '등급', '담당루트', '작성일시', '메모내용']];
   let totalCount = 0;
@@ -727,17 +909,19 @@ function exportMemos() {
   });
   if (totalCount === 0) { alert('저장된 메모가 없습니다.'); return; }
   const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
-  const bom = '﻿';
-  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const today = new Date();
-  const dateStr = today.getFullYear() + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2);
-  a.href = url; a.download = '원클릭스몰톡_메모_' + dateStr + '.csv';
+  const ds = today.getFullYear() + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2);
+  const userName = currentUser ? '_' + currentUser.name : '';
+  a.href = url; a.download = '원클릭스몰톡_메모' + userName + '_' + ds + '.csv';
   a.click(); URL.revokeObjectURL(url);
 }
 
-// ============ 지도 ============
+// ============================================================
+// 지도
+// ============================================================
 let leafletMap = null;
 let locMarker = null;
 
@@ -762,31 +946,17 @@ function closeMap() {
 
 function initMap() {
   if (leafletMap) { leafletMap.invalidateSize(); return; }
-
-  // 익산시 중심
   leafletMap = L.map('map').setView([35.948, 126.958], 14);
-
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-    maxZoom: 19
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
   }).addTo(leafletMap);
 
-  // 기존 거래처 — 파란색 마커
   Object.values(DATA).forEach(d => {
     const routeInfo = ROUTE_INFO[d.route] || {};
     const routeMembers = routeInfo.members || [];
     const routeLine = routeMembers.map(m => m === d.name ? '<strong>'+m+'</strong>' : m).join(' → ');
     const gradeColor = d.grade === 'A' ? '#0C447C' : d.grade === 'B' ? '#633806' : '#7C0C0C';
-
-    const marker = L.circleMarker([d.lat, d.lng], {
-      radius: 10,
-      fillColor: '#1D74C8',
-      color: '#fff',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.9
-    }).addTo(leafletMap);
-
+    const marker = L.circleMarker([d.lat, d.lng], { radius: 10, fillColor: '#1D74C8', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }).addTo(leafletMap);
     const popupHtml = `<div class="lf-popup" style="min-width:200px;">
       <h4>🏪 ${d.name} <span class="lf-grade" style="background:${d.grade==='A'?'#E6F1FB':d.grade==='B'?'#FAEEDA':'#FBE5E5'};color:${gradeColor};">등급 ${d.grade}</span></h4>
       <div class="lf-sub">${d.region} · 약사 ${d.pharmacist}</div>
@@ -795,21 +965,11 @@ function initMap() {
       <div class="lf-route-list">${routeLine}</div>
       <button class="lf-btn" onclick="pickFromMap('${d.name}')">자세히 보기 →</button>
     </div>`;
-
     marker.bindPopup(popupHtml, { maxWidth: 260 });
   });
 
-  // 신규 가능 약국 — 초록색 마커
   NEW_PHARMACIES.forEach(p => {
-    const marker = L.circleMarker([p.lat, p.lng], {
-      radius: 10,
-      fillColor: '#2d9c5a',
-      color: '#fff',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.9
-    }).addTo(leafletMap);
-
+    const marker = L.circleMarker([p.lat, p.lng], { radius: 10, fillColor: '#2d9c5a', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }).addTo(leafletMap);
     const popupHtml = `<div class="lf-popup" style="min-width:180px;">
       <h4>🏪 ${p.name}</h4>
       <div class="lf-sub">${p.region}</div>
@@ -817,7 +977,6 @@ function initMap() {
       <div style="font-size:12px;color:#6B6963;margin-bottom:8px;">거래 이력 없음 — 개척 대상</div>
       <button class="lf-btn lf-btn-new" onclick="newPharmacyNote('${p.name}', '${p.region}')">📝 메모 작성</button>
     </div>`;
-
     marker.bindPopup(popupHtml, { maxWidth: 220 });
   });
 }
@@ -845,7 +1004,17 @@ function locateMe() {
   }, () => { alert('위치를 가져올 수 없습니다. 위치 권한을 허용해주세요.'); });
 }
 
-document.getElementById('Result').innerHTML = '<div class="card" style="text-align:center;padding:40px 20px;color:#6B6963;"><h3 style="color:#1F1E1D;margin:0 0 8px;">🔍 거래처를 검색해주세요</h3><p style="margin:0;font-size:13px;">위 검색창을 클릭하면 데모 거래처 15곳이 표시됩니다.<br>글자 입력 시 매칭 거래처가 자동완성됩니다.</p></div>';
+// ============================================================
+// 시작
+// ============================================================
+(function start() {
+  initUserSelect();
+  const savedId = localStorage.getItem(USER_KEY);
+  if (savedId) {
+    const saved = USERS.find(u => u.id === savedId);
+    if (saved) { selectUser(saved); return; }
+  }
+})();
 </script>
 </body>
 </html>
