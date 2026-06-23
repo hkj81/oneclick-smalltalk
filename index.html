@@ -664,10 +664,14 @@ function render(name) {
   html += routeMembers.map(m => m === name ? '<strong style="color:#1D9E75;">'+m+'</strong>' : m).join(' → ');
   html += '</div></div>';
 
-  html += '<div class="card"><div class="section" style="margin-top:0">🎯 월 거래 금액 목표 진행률</div>';
+  html += '<div class="card">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+  html += '<div class="section" style="margin:0">🎯 월 거래 금액 목표 진행률</div>';
+  html += '<button onclick="editGoal(\''+name+'\')" style="padding:5px 12px;border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;">✏️ 목표 수정</button>';
+  html += '</div>';
   html += '<div class="goal-box"><div class="goal-row">';
   html += '<div><span class="goal-pct">'+pct+'%</span> <span style="font-size:13px;color:#6B6963;">달성 ('+d.monthDay+'일 차 / '+d.monthDays+'일)</span></div>';
-  html += '<div style="text-align:right;font-size:13px;"><strong>'+fmt(d.monthCurrent)+'</strong> / '+fmt(d.monthGoal)+'</div></div>';
+  html += '<div style="text-align:right;font-size:13px;"><strong>'+fmt(d.monthCurrent)+'</strong> / <span style="color:#1D9E75;font-weight:600;">'+fmt(d.monthGoal)+'</span></div></div>';
   html += '<div class="bar-track"><div class="bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+(pct>=100?'#1D9E75':pct>=80?'#639922':pct>=50?'#BA7517':'#E24B4A')+'"></div></div>';
   html += '<div class="goal-meta"><span>남은 '+remainingDays+'일</span><span>일평균 '+fmt(dailyNeed)+' 필요</span><span>'+(pct>=100?'목표 달성!':'목표까지 '+fmt(remaining))+'</span></div></div>';
   html += '<div class="chart-wrap"><canvas id="DailyChart"></canvas></div></div>';
@@ -877,6 +881,34 @@ function drawCat(ratio) {
 }
 
 // ============================================================
+// 목표액 수정
+// ============================================================
+function editGoal(name) {
+  const d = DATA[name];
+  const input = prompt(
+    '[ ' + name + ' ] 월 목표 금액 수정\n현재: ' + d.monthGoal.toLocaleString() + '원\n\n새 목표 금액을 입력하세요 (숫자만):',
+    d.monthGoal
+  );
+  if (input === null) return; // 취소
+  const newGoal = parseInt(String(input).replace(/[^0-9]/g, ''));
+  if (isNaN(newGoal) || newGoal <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
+  DATA[name].monthGoal = newGoal;
+  saveGoalsToFirestore();
+  render(name);
+}
+
+async function saveGoalsToFirestore() {
+  if (!currentUser) return;
+  try {
+    const ok = await initFirebase();
+    if (!ok) return;
+    const goals = {};
+    Object.keys(DATA).forEach(n => { goals[n] = DATA[n].monthGoal; });
+    await _db.collection('users').doc(currentUser.id).set({ goals }, { merge: true });
+  } catch(e) { console.warn('Goals save failed:', e); }
+}
+
+// ============================================================
 // 메모 — Firestore + localStorage 이중 저장
 // ============================================================
 const MEMO_KEY = 'oneclick-smalltalk-memos-v4';
@@ -903,9 +935,16 @@ async function loadMemosFromFirestore(userId) {
     const ok = await initFirebase();
     if (!ok) { loadMemosFromStorage(); return; }
     const doc = await _db.collection('users').doc(userId).get();
-    if (doc.exists && doc.data().memos) {
-      const memos = doc.data().memos;
-      Object.keys(memos).forEach(name => { if (DATA[name]) DATA[name].memo = memos[name]; });
+    if (doc.exists) {
+      const data = doc.data();
+      // 메모 불러오기
+      if (data.memos) {
+        Object.keys(data.memos).forEach(name => { if (DATA[name]) DATA[name].memo = data.memos[name]; });
+      }
+      // 목표액 불러오기
+      if (data.goals) {
+        Object.keys(data.goals).forEach(name => { if (DATA[name]) DATA[name].monthGoal = data.goals[name]; });
+      }
     }
   } catch(e) {
     console.warn('Firestore 불러오기 실패, localStorage 사용:', e);
