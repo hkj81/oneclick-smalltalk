@@ -6122,52 +6122,5 @@ function openVetModal(name) {
   </div>
 </div>
 
-<!-- ====== MAP MODAL ====== -->
-<div id="MapModal">
-  <div class="map-header">
-    <button class="map-close-btn" onclick="closeMap()">← 닫기</button>
-    <div class="map-title">📍 주변 약국 지도</div>
-    <div class="map-legend">
-      <span><span class="legend-dot" style="background:#1D74C8"></span>기존 거래처</span>
-      <span><span class="legend-dot" style="background:#2d9c5a"></span>신규 가능</span>
-    </div>
-    <button class="map-locate-btn" onclick="locateMe()">📍 내 위치</button>
-  </div>
-  <div id="map"></div>
-</div>
-
-<!-- ====== LOGIN ====== -->
-<div id="Login" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#F5F4EE;padding:20px;">
-  <div style="text-align:center;margin-bottom:32px;">
-    <div style="width:80px;height:80px;border:4px solid #C9A84C;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#C9A84C;margin:0 auto 12px;cursor:pointer;" onclick="document.getElementById('App').style.display='block';document.getElementById('Login').style.display='none';initUserSelect();">ONE</div>
-    <h1 style="font-size:24px;font-weight:800;color:#2B2B2B;margin:0 0 4px;">원클릭 스몰톡</h1>
-    <p style="color:#888;font-size:14px;margin:0;">2팀 전광석화</p>
-  </div>
-  <div style="background:#fff;border:2px solid #1D9E75;border-radius:12px;padding:0;width:100%;max-width:320px;position:relative;">
-    <div style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleUsDropdown()">
-      <span id="UsLoadName" style="color:#888;font-size:15px;">이름을 선택하세요</span>
-      <span style="color:#888;">▼</span>
-    </div>
-    <div id="UsSelectContent" style="display:none;border-top:1px solid #eee;">
-      <div style="padding:8px;"><input type="text" id="UsSearchInput" placeholder="이름 검색..." oninput="initUserSelect()" style="width:100%;padding:8px;border:1px solid #eee;border-radius:6px;font-size:13px;box-sizing:border-box;"/></div>
-      <div id="UsDropdown" style="max-height:200px;overflow-y:auto;"></div>
-    </div>
-  </div>
-  <p style="color:#aaa;font-size:12px;margin-top:16px;text-align:center;">선택한 사용자의 메모가 모든 기기에서 동기화됩니다</p>
-  <div id="UsLoadMsg" style="color:#1D9E75;font-size:13px;margin-top:8px;"></div>
-</div>
-
-<!-- ====== MAIN APP ====== -->
-<div id="App" style="display:none;">
-<div class="container">
-
-<div class="header">
-  <div class="header-row">
-    <div>
-      <h1>원클릭 스몰톡</h1>
-      <p>2팀 전광석화 · <span id="UserBadgeName"></span></p>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button class="map-btn" onclick="openMap()">📍 지도</button>
-      <button onclick="exportMemos()" style="padding:8px 14px;border:1px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">📥 메모</button>
-      <button onclick="setUserTarget()" style="padding:8px 14px;border:1px solid #888;background:#fff;color:#555;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;"
+</body>
+</html>
