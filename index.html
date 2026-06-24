@@ -1755,7 +1755,7 @@ const GEN_MONTHLY = {
   '황등 황등종로약국': {1:1572104,2:1520422,3:2568042,4:1574993,5:1475904,6:983540},
 };
 
-const PRO_ITEMS_MONTHLY {
+const PRO_ITEMS_MONTHLY = {
   '용안 중앙약국':{
     '리리카300mg':{1:{a:103920,q:4},2:{a:129900,q:5},3:{a:389700,q:15},4:{a:259800,q:10},5:{a:467640,q:18},6:{a:181860,q:7}},
     '미녹시딜5mg':{1:{a:474000,q:20},2:{a:189600,q:8},4:{a:474000,q:20}},
@@ -2459,7 +2459,7 @@ const PRO_ITEMS_MONTHLY {
   },
 };
 
-const GEN_ITEMS_MONTHLY {
+const GEN_ITEMS_MONTHLY = {
   '용안 중앙약국':{
     '타이레놀500mg':{1:{a:139440,q:60},2:{a:133800,q:40},3:{a:687000,q:300},4:{a:93900,q:15},6:{a:74000,q:10}},
     '후시딘연고':{1:{a:122400,q:20},2:{a:723900,q:120},3:{a:61000,q:10},6:{a:164500,q:30}},
@@ -4090,7 +4090,7 @@ function openPbModal() {
     const q = qtotals[prod]||0;
     const p = ptotals[prod]||0;
     const escapedProd = prod.replace(/'/g,"\\'");
-    html += '<div class="pb-modal-item"><span style="width:100px;flex-shrink:0;'+(isKw?'font-weight:700;color:#3C3489;':'')+'">'+prod+(isKw?' ★':'')+'</span><span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+q+'개</span><span style="width:26px;text-align:right;color:#6C5CE7;font-size:11px;flex-shrink:0;cursor:pointer;text-decoration:underline;" onclick="showPbPharmsFor(\''+escapedProd+'\')">'+p+'처</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
+    html += '<div class="pb-modal-item"><span style="width:100px;flex-shrink:0;'+(isKw?'font-weight:700;color:#3C3489;':'')+'">' +prod+(isKw?' ★':'')+'</span><span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+q+'개</span><span style="width:26px;text-align:right;color:#6C5CE7;font-size:11px;flex-shrink:0;cursor:pointer;text-decoration:underline;" onclick="showPbPharmsFor(\''+escapedProd+'\')">'+p+'처</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
   });
   openModal(currentMonth+'월 전 거래처 PB 품목별 합계', html);
 }
@@ -4105,7 +4105,7 @@ function openPharmPbModal(name) {
   let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">'+sorted.length+'개 품목 / 합계 '+fmt(total)+'원</div>';
   sorted.forEach(x=>{
     const pct = total>0?Math.round(x.amt/total*100):0;
-    html += '<div class="pb-modal-item"><span style="width:140px;flex-shrink:0;">'+x.name+'</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(x.amt)+'</span></div>';
+    html += '<div class="pb-modal-item"><span style="width:110px;flex-shrink:0;">'+x.name+'</span><span style="width:30px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+(x.qty||0)+'개</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(x.amt)+'</span></div>';
   });
   openModal(currentMonth+'월 PB 출하 품목 ('+name.split(' ').slice(1).join(' ')+')', html);
 }
@@ -4114,7 +4114,6 @@ function openPharmPbModal(name) {
 function openPb21CheckModal() {
   const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
   if (!kws.length) { openModal('21품목 매출 현황', '<p>이번 달 지정 품목 없음</p>'); return; }
-  // 품목별로 매출 있는 거래처 목록
   let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">'+currentMonth+'월 이달의 PB 21품목 전 거래처 매출 현황</div>';
   kws.forEach(kw => {
     const pharmacies = [];
@@ -4139,7 +4138,6 @@ function openVetModal(name) {
   const mySorted = Object.entries(myItems)
     .map(([k,v])=>({name:k,amt:v[currentMonth]||0}))
     .filter(x=>x.amt>0).sort((a,b)=>b.amt-a.amt);
-  // 전 거래처 합산
   const allTotals = {};
   Object.values(ANIMAL_ITEMS_MONTHLY).forEach(items=>{
     Object.entries(items).forEach(([k,v])=>{
@@ -4150,7 +4148,6 @@ function openVetModal(name) {
   const allTotal = Object.values(allTotals).reduce((s,v)=>s+v,0);
   const myTotal = mySorted.reduce((s,x)=>s+x.amt,0);
   let html = '';
-  // 이 거래처
   const shortN = name.split(' ').slice(1).join(' ');
   html += '<div style="font-weight:700;font-size:13px;color:#3C3489;margin-bottom:6px;">📍 '+shortN+' ('+fmt(myTotal)+'원)</div>';
   if (mySorted.length === 0) {
@@ -4161,5 +4158,96 @@ function openVetModal(name) {
       html += '<div class="pb-modal-item"><span style="width:130px;flex-shrink:0;font-size:12px;">'+x.name+'</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;background:#00b894;"></div></div><span class="pb-modal-amt">'+fmt(x.amt)+'</span></div>';
     });
   }
-  // 전 거래처 TOP
-  html += '<div style="font-weight:7
+  html += '<div style="font-weight:700;font-size:13px;color:#1D9E75;margin:14px 0 6px;">🏆 전 거래처 상위 품목 ('+fmt(allTotal)+'원)</div>';
+  allSorted.forEach(([prod,amt])=>{
+    const pct=allTotal>0?Math.round(amt/allTotal*100):0;
+    const isMe = (myItems[prod]&&(myItems[prod][currentMonth]||0)>0);
+    html += '<div class="pb-modal-item"><span style="width:130px;flex-shrink:0;font-size:12px;'+(isMe?'font-weight:700;':'')+'">'+prod+(isMe?' ✓':'')+'</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;background:#1D9E75;"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
+  });
+  openModal(currentMonth+'월 동물약 현황 ('+shortN+')', html);
+}
+</script>
+
+<!-- ===== PB 모달 ===== -->
+<div class="pb-modal-overlay" id="pbModalOverlay" onclick="if(event.target===this)closePbModal()">
+  <div class="pb-modal">
+    <div class="pb-modal-header">
+      <span class="pb-modal-title" id="pbModalTitle"></span>
+      <button class="pb-modal-close" onclick="closePbModal()">×</button>
+    </div>
+    <div id="pbModalBody"></div>
+  </div>
+</div>
+
+<!-- ====== MAP MODAL ====== -->
+<div id="MapModal">
+  <div class="map-header">
+    <button class="map-close-btn" onclick="closeMap()">← 닫기</button>
+    <div class="map-title">📍 주변 약국 지도</div>
+    <div class="map-legend">
+      <span><span class="legend-dot" style="background:#1D74C8"></span>기존 거래처</span>
+      <span><span class="legend-dot" style="background:#2d9c5a"></span>신규 가능</span>
+    </div>
+    <button class="map-locate-btn" onclick="locateMe()">📍 내 위치</button>
+  </div>
+  <div id="map"></div>
+</div>
+
+<!-- ====== LOGIN ====== -->
+<div id="Login" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#F5F4EE;padding:20px;">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div style="width:80px;height:80px;border:4px solid #C9A84C;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#C9A84C;margin:0 auto 12px;cursor:pointer;" onclick="document.getElementById('App').style.display='block';document.getElementById('Login').style.display='none';initUserSelect();">ONE</div>
+    <h1 style="font-size:24px;font-weight:800;color:#2B2B2B;margin:0 0 4px;">원클릭 스몰톡</h1>
+    <p style="color:#888;font-size:14px;margin:0;">2팀 전광석화</p>
+  </div>
+  <div style="background:#fff;border:2px solid #1D9E75;border-radius:12px;padding:0;width:100%;max-width:320px;position:relative;">
+    <div style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleUsDropdown()">
+      <span id="UsLoadName" style="color:#888;font-size:15px;">이름을 선택하세요</span>
+      <span style="color:#888;">▼</span>
+    </div>
+    <div id="UsSelectContent" style="display:none;border-top:1px solid #eee;">
+      <div style="padding:8px;"><input type="text" id="UsSearchInput" placeholder="이름 검색..." oninput="initUserSelect()" style="width:100%;padding:8px;border:1px solid #eee;border-radius:6px;font-size:13px;box-sizing:border-box;"/></div>
+      <div id="UsDropdown" style="max-height:200px;overflow-y:auto;"></div>
+    </div>
+  </div>
+  <p style="color:#aaa;font-size:12px;margin-top:16px;text-align:center;">선택한 사용자의 메모가 모든 기기에서 동기화됩니다</p>
+  <div id="UsLoadMsg" style="color:#1D9E75;font-size:13px;margin-top:8px;"></div>
+</div>
+
+<!-- ====== MAIN APP ====== -->
+<div id="App" style="display:none;">
+<div class="container">
+
+<div class="header">
+  <div class="header-row">
+    <div>
+      <h1>원클릭 스몰톡</h1>
+      <p>2팀 전광석화 · <span id="UserBadgeName"></span></p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="map-btn" onclick="openMap()">📍 지도</button>
+      <button onclick="exportMemos()" style="padding:8px 14px;border:1px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;">📥 메모</button>
+      <button onclick="setUserTarget()" style="padding:8px 14px;border:1px solid #888;background:#fff;color:#555;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;">🎯 목표</button>
+    </div>
+  </div>
+</div>
+
+<div id="FilterBar" style="background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+  <span style="font-size:12px;color:#888;">월 선택:</span>
+</div>
+
+<div class="search">
+  <input type="text" id="Q" placeholder="거래처명 입력..." oninput="onQuery()" onfocus="onQuery()" onkeydown="if(event.key==='Enter')doSearch()" autocomplete="off" />
+  <button onclick="doSearch()">검색</button>
+  <div id="Dropdown" class="dd" style="display:none;"></div>
+</div>
+
+<div id="TargetDisplay" style="display:none;"></div>
+<div id="MonthDisplay" style="display:none;"></div>
+<div id="Result"></div>
+
+</div>
+</div>
+
+</body>
+</html>
