@@ -641,8 +641,96 @@ const MEMOS = {
   '새약국': [{ time: '2026-06-05 09:45', text: '최약사님 골프 좋아하심. 다음 주말 라운드 예정.', ai: '취미 공통점 라포 형성. 다음 방문 시 골프 화제 자연스럽게.' }],
 };
 
+const RETURN_RATES = {
+  '용안 중앙약국': 3.5,
+  '익산 광제약국': 5.3,
+  '익산 대성약국': 7.9,
+  '익산 대학종로약국': 5.3,
+  '익산 모인약국': 8.4,
+  '익산 문약국': 1.8,
+  '익산 보람찬약국': 5.6,
+  '익산 보름달약국': 9.4,
+  '익산 비타민약국': 2.4,
+  '익산 상아약국': 14.1,
+  '익산 성실약국': 4.7,
+  '익산 세계로약국': 5.7,
+  '익산 어양우리약국': 0.3,
+  '익산 웃음약국': 12.8,
+  '익산 유한약국': 3.2,
+  '익산 익산 라온약국': 7.0,
+  '익산 익산건강한약국': 3.1,
+  '익산 익산종합약국': 4.2,
+  '익산 정문약국': 5.5,
+  '익산 정성온누리약국': 4.8,
+  '익산 청십자약국': 5.4,
+  '익산 초당약국': 2.6,
+  '익산 하나로약국': 5.1,
+  '전주 나을약국': 14.0,
+  '함열 박약국': 5.2,
+  '함열 성심약국': 2.6,
+  '함열 약손약국': 4.0,
+  '함열 유명종로약국': 2.1,
+  '함열 일등약국': 3.4,
+  '함열 함열건강약국': 2.0,
+  '함열 함열보령약국': 2.9,
+  '함열 함열온누리약국': 11.6,
+  '함열 함열태평양약국': 4.5,
+  '황등 온누리약국': 3.1,
+  '황등 평화약국': 29.2,
+  '황등 호남약국': 2.8,
+  '황등 황등바른약국': 7.5,
+  '황등 황등사랑약국': 7.3,
+  '황등 황등솔약국': 3.0,
+  '황등 황등종로약국': 5.1,
+};
+
+const RETURN_AMTS = {
+  '용안 중앙약국': 1045170,
+  '익산 광제약국': 3305084,
+  '익산 대성약국': 3847852,
+  '익산 대학종로약국': 57420740,
+  '익산 모인약국': 1754989,
+  '익산 문약국': 980670,
+  '익산 보람찬약국': 1612817,
+  '익산 보름달약국': 1454215,
+  '익산 비타민약국': 1775210,
+  '익산 상아약국': 7407629,
+  '익산 성실약국': 446794,
+  '익산 세계로약국': 21546415,
+  '익산 어양우리약국': 17100,
+  '익산 웃음약국': 1300895,
+  '익산 유한약국': 1049918,
+  '익산 익산 라온약국': 1504328,
+  '익산 익산건강한약국': 583262,
+  '익산 익산종합약국': 1362513,
+  '익산 정문약국': 1435448,
+  '익산 정성온누리약국': 1024366,
+  '익산 청십자약국': 2384120,
+  '익산 초당약국': 531238,
+  '익산 하나로약국': 10437019,
+  '전주 나을약국': 5901498,
+  '함열 박약국': 11013433,
+  '함열 성심약국': 856895,
+  '함열 약손약국': 759721,
+  '함열 유명종로약국': 1980819,
+  '함열 일등약국': 6960201,
+  '함열 함열건강약국': 1103475,
+  '함열 함열보령약국': 4687475,
+  '함열 함열온누리약국': 5906906,
+  '함열 함열태평양약국': 7339657,
+  '황등 온누리약국': 1067189,
+  '황등 평화약국': 20311358,
+  '황등 호남약국': 2292085,
+  '황등 황등바른약국': 9067025,
+  '황등 황등사랑약국': 546974,
+  '황등 황등솔약국': 530320,
+  '황등 황등종로약국': 3820522,
+};
+
 function makeData(arr) {
-  const [name, region, pharmacist, grade, sales, trend, returnRate, debt, monthGoal, pbRatio, hasVet, vetM, route, lat, lng] = arr;
+  const [name, region, pharmacist, grade, sales, trend, _returnRate, debt, monthGoal, pbRatio, hasVet, vetM, route, lat, lng] = arr;
+  const returnRate = RETURN_RATES[name] !== undefined ? RETURN_RATES[name] : _returnRate;
+  const returnAmt = RETURN_AMTS[name] || 0;
   const real = PHARMACY_REAL[name];
   const realPbM     = real ? Math.round(real.pb / 6) : 0;
   const realAnimalM = real ? Math.round(real.animal / 6) : 0;
@@ -692,7 +780,7 @@ function makeData(arr) {
     return { name: n, qty: Math.max(1, Math.round(itemSales / 92000)), sales: itemSales };
   }) : [];
   return {
-    name, region, pharmacist, grade, sales, salesTrend: trend, returnRate, debt,
+    name, region, pharmacist, grade, sales, salesTrend: trend, returnRate, returnAmt, debt,
     monthGoal, monthCurrent, monthDay: 24, monthDays: 30,
     daily, proTop, genTop, animalTop, pbThisMonthItems,
     catRatio, catSales, catTrend,
@@ -874,7 +962,7 @@ function render(name) {
   html += '</div>';
   html += '<div class="metric-trend '+(trendUp?'up':'down')+'" style="margin-top:4px;">'+d.salesTrend+'</div>';
   html += '</div>';
-  html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div class="metric-trend '+(d.returnRate<3?'up':'down')+'">'+(d.returnRate<3?'양호':'주의')+'</div></div>';
+  html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div style="font-size:11px;color:#888;margin-top:2px;">'+fmt(d.returnAmt)+'</div><div class="metric-trend '+(d.returnRate<7?'up':'down')+'">'+(d.returnRate<7?'양호':'주의')+'</div></div>';
   html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
   html += '</div>';
   html += '<div style="background:#F5F4EE;border-radius:8px;padding:10px 14px;margin-top:4px;font-size:13px;">';
