@@ -475,6 +475,7 @@ function changeMonth(delta) {
       const rAmt = (RETURN_AMTS_MONTHLY[name] && RETURN_AMTS_MONTHLY[name][currentMonth]) ? RETURN_AMTS_MONTHLY[name][currentMonth] : 0;
       DATA[name].returnAmt = rAmt;
       DATA[name].returnRate = DATA[name].sales > 0 ? Math.round(rAmt / DATA[name].sales * 1000) / 10 : 0;
+      DATA[name].monthGoal = calc3mGoal(name, currentMonth);
     }
   });
   updateFilterBar();
@@ -730,8 +731,25 @@ const RETURN_AMTS_MONTHLY = {
   '황등 황등종로약국': {1:1041804, 3:17489, 4:84700, 5:1221965, 6:368700},
 };
 
+function calc3mGoal(name, baseMonth) {
+  const real = PHARMACY_REAL[name];
+  if (!real) return 0;
+  // baseMonth 기준 직전 3개월 평균
+  const months = [];
+  for (let m = baseMonth - 3; m < baseMonth; m++) {
+    if (m >= 1 && real.monthly[m]) months.push(real.monthly[m]);
+  }
+  // 직전 3개월 데이터 없으면 가용 월 전체 평균
+  if (months.length === 0) {
+    const all = Object.values(real.monthly);
+    return all.length > 0 ? Math.round(all.reduce((a,b)=>a+b,0)/all.length) : 0;
+  }
+  return Math.round(months.reduce((a,b)=>a+b,0)/months.length);
+}
+
 function makeData(arr) {
-  const [name, region, pharmacist, grade, sales, trend, _returnRate, debt, monthGoal, pbRatio, hasVet, vetM, route, lat, lng] = arr;
+  const [name, region, pharmacist, grade, sales, trend, _returnRate, debt, _monthGoal, pbRatio, hasVet, vetM, route, lat, lng] = arr;
+  const monthGoal = PHARMACY_REAL[name] ? calc3mGoal(name, currentMonth) : _monthGoal;
   const returnAmt = (RETURN_AMTS_MONTHLY[name] && RETURN_AMTS_MONTHLY[name][currentMonth]) ? RETURN_AMTS_MONTHLY[name][currentMonth] : 0;
   const returnRate = sales > 0 ? Math.round(returnAmt / sales * 1000) / 10 : (RETURN_RATES[name] !== undefined ? RETURN_RATES[name] : _returnRate);
   const real = PHARMACY_REAL[name];
