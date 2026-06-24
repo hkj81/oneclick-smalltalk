@@ -2125,23 +2125,6 @@ function render(name) {
   html += '<div class="pb-stat-sub">'+kw21Count+' / '+(MONTHLY_PB_KEYWORDS[currentMonth]||[]).length+' 품목 매출 발생</div></div>';
   html += '<div class="pb-stat" onclick="openVetModal(curName)" style="cursor:pointer;"><div class="pb-stat-label">동물약 ('+shortName+') 🔍</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(vetTotalAll)+'</div></div>';
   html += '</div></div>';
-  // PB 품목별 금액 테이블
-  if (d.pbThisMonthItems && d.pbThisMonthItems.length > 0) {
-    const pbTotalReal = d.pbThisMonthItems.reduce((s,x)=>s+x.sales,0);
-    html += '<div style="margin:8px 16px 0;background:#FAF9FF;border-radius:8px;padding:10px 12px;">';
-    html += '<div style="font-size:11px;font-weight:600;color:#3C3489;margin-bottom:6px;">품목별 금액 ('+d.pbThisMonthItems.length+'개)</div>';
-    html += '<div style="display:flex;flex-direction:column;gap:3px;">';
-    d.pbThisMonthItems.forEach(item => {
-      const pct = pbTotalReal > 0 ? Math.round(item.sales / pbTotalReal * 100) : 0;
-      html += '<div style="display:flex;align-items:center;gap:6px;font-size:12px;">';
-      html += '<span style="flex:1;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+item.name+'</span>';
-      html += '<div style="width:60px;height:5px;background:#E8E6FF;border-radius:3px;overflow:hidden;flex-shrink:0;">';
-      html += '<div style="width:'+pct+'%;height:100%;background:#6C5CE7;border-radius:3px;"></div></div>';
-      html += '<span style="color:#3C3489;font-weight:600;width:64px;text-align:right;flex-shrink:0;">'+fmt(item.sales)+'</span>';
-      html += '</div>';
-    });
-    html += '</div></div>';
-  }
   html += '<div class="insight" style="background:#F5F4FE;color:#3C3489;"><strong>영업 인사이트:</strong> ';
   if (d.catRatio.pb >= 15) html += '✓ PB 비중 우수. 신제품 PB·동물약 카테고리 확장 권장.';
   else if (d.catRatio.pb >= 10) html += '○ PB 평균 수준. 동물약 ' + (d.vet3mAvg>0 ? '유지' : '미발주 — 신규 영업 기회') + '.';
