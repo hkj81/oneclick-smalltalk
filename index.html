@@ -853,8 +853,6 @@ function render(name) {
   html += '</div></div>';
 
   document.getElementById('Result').innerHTML = html;
-  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 10
-  document.getElementById('Result').innerHTML = html;
   setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 100);
 }
 
@@ -1001,10 +999,7 @@ function drawGrade(proGrade) {
 // ============================================================
 function editSales(name) {
   const d = DATA[name];
-  const input = prompt(
-    '[ ' + name + ' ] 이번달 매출 수정\n현재: ' + d.sales.toLocaleString() + '원\n\n실제 매출 금액을 입력하세요 (숫자만):',
-    d.sales
-  );
+  const input = prompt('[ ' + name + ' ] 이번달 매출 수정\n현재: ' + d.sales.toLocaleString() + '원\n\n실제 매출 금액을 입력하세요 (숫자만):', d.sales);
   if (input === null) return;
   const newSales = parseInt(String(input).replace(/[^0-9]/g, ''));
   if (isNaN(newSales) || newSales < 0) { alert('올바른 금액을 입력해주세요.'); return; }
@@ -1027,10 +1022,7 @@ async function saveSalesToFirestore() {
 
 function editGoal(name) {
   const d = DATA[name];
-  const input = prompt(
-    '[ ' + name + ' ] 월 목표 금액 수정\n현재: ' + d.monthGoal.toLocaleString() + '원\n\n새 목표 금액을 입력하세요 (숫자만):',
-    d.monthGoal
-  );
+  const input = prompt('[ ' + name + ' ] 월 목표 금액 수정\n현재: ' + d.monthGoal.toLocaleString() + '원\n\n새 목표 금액을 입력하세요 (숫자만):', d.monthGoal);
   if (input === null) return;
   const newGoal = parseInt(String(input).replace(/[^0-9]/g, ''));
   if (isNaN(newGoal) || newGoal <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
@@ -1051,7 +1043,7 @@ async function saveGoalsToFirestore() {
 }
 
 // ============================================================
-// 메모 — Firestore + localStorage 이중 저장
+// 메모 저장
 // ============================================================
 const MEMO_KEY = 'oneclick-smalltalk-memos-v4';
 
@@ -1076,27 +1068,15 @@ async function loadMemosFromFirestore(userId) {
   try {
     const ok = await initFirebase();
     if (!ok) { loadMemosFromStorage(); return; }
-    // 5초 타임아웃 적용
     const doc = await Promise.race([
       _db.collection('users').doc(userId).get(),
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
     ]);
     if (doc.exists) {
       const data = doc.data();
-      if (data.memos) {
-        Object.keys(data.memos).forEach(name => { if (DATA[name]) DATA[name].memo = data.memos[name]; });
-      }
-      if (data.goals) {
-        Object.keys(data.goals).forEach(name => { if (DATA[name]) DATA[name].monthGoal = data.goals[name]; });
-      }
-      if (data.sales) {
-        Object.keys(data.sales).forEach(name => {
-          if (DATA[name]) {
-            DATA[name].sales = data.sales[name];
-            DATA[name].monthCurrent = Math.round(data.sales[name] * 0.81);
-          }
-        });
-      }
+      if (data.memos) { Object.keys(data.memos).forEach(name => { if (DATA[name]) DATA[name].memo = data.memos[name]; }); }
+      if (data.goals) { Object.keys(data.goals).forEach(name => { if (DATA[name]) DATA[name].monthGoal = data.goals[name]; }); }
+      if (data.sales) { Object.keys(data.sales).forEach(name => { if (DATA[name]) { DATA[name].sales = data.sales[name]; DATA[name].monthCurrent = Math.round(data.sales[name] * 0.81); } }); }
     }
   } catch(e) {
     console.warn('Firestore 불러오기 실패, localStorage 사용:', e);
@@ -1113,10 +1093,7 @@ async function saveMemosToFirestore() {
     Object.keys(DATA).forEach(name => { if (DATA[name].memo && DATA[name].memo.length > 0) memos[name] = DATA[name].memo; });
     await _db.collection('users').doc(currentUser.id).set({ memos }, { merge: true });
     saveMemosToStorage();
-  } catch(e) {
-    console.warn('Firestore 저장 실패, localStorage 사용:', e);
-    saveMemosToStorage();
-  }
+  } catch(e) { console.warn('Firestore 저장 실패:', e); saveMemosToStorage(); }
 }
 
 function saveMemo(name) {
@@ -1136,86 +1113,58 @@ function deleteMemo(name, index) {
   render(name);
 }
 
-// ============================================================
-// 메모 내보내기 (CSV)
-// ============================================================
 function exportMemos() {
-  const rows = [['거래처명', '등급', '담당루트', '작성일시', '메모내용']];
-  let totalCount = 0;
+  const rows = [['거래처명','등급','담당루트','작성일시','메모내용']];
+  let cnt = 0;
   Object.keys(DATA).forEach(name => {
     const d = DATA[name];
-    if (d.memo && d.memo.length > 0) {
-      d.memo.forEach(m => {
-        rows.push([name, d.grade || '', d.route || '', m.time || '', m.text || '']);
-        totalCount++;
-      });
-    }
+    if (d.memo && d.memo.length > 0) { d.memo.forEach(m => { rows.push([name, d.grade||'', d.route||'', m.time||'', m.text||'']); cnt++; }); }
   });
-  if (totalCount === 0) { alert('저장된 메모가 없습니다.'); return; }
-  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  if (cnt === 0) { alert('저장된 메모가 없습니다.'); return; }
+  const csv = rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const today = new Date();
-  const ds = today.getFullYear() + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2);
-  const userName = currentUser ? '_' + currentUser.name : '';
-  a.href = url; a.download = '원클릭스몰톡_메모' + userName + '_' + ds + '.csv';
-  a.click(); URL.revokeObjectURL(url);
+  const ds = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const un = currentUser ? '_'+currentUser.name : '';
+  a.href=url; a.download='원클릭스몰톡_메모'+un+'_'+ds+'.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
 // ============================================================
 // 지도
 // ============================================================
-let leafletMap = null;
-let locMarker = null;
+let leafletMap = null, locMarker = null;
 
 function openMap() {
   document.getElementById('MapModal').classList.add('open');
   if (!document.querySelector('link[href*="leaflet"]')) {
-    const lnk = document.createElement('link');
-    lnk.rel = 'stylesheet';
-    lnk.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    const lnk = document.createElement('link'); lnk.rel='stylesheet';
+    lnk.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
     document.head.appendChild(lnk);
   }
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js', 'L').then(() => {
-    setTimeout(initMap, 100);
-  }).catch(() => {
-    document.getElementById('map').innerHTML = '<div style="padding:20px;text-align:center;color:#666;">지도를 로드할 수 없습니다.</div>';
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js','L').then(() => { setTimeout(initMap,100); }).catch(() => {
+    document.getElementById('map').innerHTML='<div style="padding:20px;text-align:center;color:#666;">지도를 로드할 수 없습니다.</div>';
   });
 }
 
-function closeMap() {
-  document.getElementById('MapModal').classList.remove('open');
-}
+function closeMap() { document.getElementById('MapModal').classList.remove('open'); }
 
 function initMap() {
   if (leafletMap) { leafletMap.invalidateSize(); return; }
-  leafletMap = L.map('map').setView([35.948, 126.958], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors', maxZoom: 19
-  }).addTo(leafletMap);
-
+  leafletMap = L.map('map').setView([35.948, 126.920], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19 }).addTo(leafletMap);
   Object.values(DATA).forEach(d => {
     if (!d.lat || !d.lng) return;
     const marker = L.circleMarker([d.lat, d.lng], { radius: 10, fillColor: '#1D74C8', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }).addTo(leafletMap);
-    const popupHtml = `<div class="lf-popup" style="min-width:200px;">
-      <h4>🏪 ${d.name} <span class="lf-grade">등급 ${d.grade}</span></h4>
-      <div class="lf-sub">${d.region}</div>
-      <div class="lf-sales">${fmt(d.sales)} <span style="color:${d.salesTrend.startsWith('+')?'#639922':'#E24B4A'};font-size:12px;">${d.salesTrend}</span></div>
-      <button class="lf-btn" onclick="pickFromMap('${d.name}')">자세히 보기 →</button>
-    </div>`;
-    marker.bindPopup(popupHtml, { maxWidth: 260 });
+    const pHtml = '<div style="min-width:180px;"><h4>🏪 '+d.name+'</h4><div style="font-size:12px;color:#666;margin-bottom:6px;">'+d.region+'</div><div style="font-weight:600;margin-bottom:8px;">'+fmt(d.sales)+'</div><button onclick="pickFromMap(this.dataset.n)" data-n="'+d.name+'" style="width:100%;padding:8px;background:#1D9E75;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">자세히 보기 →</button></div>';
+    marker.bindPopup(pHtml, { maxWidth: 240 });
   });
 }
 
-function pickFromMap(name) {
-  closeMap();
-  document.getElementById('Q').value = name;
-  pick(name);
-}
+function pickFromMap(name) { closeMap(); document.getElementById('Q').value = name; pick(name); }
 
 function locateMe() {
-  if (!navigator.geolocation) { alert('이 브라우저는 위치 서비스를 지원하지 않습니다.'); return; }
+  if (!navigator.geolocation) { alert('위치 서비스를 지원하지 않습니다.'); return; }
   navigator.geolocation.getCurrentPosition(pos => {
     const lat = pos.coords.latitude, lng = pos.coords.longitude;
     if (!leafletMap) return;
