@@ -472,6 +472,9 @@ function changeMonth(delta) {
     if (real) {
       DATA[name].sales = real.monthly[currentMonth] || 0;
       DATA[name].monthCurrent = Math.round(DATA[name].sales * 0.81);
+      const rAmt = (RETURN_AMTS_MONTHLY[name] && RETURN_AMTS_MONTHLY[name][currentMonth]) ? RETURN_AMTS_MONTHLY[name][currentMonth] : 0;
+      DATA[name].returnAmt = rAmt;
+      DATA[name].returnRate = DATA[name].sales > 0 ? Math.round(rAmt / DATA[name].sales * 1000) / 10 : 0;
     }
   });
   updateFilterBar();
