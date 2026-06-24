@@ -187,6 +187,18 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 #UsLoadMsg .load-icon { font-size: 36px; margin-bottom: 12px; }
 #UsLoadMsg .load-text { font-size: 15px; color: #1F1E1D; font-weight: 600; margin-bottom: 4px; }
 #UsLoadMsg .load-sub { font-size: 13px; color: #6B6963; }
+
+/* ===== 필터바 ===== */
+.filter-bar { background:#fff; border:1px solid #E8E6DC; border-radius:10px; padding:10px 16px; margin-bottom:10px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.filter-label { font-size:12px; font-weight:700; color:#6B6963; letter-spacing:0.5px; padding-right:10px; border-right:1px solid #E8E6DC; }
+.filter-item { display:flex; align-items:center; gap:6px; }
+.filter-name { font-size:12px; color:#6B6963; }
+.filter-month-btn { width:26px; height:26px; border:1px solid #E8E6DC; background:#F5F4EE; border-radius:5px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; font-family:inherit; }
+.filter-month-btn:hover { background:#E8E6DC; }
+.filter-month-val { font-size:15px; font-weight:700; color:#1F1E1D; min-width:58px; text-align:center; font-family:monospace; }
+.filter-target-val { font-size:15px; font-weight:700; color:#1D9E75; cursor:pointer; padding:3px 10px; border:1.5px dashed #1D9E75; border-radius:6px; min-width:120px; text-align:center; }
+.filter-target-val:hover { background:#F0FBF6; }
+.filter-sep { width:1px; height:24px; background:#E8E6DC; }
 </style>
 </head>
 <body>
@@ -260,6 +272,21 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
       <button class="user-badge" id="UserBadge" onclick="changeUser()">👤 <span id="UserBadgeName">로딩 중...</span> <span style="font-size:11px;opacity:0.7;">변경</span></button>
       <button class="map-btn" onclick="openMap()">📍 지도 보기</button>
     </div>
+  </div>
+</div>
+
+<div class="filter-bar" id="FilterBar" style="display:none;">
+  <span class="filter-label">검색조건</span>
+  <div class="filter-item">
+    <span class="filter-name">기준년월</span>
+    <button class="filter-month-btn" onclick="changeMonth(-1)">◀</button>
+    <span class="filter-month-val" id="MonthDisplay">2026.06</span>
+    <button class="filter-month-btn" onclick="changeMonth(1)">▶</button>
+  </div>
+  <div class="filter-sep"></div>
+  <div class="filter-item">
+    <span class="filter-name">목표액</span>
+    <span class="filter-target-val" id="TargetDisplay" onclick="setUserTarget()" title="클릭하여 수정">설정하기 ✏️</span>
   </div>
 </div>
 
@@ -412,11 +439,10 @@ async function selectUser(user) {
   document.getElementById('UserSelect').classList.add('hidden');
   document.getElementById('UserBadgeName').textContent = user.name;
 
-  // 환영 메시지
-  document.getElementById('Result').innerHTML =
-    '<div class="card" style="text-align:center;padding:40px 20px;color:#6B6963;">' +
-    '<h3 style="color:#1D9E75;margin:0 0 8px;">👋 ' + user.name + '님, 환영합니다!</h3>' +
-    '<p style="margin:0;font-size:13px;">위 검색창을 클릭하면 거래처 목록이 표시됩니다.<br>메모는 자동으로 클라우드에 저장됩니다.</p></div>';
+  // 필터바 표시 + 총매출 요약 카드
+  document.getElementById('FilterBar').style.display = '';
+  updateFilterBar();
+  renderSummary(user.name);
 }
 
 function changeUser() {
@@ -426,7 +452,63 @@ function changeUser() {
   document.getElementById('Q').value = '';
   document.getElementById('Dropdown').style.display = 'none';
   document.getElementById('Result').innerHTML = '';
+  document.getElementById('FilterBar').style.display = 'none';
   initUserSelect();
+}
+
+// ============================================================
+// 필터바 — 기준월 · 목표액
+// ============================================================
+let currentMonth = 6;
+let userMonthlyTarget = 0;
+
+function changeMonth(delta) {
+  const newM = currentMonth + delta;
+  if (newM < 1 || newM > 6) { alert('1~6월 데이터만 있습니다.'); return; }
+  currentMonth = newM;
+  // DATA 월별 매출 업데이트
+  Object.keys(DATA).forEach(name => {
+    const real = PHARMACY_REAL[name];
+    if (real) {
+      DATA[name].sales = real.monthly[currentMonth] || 0;
+      DATA[name].monthCurrent = Math.round(DATA[name].sales * 0.81);
+    }
+  });
+  updateFilterBar();
+  if (curName && DATA[curName]) render(curName);
+  else if (currentUser) renderSummary(currentUser.name);
+}
+
+function setUserTarget() {
+  const cur = userMonthlyTarget > 0 ? userMonthlyTarget : '';
+  const input = prompt('월 목표액을 입력하세요 (숫자만):\n예: 730000000  (7억 3천만원)', cur);
+  if (input === null) return;
+  const val = parseInt(String(input).replace(/[^0-9]/g, ''));
+  if (isNaN(val) || val <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
+  userMonthlyTarget = val;
+  updateFilterBar();
+  saveUserTargetToFirestore();
+  if (currentUser) renderSummary(currentUser.name);
+}
+
+function updateFilterBar() {
+  const monthEl = document.getElementById('MonthDisplay');
+  const targetEl = document.getElementById('TargetDisplay');
+  if (monthEl) monthEl.textContent = '2026.' + String(currentMonth).padStart(2, '0');
+  if (targetEl) targetEl.textContent = userMonthlyTarget > 0
+    ? userMonthlyTarget.toLocaleString() + ' ✏️'
+    : '설정하기 ✏️';
+}
+
+async function saveUserTargetToFirestore() {
+  if (!currentUser) return;
+  try {
+    const ok = await initFirebase();
+    if (!ok) { localStorage.setItem('oneclick-target-' + currentUser.id, userMonthlyTarget); return; }
+    await _db.collection('users').doc(currentUser.id).set({ monthlyTarget: userMonthlyTarget }, { merge: true });
+  } catch(e) {
+    localStorage.setItem('oneclick-target-' + currentUser.id, userMonthlyTarget);
+  }
 }
 
 // ============================================================
@@ -561,23 +643,31 @@ const MEMOS = {
 
 function makeData(arr) {
   const [name, region, pharmacist, grade, sales, trend, returnRate, debt, monthGoal, pbRatio, hasVet, vetM, route, lat, lng] = arr;
-  const annual = sales * 11;
+  const real = PHARMACY_REAL[name];
+  const realPbM     = real ? Math.round(real.pb / 6) : 0;
+  const realAnimalM = real ? Math.round(real.animal / 6) : 0;
+  const pbActual     = sales > 0 ? Math.round(realPbM / sales * 100) : 0;
+  const animalActual = sales > 0 ? Math.round(realAnimalM / sales * 100) : 0;
   let proR;
-  if (pbRatio >= 15) proR = 18;
-  else if (returnRate > 4 || trend.startsWith('-')) proR = 58;
+  if (pbActual >= 15) proR = 18;
+  else if (returnRate > 4 || trend.startsWith('-')) proR = 55;
   else if (grade === 'A') proR = 42;
   else proR = 50;
-  const remaining = 100 - pbRatio - proR;
-  const genR = Math.round(remaining * 0.6);
-  const hsR = 100 - proR - genR - pbRatio;
-  const catRatio = { pro: proR, gen: genR, hs: hsR, pb: pbRatio };
-  const catSales = { pro: Math.round(annual*proR/100), gen: Math.round(annual*genR/100), hs: Math.round(annual*hsR/100), pb: Math.round(annual*pbRatio/100) };
+  const remaining = Math.max(0, 100 - pbActual - animalActual - proR);
+  const genR = Math.round(remaining * 0.8);
+  const catRatio = { pro: proR, gen: genR, animal: animalActual, pb: pbActual };
+  const catSales = {
+    pro:    Math.round(sales * proR / 100),
+    gen:    Math.round(sales * genR / 100),
+    animal: realAnimalM,
+    pb:     realPbM
+  };
   const pos = trend.startsWith('+');
   const catTrend = {
-    pro: pos ? '+'+(Math.floor(Math.random()*10)+3)+'%' : '-'+(Math.floor(Math.random()*8)+3)+'%',
-    gen: pos ? '+'+(Math.floor(Math.random()*6)+1)+'%' : '-'+(Math.floor(Math.random()*6)+2)+'%',
-    hs: '+'+(Math.floor(Math.random()*15)+5)+'%',
-    pb: trend
+    pro:    pos ? '+'+(Math.floor(Math.random()*10)+3)+'%' : '-'+(Math.floor(Math.random()*8)+3)+'%',
+    gen:    pos ? '+'+(Math.floor(Math.random()*6)+1)+'%'  : '-'+(Math.floor(Math.random()*6)+2)+'%',
+    animal: animalActual > 0 ? '+'+(Math.floor(Math.random()*10)+1)+'%' : '-',
+    pb:     trend
   };
   const monthCurrent = Math.round(sales * 0.81);
   const daily = [0];
@@ -587,33 +677,31 @@ function makeData(arr) {
   }
   const proItems = ['아모디핀 5mg','리피토 10mg','메트포르민 500mg','오메프라졸 20mg','엘트로신','암로디핀','디아미크롱','바이엘 아스피린'];
   const genItems = ['타이레놀 500mg','판콜에이','훼스탈 골드','게보린','활명수','베나치오','판피린'];
-  const hsItems = ['센트룸 종합비타민','오메가3 1000mg','프로바이오틱스 60포','루테인','밀크씨슬','콜라겐'];
+  const animalItems = ['동물용 항생제','동물용 구충제','동물용 소화제','동물용 피부약','동물용 안약'];
   const pbItems = ['태전 종합비타민','태전 프로바이오 30포','태전 칼슘마그네슘','태전 오메가3','태전 위장약'];
   function gT(items, total, maxC) {
     const c = Math.min(items.length, maxC);
     return items.slice(0, c).map((n, i) => ({ name: n, sales: Math.round(total / c * (1.5 - i * 0.15)) }));
   }
-  const proTop = gT(proItems, catSales.pro, Math.min(8, Math.max(3, Math.floor(sales/700000))));
-  const genTop = gT(genItems, catSales.gen, Math.min(7, Math.max(3, Math.floor(sales/800000))));
-  const hsTop = gT(hsItems, catSales.hs, Math.min(6, Math.max(2, Math.floor(sales/1100000))));
-  const pbMonthly = Math.round(sales * pbRatio / 100);
-  const pbCount = Math.min(pbItems.length, Math.max(1, Math.floor(pbMonthly / 220000)));
-  const pbThisMonthItems = pbItems.slice(0, pbCount).map((n, i) => {
-    const itemSales = Math.round(pbMonthly / pbCount * (1.4 - i * 0.18));
+  const proTop    = gT(proItems, catSales.pro, Math.min(8, Math.max(3, Math.floor(sales/700000))));
+  const genTop    = gT(genItems, catSales.gen, Math.min(7, Math.max(3, Math.floor(sales/800000))));
+  const animalTop = realAnimalM > 0 ? gT(animalItems, realAnimalM, Math.min(5, Math.max(1, Math.floor(realAnimalM/100000)))) : [];
+  const pbCount   = Math.min(pbItems.length, Math.max(1, Math.floor(realPbM / 220000)));
+  const pbThisMonthItems = realPbM > 0 ? pbItems.slice(0, pbCount).map((n, i) => {
+    const itemSales = Math.round(realPbM / pbCount * (1.4 - i * 0.18));
     return { name: n, qty: Math.max(1, Math.round(itemSales / 92000)), sales: itemSales };
-  });
+  }) : [];
   return {
     name, region, pharmacist, grade, sales, salesTrend: trend, returnRate, debt,
     monthGoal, monthCurrent, monthDay: 24, monthDays: 30,
-    daily, proTop, genTop, hsTop, pbThisMonthItems,
+    daily, proTop, genTop, animalTop, pbThisMonthItems,
     catRatio, catSales, catTrend,
-    pb3mAvg: (PHARMACY_REAL[name]) ? Math.round(PHARMACY_REAL[name].pb / 6) : Math.round(pbMonthly * 0.92),
-    vet3mAvg: (PHARMACY_REAL[name]) ? Math.round(PHARMACY_REAL[name].animal / 6) : (hasVet ? Math.round(vetM * 100000) : 0),
+    pb3mAvg:  realPbM,
+    vet3mAvg: realAnimalM,
     news: NEWS,
     memo: [],
     route, lat, lng,
-    // 전문약 등급별 비율 (실제 데이터 입력 전 샘플)
-    proGrade: (PHARMACY_REAL[name] && PHARMACY_REAL[name].proGrade) ? PHARMACY_REAL[name].proGrade : { A: 30, B: 25, C: 20, D: 15, E: 7, F: 3 }
+    proGrade: (real && real.proGrade) ? real.proGrade : { A: 30, B: 25, C: 20, D: 15, E: 7, F: 3 }
   };
 }
 
@@ -691,7 +779,7 @@ function renderTab(name, tab) {
   let list, label, catClass;
   if (tab === 'pro') { list = d.proTop; label = '전문약'; catClass = 'pro'; }
   else if (tab === 'gen') { list = d.genTop; label = '일반약'; catClass = 'gen'; }
-  else if (tab === 'hs') { list = d.hsTop; label = '건기식'; catClass = 'hs'; }
+  else if (tab === 'animal') { list = d.animalTop; label = '동물약'; catClass = 'hs'; }
   else { list = d.pbThisMonthItems; label = 'PB'; catClass = 'pb'; }
   const total = list.reduce((s, x) => s + x.sales, 0);
   let h = '<div class="tab-summary">';
@@ -710,6 +798,45 @@ function renderTab(name, tab) {
   });
   return h;
 }
+
+// ============================================================
+// 총매출 요약 카드
+// ============================================================
+function renderSummary(userName) {
+  const totalSales = Object.values(DATA).reduce((s, d) => s + (d.sales || 0), 0);
+  const totalGoal  = userMonthlyTarget > 0 ? userMonthlyTarget : Object.values(DATA).reduce((s, d) => s + (d.monthGoal || 0), 0);
+  const pct = totalGoal > 0 ? Math.round(totalSales / totalGoal * 100) : 0;
+  const above = Object.values(DATA).filter(d => d.sales >= d.monthGoal).length;
+  const total = Object.keys(DATA).length;
+  const pctColor = pct >= 100 ? '#1D9E75' : pct >= 80 ? '#639922' : pct >= 50 ? '#BA7517' : '#E24B4A';
+  let h = '<div class="card" style="border:2px solid #1D9E75;">';
+  h += '<div style="margin-bottom:12px;"><h3 style="margin:0 0 2px;font-size:17px;">\uD83D\uDC4B ' + userName + '\ub2d8, 6\uc6d4 \ucd1d\ub9e4\ucd9c \ud604\ud669</h3>';
+  h += '<p style="margin:0;font-size:12px;color:#6B6963;">\uc804\uccb4 \uac70\ub798\uce58 ' + total + '\uacf3 \ud569\uc0b0</p></div>';
+  h += '<div style="background:#F5F4EE;border-radius:10px;padding:16px;margin-bottom:14px;">';
+  h += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">';
+  h += '<div><span style="font-size:34px;font-weight:700;color:' + pctColor + ';">' + pct + '%</span> <span style="font-size:13px;color:#6B6963;">\ub2ec\uc131</span></div>';
+  h += '<div style="text-align:right;"><div style="font-size:18px;font-weight:700;">' + fmt(totalSales) + '</div>';
+  h += '<div style="font-size:12px;color:#6B6963;">\ubaa9\ud45c: ' + fmt(totalGoal) + '</div></div></div>';
+  h += '<div style="height:14px;background:#fff;border-radius:7px;overflow:hidden;border:1px solid #E8E6DC;">';
+  h += '<div style="height:100%;background:' + pctColor + ';width:' + Math.min(pct,100) + '%;transition:width 0.5s;"></div></div>';
+  h += '<div style="display:flex;justify-content:space-between;font-size:12px;color:#6B6963;margin-top:8px;">';
+  h += '<span>\ubaa9\ud45c \ub2ec\uc131 ' + above + '/' + total + '\uacf3</span>';
+  h += '<span>\uc794\uc5ec ' + fmt(Math.max(0, totalGoal - totalSales)) + '</span></div></div>';
+  const top5 = Object.values(DATA).sort((a,b)=>b.sales-a.sales).slice(0,5);
+  h += '<div style="font-size:13px;font-weight:600;color:#6B6963;margin-bottom:8px;">\uD83D\uDCCA \uc774\ubc88\ub2ec \ub9e4\ucd9c \uc0c1\uc704 \uac70\ub798\uce58</div>';
+  top5.forEach((d,i) => {
+    const dp = d.monthGoal > 0 ? Math.round(d.sales/d.monthGoal*100) : 0;
+    const dc = dp >= 100 ? '#1D9E75' : dp >= 80 ? '#639922' : '#E24B4A';
+    h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #E8E6DC;">';
+    h += '<div style="width:20px;text-align:center;font-weight:700;color:#6B6963;">' + (i+1) + '</div>';
+    h += '<div style="flex:1;cursor:pointer;color:#1D9E75;font-weight:600;text-decoration:underline;" onclick="pick(\'' + d.name + '\')">' + d.name + '</div>';
+    h += '<div style="font-weight:600;">' + fmt(d.sales) + '</div>';
+    h += '<div style="font-size:12px;color:' + dc + ';min-width:38px;text-align:right;">' + dp + '%</div></div>';
+  });
+  h += '<div style="margin-top:12px;padding:10px 14px;background:#F5F4EE;border-radius:8px;font-size:12px;color:#6B6963;">\uD83D\uDCA1 \uc704 \uac80\uc0c9\uc0d8\uc744 \ud074\ub9ad\ud558\uba74 \uc804\uccb4 \uac70\ub798\uce58 \ubaa9\ub85d\uc774 \ud45c\uc2dc\ub429\ub2c8\ub2e4</div></div>';
+  document.getElementById('Result').innerHTML = h;
+}
+
 
 // ============================================================
 // 렌더
@@ -765,7 +892,7 @@ function render(name) {
   html += '<div class="chart-square"><canvas id="CatChart"></canvas></div>';
   html += '<div class="cat-item"><div><span class="cat-dot" style="background:#378ADD"></span><strong>전문약</strong> ('+d.catRatio.pro+'%)</div><div>'+fmt(d.catSales.pro)+' <span class="'+(d.catTrend.pro.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pro+'</span></div></div>';
   html += '<div class="cat-item"><div><span class="cat-dot" style="background:#EF9F27"></span><strong>일반약</strong> ('+d.catRatio.gen+'%)</div><div>'+fmt(d.catSales.gen)+' <span class="'+(d.catTrend.gen.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.gen+'</span></div></div>';
-  html += '<div class="cat-item"><div><span class="cat-dot" style="background:#97C459"></span><strong>건기식</strong> ('+d.catRatio.hs+'%)</div><div>'+fmt(d.catSales.hs)+' <span class="'+(d.catTrend.hs.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.hs+'</span></div></div>';
+  html += '<div class="cat-item"><div><span class="cat-dot" style="background:#39A2AE"></span><strong>동물약</strong> ('+d.catRatio.animal+'%)</div><div>'+fmt(d.catSales.animal)+' <span class="'+(d.catTrend.animal==='-'?'':d.catTrend.animal.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.animal+'</span></div></div>';
   html += '<div class="cat-item" style="background:#F5F4FE;padding:8px 10px;border-radius:6px;border-bottom:none;margin-top:6px;"><div><span class="cat-dot" style="background:#7F77DD"></span><strong style="color:#3C3489;">PB</strong> ('+d.catRatio.pb+'%)</div><div style="color:#3C3489;font-weight:600;">'+fmt(d.catSales.pb)+' <span class="'+(d.catTrend.pb.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pb+'</span></div></div>';
   html += '</div>';
 
@@ -973,7 +1100,7 @@ function drawCat(ratio) {
     if (!ctx) return;
     new Chart(ctx, {
       type: 'doughnut',
-      data: { labels: ['전문약','일반약','건기식','PB'], datasets: [{ data: [ratio.pro, ratio.gen, ratio.hs, ratio.pb], backgroundColor: ['#378ADD','#EF9F27','#97C459','#7F77DD'], borderWidth: 0 }] },
+      data: { labels: ['전문약','일반약','동물약','PB'], datasets: [{ data: [ratio.pro, ratio.gen, ratio.animal, ratio.pb], backgroundColor: ['#378ADD','#EF9F27','#39A2AE','#7F77DD'], borderWidth: 0 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
     });
   }).catch(() => {});
@@ -1188,4 +1315,4 @@ function locateMe() {
 })();
 </script>
 </body>
-</html>
+</html>                                                                                                                                                                                        
