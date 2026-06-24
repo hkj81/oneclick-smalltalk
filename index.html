@@ -219,18 +219,25 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 <div id="UserSelect">
   <div id="UsSelectContent">
     <div class="us-logo">
-      <svg width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        <!-- 골드 링 -->
-        <circle cx="52" cy="52" r="40" fill="none" stroke="#C9A227" stroke-width="10"/>
+      <svg width="130" height="130" viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg">
+        <!-- 바깥 골드 링 -->
+        <circle cx="65" cy="65" r="56" fill="none" stroke="#C9A227" stroke-width="9"/>
+        <!-- 안쪽 원 (옅은 골드 배경) -->
+        <circle cx="65" cy="65" r="47" fill="#FDFAF0"/>
         <!-- ONE 텍스트 -->
-        <text x="52" y="60" text-anchor="middle"
+        <text x="65" y="48" text-anchor="middle"
           font-family="Georgia, serif"
-          font-size="22" font-weight="bold"
+          font-size="20" font-weight="bold" letter-spacing="3"
           fill="#C9A227">ONE</text>
-        <!-- 마우스 커서 (검정 테두리 흰 채우기로 명확하게) -->
-        <g transform="translate(76, 72)">
-          <polygon points="0,0 0,22 6,17 10,26 13,24 9,15 15,15"
-            fill="#333" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+        <!-- 클릭 물결 (작은 원호들) -->
+        <path d="M 78 72 Q 84 65 78 58" fill="none" stroke="#C9A227" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+        <path d="M 83 76 Q 93 65 83 54" fill="none" stroke="#C9A227" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
+        <!-- 마우스 커서 (크고 명확하게, 원 중앙) -->
+        <g transform="translate(52, 55)">
+          <polygon points="0,0 0,26 7,20 12,31 16,29 11,18 18,18"
+            fill="#2B2B2B" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+          <!-- 클릭 표시 (작은 별/점) -->
+          <circle cx="4" cy="4" r="3" fill="#C9A227" opacity="0.9"/>
         </g>
       </svg>
     </div>
