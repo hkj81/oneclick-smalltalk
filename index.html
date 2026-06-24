@@ -471,7 +471,7 @@ function changeMonth(delta) {
     const real = PHARMACY_REAL[name];
     if (real) {
       DATA[name].sales = real.monthly[currentMonth] || 0;
-      DATA[name].monthCurrent = Math.round(DATA[name].sales * 0.81);
+      DATA[name].monthCurrent = DATA[name].sales;
       const rAmt = (RETURN_AMTS_MONTHLY[name] && RETURN_AMTS_MONTHLY[name][currentMonth]) ? RETURN_AMTS_MONTHLY[name][currentMonth] : 0;
       DATA[name].returnAmt = rAmt;
       DATA[name].returnRate = DATA[name].sales > 0 ? Math.round(rAmt / DATA[name].sales * 1000) / 10 : 0;
@@ -778,7 +778,7 @@ function makeData(arr) {
     animal: animalActual > 0 ? '+'+(Math.floor(Math.random()*10)+1)+'%' : '-',
     pb:     trend
   };
-  const monthCurrent = Math.round(sales * 0.81);
+  const monthCurrent = sales;
   const daily = [0];
   for (let i=1; i<=30; i++) {
     if (i>=24) daily.push(monthCurrent);
