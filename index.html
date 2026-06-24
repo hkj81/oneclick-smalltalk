@@ -156,8 +156,26 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .us-title { text-align: center; margin-bottom: 32px; }
 .us-title h1 { font-size: 24px; margin: 0 0 6px; color: #1F1E1D; }
 .us-title p { font-size: 13px; color: #6B6963; margin: 0; }
-.us-box { width: 100%; max-width: 360px; }
-.us-search-wrap { position: relative; margin-bottom: 8px; }
+.us-box {
+  width: 100%; max-width: 360px;
+  background: radial-gradient(circle, #FDFAF0 55%, transparent 56%);
+  padding-top: 120px;
+  position: relative;
+}
+.us-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  border: 10px solid #C9A227;
+  background: #FDFAF0;
+  box-shadow: 0 0 0 3px #e8d48a55;
+  pointer-events: none;
+  z-index: 0;
+}
+.us-search-wrap { position: relative; margin-bottom: 8px; z-index: 1; }
 .us-ring-deco {
   width: 300px; height: 300px;
   border-radius: 50%;
@@ -285,9 +303,7 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
       <p>2팀 전광석화</p>
     </div>
     <div class="us-box">
-        <!-- 골드 링 (장식용) -->
-        <div class="us-ring-deco"></div>
-        <div class="us-search-wrap" style="margin-top:-140px;position:relative;z-index:10;">
+        <div class="us-search-wrap">
           <input class="us-search-input" id="UsSearchInput" type="text"
             placeholder="ONE ▶"
             readonly
