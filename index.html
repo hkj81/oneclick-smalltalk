@@ -1621,7 +1621,11 @@ function makeData(arr) {
     monthGoal, monthCurrent, monthDay: 24, monthDays: 30,
     daily, proTop, genTop, animalTop, pbThisMonthItems,
     catRatio, catSales, catTrend,
-    pb3mAvg:  realPbM,
+    pb3mAvg:  (() => {
+      const pbM = PB_MONTHLY[name] || {};
+      const months = [currentMonth-3, currentMonth-2, currentMonth-1].filter(m => m >= 1 && pbM[m]);
+      return months.length > 0 ? Math.round(months.reduce((s,m) => s + pbM[m], 0) / months.length) : realPbM;
+    })(),
     vet3mAvg: realAnimalM,
     news: NEWS,
     memo: [],
@@ -1852,7 +1856,7 @@ function render(name) {
   html += '<div><span class="'+(pbTrendUp?'up':'down')+'" style="font-weight:600;font-size:14px;">전월 대비 '+d.catTrend.pb+'</span></div></div>';
   html += '<div class="pb-grid">';
   html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB (21품목)</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">'+d.monthDay+'일 차 누적</div></div>';
-  html += '<div class="pb-stat"><div class="pb-stat-label">PB 3개월 평균</div><div class="pb-stat-value">'+fmt(d.pb3mAvg)+'</div><div class="pb-stat-sub">이번달 <strong style="color:#3C3489;">'+fmt(pbThisMonth)+'</strong></div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB 전체</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">동물약 3개월 평균</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
   html += '</div></div>';
   // PB 품목별 금액 테이블
