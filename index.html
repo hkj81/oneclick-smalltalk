@@ -705,6 +705,11 @@ const RETURN_RATES = {
   '황등 황등종로약국': 3.7,
 };
 
+// 월별 이달의 PB 21품목 키워드
+const MONTHLY_PB_KEYWORDS = {
+  6: ['벌나무','알지렉스','이젠이','케바논','편감원','헤파신','머슬렌','쿨넥신','아세틸','노종','에너지부스터','공신아테나','리쥬앙','쏘팔메토','번세이프','100억액티브','리포좀비타민','페피무','루테인지아잔틴','팔팔관절','건치미소']
+};
+
 const PB_MONTHLY = {
   '용안 중앙약국': {1:351500,2:393300,3:189750,4:140700,5:294000,6:145000},
   '익산 광제약국': {1:98500,2:21900,3:84000,4:78500,5:85050,6:20000},
@@ -1777,6 +1782,10 @@ function render(name) {
   const remainingDays = d.monthDays - d.monthDay;
   const dailyNeed = remainingDays > 0 ? Math.round(remaining / remainingDays) : 0;
   const pbThisMonth = d.catSales && d.catSales.pb > 0 ? d.catSales.pb : Math.round(d.sales * d.catRatio.pb / 100);
+  const monthKws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
+  const pb21Sum = monthKws.length > 0 && d.pbThisMonthItems && d.pbThisMonthItems.length > 0
+    ? d.pbThisMonthItems.filter(x => monthKws.some(kw => x.name.includes(kw))).reduce((s,x) => s+x.sales, 0)
+    : pbThisMonth;
   const trendUp = d.salesTrend.startsWith('+');
   const pbTrendUp = d.catTrend.pb.startsWith('+');
   const routeInfo = ROUTE_INFO[d.route] || {};
@@ -1855,8 +1864,8 @@ function render(name) {
   html += '<div><span class="pb-pct">'+d.catRatio.pb+'%</span><span class="pb-label">전체 매출 중 PB 비중</span></div>';
   html += '<div><span class="'+(pbTrendUp?'up':'down')+'" style="font-weight:600;font-size:14px;">전월 대비 '+d.catTrend.pb+'</span></div></div>';
   html += '<div class="pb-grid">';
-  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB (21품목)</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">'+d.monthDay+'일 차 누적</div></div>';
-  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB 전체</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB (21품목)</div><div class="pb-stat-value">'+fmt(pb21Sum)+'</div><div class="pb-stat-sub">이달의 PB 21품목 합계</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB 전체금액</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">동물약 3개월 평균</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
   html += '</div></div>';
   // PB 품목별 금액 테이블
