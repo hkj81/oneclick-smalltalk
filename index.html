@@ -2545,11 +2545,15 @@ function closePbModal() {
 // 카드1: 전 거래처 PB 품목별
 function openPbModal() {
   const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
-  const totals = {}, qtotals = {};
+  const totals = {}, qtotals = {}, ptotals = {};
   Object.values(PB_ITEMS_MONTHLY).forEach(items => {
     Object.entries(items).forEach(([prod, months]) => {
       const amt = months[currentMonth] ? months[currentMonth].a : 0;
-      if (amt > 0) { totals[prod] = (totals[prod] || 0) + amt; qtotals[prod] = (qtotals[prod]||0) + (months[currentMonth].q||0); }
+      if (amt > 0) {
+        totals[prod] = (totals[prod] || 0) + amt;
+        qtotals[prod] = (qtotals[prod]||0) + (months[currentMonth].q||0);
+        ptotals[prod] = (ptotals[prod]||0) + 1;
+      }
     });
   });
   const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]);
@@ -2559,7 +2563,8 @@ function openPbModal() {
     const pct = grandTotal>0?Math.round(amt/grandTotal*100):0;
     const isKw = kws.some(kw=>prod.includes(kw));
     const q = qtotals[prod]||0;
-    html += '<div class="pb-modal-item"><span style="width:110px;flex-shrink:0;'+(isKw?'font-weight:700;color:#3C3489;':'')+'">'+prod+(isKw?' ★':'')+'</span><span style="width:30px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+q+'개</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
+    const p = ptotals[prod]||0;
+    html += '<div class="pb-modal-item"><span style="width:100px;flex-shrink:0;'+(isKw?'font-weight:700;color:#3C3489;':'')+'">'+prod+(isKw?' ★':'')+'</span><span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+q+'개</span><span style="width:24px;text-align:right;color:#6C5CE7;font-size:11px;flex-shrink:0;">'+p+'처</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
   });
   openModal(currentMonth+'월 전 거래처 PB 품목별 합계', html);
 }
