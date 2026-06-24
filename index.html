@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>원클릭 스몰톡 v0.5.0 — 멀티유저 클라우드</title>
+<title>원클릭 스몰톡 v0.6.0 — 실매출 데이터 적용</title>
 <style>
 * { box-sizing: border-box; }
 body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: #F5F4EE; color: #1F1E1D; margin: 0; padding: 20px; font-size: 14px; line-height: 1.5; }
@@ -254,7 +254,7 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
   <div class="header-row">
     <div>
       <h1>원클릭 스몰톡 — 거래처 한눈에 보기</h1>
-      <p>2팀 전광석화 · v0.5.0 (멀티유저 + 클라우드 동기화)</p>
+      <p>2팀 전광석화 · v0.6.0 (실매출 데이터 + 클라우드)</p>
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <button class="user-badge" id="UserBadge" onclick="changeUser()">👤 <span id="UserBadgeName">로딩 중...</span> <span style="font-size:11px;opacity:0.7;">변경</span></button>
@@ -433,35 +433,113 @@ function changeUser() {
 // 데이터
 // ============================================================
 const LIST = [
-  ['행복약국','전북 익산시','김약사','A',4800000,'+8%',2.3,300000,6000000,12,true,2.8,'A노선',35.9483,126.9575],
-  ['미소약국','전북 익산시 어양동','박약사','B',2400000,'-12%',5.8,1200000,3500000,8,false,0,'C노선',35.9520,126.9482],
-  ['새약국','전북 익산시 신동','최약사','A',5600000,'+15%',1.8,0,5500000,18,true,4.5,'A노선',35.9440,126.9620],
-  ['건강약국','전북 익산시 송학동','이약사','A',7200000,'+22%',1.5,0,7000000,15,true,5.2,'A노선',35.9550,126.9530],
-  ['햇살약국','전북 익산시 영등동','정약사','B',3200000,'+3%',3.2,450000,4000000,10,false,0,'C노선',35.9388,126.9680],
-  ['동네약국','전북 익산시 동산동','강약사','C',1800000,'-5%',4.8,800000,2500000,6,false,0,'C노선',35.9458,126.9450],
-  ['가족약국','전북 익산시 모현동','윤약사','A',4100000,'+18%',2.1,150000,5000000,14,true,3.2,'B노선',35.9512,126.9602],
-  ['친절약국','전북 익산시 부송동','임약사','B',2800000,'-8%',4.5,600000,3500000,7,false,0,'C노선',35.9428,126.9520],
-  ['푸른약국','전북 익산시 마동','한약사','A',5300000,'+12%',2.0,200000,6000000,13,true,3.8,'B노선',35.9568,126.9682],
-  ['신뢰약국','전북 익산시 인화동','오약사','B',2300000,'+5%',3.8,400000,3000000,9,false,0,'B노선',35.9398,126.9558],
-  ['우리약국','전북 익산시 신용동','서약사','A',4800000,'+20%',1.7,0,5500000,16,true,4.1,'A노선',35.9488,126.9641],
-  ['큰마음약국','전북 익산시 평화동','문약사','B',3500000,'-2%',3.5,700000,4200000,8,false,0,'C노선',35.9532,126.9491],
-  ['사랑약국','전북 익산시 갈산동','조약사','A',6200000,'+9%',2.2,250000,6500000,11,true,2.5,'B노선',35.9461,126.9702],
-  ['평화약국','전북 익산시 남중동','신약사','C',1500000,'-15%',6.2,1500000,2500000,5,false,0,'C노선',35.9378,126.9440],
-  ['행운약국','전북 익산시 창인동','권약사','A',5800000,'+25%',1.6,0,5500000,17,true,4.8,'A노선',35.9602,126.9558],
+  ['익산 대학종로약국','전북 익산 익산','약사','A',151265748,'-11%',1.5,0,173170000,0,true,17.3,'익산노선',35.947451,126.959882],
+  ['익산 세계로약국','전북 익산 익산','약사','A',48363031,'+2%',1.5,0,59340000,0,false,0.0,'익산노선',35.948128,126.957068],
+  ['함열 박약국','전북 익산 함열','약사','A',21847125,'-36%',1.5,0,34200000,0,false,0.0,'함열노선',35.959867,126.868569],
+  ['함열 일등약국','전북 익산 함열','약사','A',26417972,'-23%',1.5,0,34820000,0,false,0.0,'함열노선',35.960992,126.868271],
+  ['익산 하나로약국','전북 익산 익산','약사','A',23841496,'-23%',1.5,0,33000000,0,false,0.0,'익산노선',35.949247,126.958707],
+  ['함열 함열태평양약국','전북 익산 함열','약사','B',18996610,'-36%',2.5,0,28450000,1,false,0.0,'함열노선',35.958833,126.866999],
+  ['함열 함열보령약국','전북 익산 함열','약사','B',20989319,'-10%',2.5,0,26200000,0,true,2.5,'함열노선',35.962758,126.869351],
+  ['황등 황등바른약국','전북 익산 황등','약사','B',15615703,'-22%',2.5,0,18340000,1,false,0.0,'황등노선',35.983206,126.946252],
+  ['함열 유명종로약국','전북 익산 함열','약사','B',10537812,'-35%',2.5,0,16670000,2,true,8.1,'함열노선',35.959905,126.865315],
+  ['황등 호남약국','전북 익산 황등','약사','B',10919186,'-9%',2.5,0,13080000,1,false,0.0,'황등노선',35.983724,126.941663],
+  ['황등 황등종로약국','전북 익산 황등','약사','B',5387119,'-64%',2.5,0,13150000,0,false,0.0,'황등노선',35.983724,126.943142],
+  ['익산 비타민약국','전북 익산 익산','약사','B',11293464,'+0%',2.5,0,13220000,0,true,1.3,'익산노선',35.947012,126.955551],
+  ['익산 광제약국','전북 익산 익산','약사','B',8038695,'-22%',2.5,0,10240000,0,false,0.0,'익산노선',35.950436,126.957358],
+  ['익산 문약국','전북 익산 익산','약사','B',8661660,'-2%',2.5,0,8690000,1,true,0.9,'익산노선',35.947286,126.959445],
+  ['함열 함열건강약국','전북 익산 함열','약사','B',6450983,'-28%',2.5,0,9510000,0,false,0.0,'함열노선',35.963131,126.866808],
+  ['황등 평화약국','전북 익산 황등','약사','B',3997247,'-34%',2.5,0,6630000,2,true,9.4,'황등노선',35.983524,126.942065],
+  ['익산 상아약국','전북 익산 익산','약사','B',6046824,'-36%',2.5,0,8710000,1,false,0.0,'익산노선',35.945266,126.95673],
+  ['익산 대성약국','전북 익산 익산','약사','B',7760738,'+3%',2.5,0,8070000,4,true,37.9,'익산노선',35.95083,126.958433],
+  ['함열 함열온누리약국','전북 익산 함열','약사','C',6178633,'-12%',3.5,0,7500000,1,false,0.0,'함열노선',35.962902,126.868476],
+  ['익산 청십자약국','전북 익산 익산','약사','C',2624061,'-71%',3.5,0,8350000,1,false,0.0,'익산노선',35.947132,126.959315],
+  ['전주 나을약국','전북 익산 전주','약사','C',4337860,'-16%',3.5,0,6090000,2,true,6.4,'전주노선',35.846279,127.145591],
+  ['황등 온누리약국','전북 익산 황등','약사','C',4792378,'+9%',3.5,0,5710000,0,true,1.7,'황등노선',35.982693,126.94274],
+  ['익산 유한약국','전북 익산 익산','약사','C',4967685,'-25%',3.5,0,6160000,0,false,0.0,'익산노선',35.949023,126.95746],
+  ['함열 성심약국','전북 익산 함열','약사','C',4184531,'-38%',3.5,0,5870000,3,true,2.3,'함열노선',35.962497,126.869182],
+  ['익산 익산종합약국','전북 익산 익산','약사','C',3808200,'-19%',3.5,0,5690000,14,true,88.8,'익산노선',35.948023,126.954195],
+  ['익산 세종안과','전북 익산 익산','약사','C',2187759,'+0%',3.5,0,9240000,0,false,0.0,'익산노선',35.945231,126.954989],
+  ['용안 중앙약국','전북 익산 용안','약사','C',3134004,'-30%',3.5,0,4990000,5,false,0.0,'용안노선',35.937183,126.945208],
+  ['익산 보람찬약국','전북 익산 익산','약사','C',3434775,'-21%',3.5,0,4930000,4,true,26.1,'익산노선',35.946482,126.955763],
+  ['익산 정문약국','전북 익산 익산','약사','C',2981990,'-35%',3.5,0,4600000,0,false,0.0,'익산노선',35.947901,126.957978],
+  ['익산 초당약국','전북 익산 익산','약사','C',2304668,'-4%',3.5,0,3660000,5,false,0.0,'익산노선',35.945554,126.956361],
+  ['익산 정성온누리약국','전북 익산 익산','약사','C',2925227,'-12%',3.5,0,2900000,3,false,0.0,'익산노선',35.945228,126.955576],
+  ['익산 익산 라온약국','전북 익산 익산','약사','C',2898721,'-20%',3.5,0,3600000,0,false,0.0,'익산노선',35.947459,126.955469],
+  ['익산 모인약국','전북 익산 익산','약사','C',2515384,'-18%',3.5,0,3340000,0,false,0.0,'익산노선',35.945648,126.959381],
+  ['익산 익산건강한약국','전북 익산 익산','약사','C',2505242,'-19%',3.5,0,3220000,1,false,0.0,'익산노선',35.947687,126.955237],
+  ['함열 약손약국','전북 익산 함열','약사','C',1686106,'-62%',3.5,0,3380000,1,false,0.0,'함열노선',35.957749,126.867141],
+  ['황등 황등솔약국','전북 익산 황등','약사','C',1474343,'-53%',3.5,0,3180000,0,false,0.0,'황등노선',35.979641,126.942114],
+  ['익산 보름달약국','전북 익산 익산','약사','C',2812769,'+109%',3.5,0,1660000,2,false,0.0,'익산노선',35.947035,126.958173],
+  ['함열 함열태평양약국(특약)','전북 익산 함열','약사','C',2110267,'+0%',3.5,0,3170000,0,false,0.0,'함열노선',35.958412,126.869318],
+  ['익산 성실약국','전북 익산 익산','약사','C',1308884,'-23%',3.5,0,1560000,7,false,0.0,'익산노선',35.94608,126.955598],
+  ['익산 웃음약국','전북 익산 익산','약사','C',1856689,'-1%',3.5,0,1630000,10,true,10.3,'익산노선',35.948484,126.958917],
+  ['익산 대학종로약국(특약)','전북 익산 익산','약사','C',532000,'-62%',3.5,0,1540000,0,false,0.0,'익산노선',35.945449,126.958398],
+  ['황등 황등사랑약국','전북 익산 황등','약사','C',820927,'-53%',3.5,0,1330000,0,false,0.0,'황등노선',35.982235,126.942933],
+  ['익산 어양우리약국','전북 익산 익산','약사','C',1148612,'+12%',3.5,0,1190000,4,false,0.0,'익산노선',35.948955,126.954745],
+  ['익산 안종욱안과의원','전북 익산 익산','약사','C',729253,'+0%',3.5,0,1460000,0,false,0.0,'익산노선',35.949192,126.958163],
+  ['함열 성심약국(특약)','전북 익산 함열','약사','C',334128,'+0%',3.5,0,390000,0,false,0.0,'함열노선',35.960977,126.869899],
+  ['함열 박약국(특약)','전북 익산 함열','약사','C',891008,'+60%',3.5,0,560000,0,false,0.0,'함열노선',35.961806,126.86588],
+  ['전주 박용현내과','전북 익산 전주','약사','C',251525,'+0%',3.5,0,1000000,0,false,0.0,'전주노선',35.845461,127.15084],
+  ['익산 광제약국(특약)','전북 익산 익산','약사','C',44333,'+0%',3.5,0,270000,0,false,0.0,'익산노선',35.945003,126.958316],
+  ['익산 상아약국(특약)','전북 익산 익산','약사','C',-222752,'+0%',3.5,0,-500000,0,false,0.0,'익산노선',35.948148,126.95882]
 ];
 
-const NEW_PHARMACIES = [
-  { name: '미래약국', region: '전북 익산시 동산동', lat: 35.9472, lng: 126.9592 },
-  { name: '희망약국', region: '전북 익산시 창인동', lat: 35.9546, lng: 126.9553 },
-  { name: '정성약국', region: '전북 익산시 모현동', lat: 35.9503, lng: 126.9516 },
-  { name: '보람약국', region: '전북 익산시 영등동', lat: 35.9419, lng: 126.9644 },
-  { name: '꿈약국', region: '전북 익산시 인화동', lat: 35.9582, lng: 126.9498 },
-];
 
-const ROUTE_INFO = {
-  'A노선': { days: '화·목', members: ['행복약국','새약국','건강약국','우리약국','행운약국'] },
-  'B노선': { days: '월·수·금', members: ['가족약국','푸른약국','사랑약국','신뢰약국'] },
-  'C노선': { days: '화·목·토', members: ['미소약국','햇살약국','동네약국','큰마음약국','친절약국','평화약국'] },
+const NEW_PHARMACIES = [];
+
+const ROUTE_INFO = {};
+
+
+const PHARMACY_REAL = {
+  '익산 대학종로약국':{monthly:{1:177651243,2:171455419,3:194765995,4:154763054,5:169992306,6:151265748},pb:2708950,animal:518300,total:1019893765,proGrade:{A:0,B:0,C:28,D:37,E:23,F:12},goal:173170000},
+  '익산 세계로약국':{monthly:{1:65069539,2:68001550,3:55860787,4:74806351,5:47339749,6:48363031},pb:1724400,animal:0,total:359441007,proGrade:{A:0,B:0,C:34,D:35,E:23,F:8},goal:59340000},
+  '함열 박약국':{monthly:{1:35696634,2:39558761,3:34060881,4:34160654,5:34383584,6:21847125},pb:719950,animal:0,total:199707639,proGrade:{A:1,B:0,C:39,D:46,E:11,F:3},goal:34200000},
+  '함열 일등약국':{monthly:{1:33403352,2:32185090,3:36880968,4:33096837,5:34490265,6:26417972},pb:650200,animal:0,total:196474484,proGrade:{A:0,B:0,C:36,D:52,E:6,F:6},goal:34820000},
+  '익산 하나로약국':{monthly:{1:34791254,2:36386229,3:34927966,4:33066755,5:31004165,6:23841496},pb:372050,animal:0,total:194017865,proGrade:{A:0,B:0,C:36,D:60,E:3,F:1},goal:33000000},
+  '함열 함열태평양약국':{monthly:{1:28940781,2:23908069,3:28008242,4:27420993,5:29908001,6:18996610},pb:1528500,animal:0,total:157182696,proGrade:{A:0,B:0,C:33,D:57,E:7,F:3},goal:28450000},
+  '함열 함열보령약국':{monthly:{1:29706937,2:27846142,3:28705598,4:26529235,5:23375422,6:20989319},pb:705600,animal:74300,total:157152653,proGrade:{A:0,B:0,C:41,D:48,E:6,F:5},goal:26200000},
+  '황등 황등바른약국':{monthly:{1:18488326,2:22939150,3:18009267,4:16978671,5:20042385,6:15615703},pb:662400,animal:0,total:112073502,proGrade:{A:0,B:0,C:53,D:35,E:11,F:1},goal:18340000},
+  '함열 유명종로약국':{monthly:{1:17705888,2:15704041,3:15202950,4:18585640,5:16207308,6:10537812},pb:1720930,animal:244000,total:93943639,proGrade:{A:0,B:0,C:41,D:44,E:11,F:4},goal:16670000},
+  '황등 호남약국':{monthly:{1:15006860,2:14704662,3:14135732,4:13097076,5:12012690,6:10919186},pb:1141950,animal:0,total:79876206,proGrade:{A:0,B:0,C:76,D:15,E:8,F:1},goal:13080000},
+  '황등 황등종로약국':{monthly:{1:13310744,2:13147992,3:11411346,4:13252426,5:14778171,6:5387119},pb:302000,animal:0,total:71287798,proGrade:{A:0,B:1,C:47,D:42,E:7,F:3},goal:13150000},
+  '익산 비타민약국':{monthly:{1:8792887,2:11254879,3:12057978,4:16325790,5:11284294,6:11293464},pb:76400,animal:39500,total:71009292,proGrade:{A:0,B:0,C:8,D:19,E:3,F:70},goal:13220000},
+  '익산 광제약국':{monthly:{1:9167245,2:11138528,3:9903552,4:10542229,5:10264925,6:8038695},pb:285830,animal:0,total:59055174,proGrade:{A:0,B:1,C:40,D:45,E:8,F:6},goal:10240000},
+  '익산 문약국':{monthly:{1:8938208,2:10223938,3:8855537,4:8378608,5:8836730,6:8661660},pb:411450,animal:27500,total:53894681,proGrade:{A:0,B:0,C:41,D:43,E:7,F:9},goal:8690000},
+  '함열 함열건강약국':{monthly:{1:9499742,2:8335313,3:10261128,4:9262598,5:9014964,6:6450983},pb:2300,animal:0,total:52824728,proGrade:{A:1,B:0,C:54,D:40,E:2,F:3},goal:9510000},
+  '황등 평화약국':{monthly:{1:13940233,2:11450413,3:7338306,4:6523139,5:6038791,6:3997247},pb:814960,animal:283300,total:49288129,proGrade:{A:0,B:1,C:47,D:29,E:15,F:8},goal:6630000},
+  '익산 상아약국':{monthly:{1:5384349,2:7731942,3:10505507,4:6216441,5:9413283,6:6046824},pb:512990,animal:0,total:45298346,proGrade:{A:1,B:0,C:35,D:34,E:15,F:15},goal:8710000},
+  '익산 대성약국':{monthly:{1:6370064,2:6760749,3:8429757,4:8221531,5:7553683,6:7760738},pb:1611550,animal:1136400,total:45096522,proGrade:{A:0,B:0,C:39,D:46,E:9,F:6},goal:8070000},
+  '함열 함열온누리약국':{monthly:{1:8635604,2:7664594,3:8236910,4:7255284,5:6999842,6:6178633},pb:594330,animal:0,total:44970867,proGrade:{A:0,B:3,C:45,D:34,E:13,F:5},goal:7500000},
+  '익산 청십자약국':{monthly:{1:6978112,2:7331003,3:5924252,4:9927512,5:9199147,6:2624061},pb:549200,animal:0,total:41984087,proGrade:{A:1,B:1,C:33,D:57,E:3,F:5},goal:8350000},
+  '전주 나을약국':{monthly:{1:7030800,2:6724587,3:5953077,4:7147940,5:5163258,6:4337860},pb:761100,animal:190900,total:36357522,proGrade:{A:1,B:1,C:30,D:27,E:27,F:14},goal:6090000},
+  '황등 온누리약국':{monthly:{1:6467061,2:5317876,3:5801909,4:6931194,5:4396978,6:4792378},pb:160800,animal:49800,total:33707396,proGrade:{A:1,B:0,C:47,D:40,E:6,F:6},goal:5710000},
+  '익산 유한약국':{monthly:{1:3891712,2:4808038,3:4170042,4:7651221,5:6658047,6:4967685},pb:119100,animal:0,total:32146745,proGrade:{A:0,B:0,C:38,D:34,E:6,F:22},goal:6160000},
+  '함열 성심약국':{monthly:{1:5384995,2:4599790,3:5229526,4:5609671,5:6767935,6:4184531},pb:797750,animal:68000,total:31776448,proGrade:{A:0,B:0,C:49,D:40,E:8,F:3},goal:5870000},
+  '익산 익산종합약국':{monthly:{1:5465247,2:4628806,3:5953252,4:6407258,5:4710158,6:3808200},pb:4295300,animal:2664400,total:30972921,proGrade:{A:9,B:5,C:51,D:22,E:7,F:6},goal:5690000},
+  '익산 세종안과':{monthly:{1:4392909,2:5300435,3:3975000,4:14505500,5:0,6:2187759},pb:0,animal:0,total:30361603,proGrade:{A:0,B:0,C:0,D:0,E:31,F:69},goal:9240000},
+  '용안 중앙약국':{monthly:{1:4393547,2:5989677,3:5577073,4:4895334,5:4492214,6:3134004},pb:1468110,animal:0,total:28481849,proGrade:{A:0,B:3,C:51,D:28,E:13,F:5},goal:4990000},
+  '익산 보람찬약국':{monthly:{1:5844136,2:3379926,3:4732788,4:5676455,5:4369270,6:3434775},pb:990800,animal:782200,total:27437350,proGrade:{A:1,B:6,C:53,D:32,E:6,F:2},goal:4930000},
+  '익산 정문약국':{monthly:{1:4230719,2:3700816,3:4502934,4:4717315,5:4576335,6:2981990},pb:93000,animal:0,total:24710109,proGrade:{A:0,B:0,C:40,D:29,E:20,F:11},goal:4600000},
+  '익산 초당약국':{monthly:{1:2984019,2:3964572,3:3161619,4:5419745,5:2401855,6:2304668},pb:1100600,animal:0,total:20236478,proGrade:{A:2,B:0,C:46,D:43,E:4,F:5},goal:3660000},
+  '익산 정성온누리약국':{monthly:{1:4851404,2:3650802,3:2785769,4:2585842,5:3342128,6:2925227},pb:651100,animal:0,total:20141172,proGrade:{A:3,B:2,C:45,D:29,E:12,F:9},goal:2900000},
+  '익산 익산 라온약국':{monthly:{1:2058040,2:4111005,3:3633934,4:3529630,5:3642296,6:2898721},pb:0,animal:0,total:19873626,proGrade:{A:0,B:1,C:43,D:52,E:4,F:0},goal:3600000},
+  '익산 모인약국':{monthly:{1:3380367,2:3310890,3:3483317,4:3452506,5:3079173,6:2515384},pb:28000,animal:0,total:19221637,proGrade:{A:0,B:0,C:42,D:17,E:18,F:23},goal:3340000},
+  '익산 익산건강한약국':{monthly:{1:3301755,2:3067890,3:3384677,4:3181787,5:3080985,6:2505242},pb:106900,animal:0,total:18522336,proGrade:{A:6,B:0,C:62,D:27,E:5,F:0},goal:3220000},
+  '함열 약손약국':{monthly:{1:3561275,2:2784374,3:2587998,4:3097937,5:4441978,6:1686106},pb:241000,animal:0,total:18159668,proGrade:{A:0,B:2,C:56,D:36,E:4,F:2},goal:3380000},
+  '황등 황등솔약국':{monthly:{1:3672658,2:2528028,3:3236800,4:3198523,5:3117436,6:1474343},pb:34000,animal:0,total:17227788,proGrade:{A:0,B:0,C:52,D:33,E:13,F:2},goal:3180000},
+  '익산 보름달약국':{monthly:{1:3144694,2:3018752,3:817028,4:2818204,5:1348687,6:2812769},pb:216500,animal:0,total:13960134,proGrade:{A:0,B:0,C:60,D:29,E:5,F:6},goal:1660000},
+  '함열 함열태평양약국(특약)':{monthly:{1:3165400,2:3165400,3:3165400,4:3165400,5:0,6:0},pb:0,animal:0,total:12661600,proGrade:{A:0,B:0,C:0,D:0,E:0,F:100},goal:3170000},
+  '익산 성실약국':{monthly:{1:1716766,2:1416704,3:1468809,4:1515278,5:1695110,6:1308884},pb:626560,animal:0,total:9121551,proGrade:{A:9,B:3,C:53,D:30,E:3,F:2},goal:1560000},
+  '익산 웃음약국':{monthly:{1:803065,2:1316543,3:1398308,4:1607025,5:1879250,6:1856689},pb:910020,animal:309460,total:8860880,proGrade:{A:1,B:1,C:18,D:4,E:4,F:72},goal:1630000},
+  '익산 대학종로약국(특약)':{monthly:{1:1608264,2:2093196,3:1395464,4:1821064,5:1395464,6:532000},pb:0,animal:0,total:8845452,proGrade:{A:0,B:0,C:0,D:0,E:0,F:100},goal:1540000},
+  '황등 황등사랑약국':{monthly:{1:1350288,2:789570,3:547766,4:1712033,5:1743614,6:820927},pb:19500,animal:0,total:6964198,proGrade:{A:0,B:0,C:51,D:42,E:3,F:4},goal:1330000},
+  '익산 어양우리약국':{monthly:{1:879806,2:627745,3:1677783,4:877120,5:1029358,6:1148612},pb:232000,animal:0,total:6240424,proGrade:{A:1,B:18,C:64,D:11,E:5,F:1},goal:1190000},
+  '익산 안종욱안과의원':{monthly:{1:0,2:2187759,3:0,4:0,5:0,6:729253},pb:0,animal:0,total:2917012,proGrade:{A:0,B:0,C:0,D:0,E:0,F:100},goal:1460000},
+  '함열 성심약국(특약)':{monthly:{1:445504,2:0,3:334128,4:445504,5:0,6:334128},pb:0,animal:0,total:1559264,proGrade:{A:0,B:0,C:0,D:0,E:0,F:100},goal:390000},
+  '함열 박약국(특약)':{monthly:{1:0,2:0,3:0,4:0,5:556880,6:891008},pb:0,animal:0,total:1447888,proGrade:{A:0,B:0,C:0,D:0,E:0,F:100},goal:560000},
+  '전주 박용현내과':{monthly:{1:0,2:0,3:0,4:1003712,5:0,6:251525},pb:0,animal:0,total:1255237,proGrade:{A:0,B:0,C:0,D:0,E:56,F:44},goal:1000000},
+  '익산 광제약국(특약)':{monthly:{1:266000,2:0,3:0,4:0,5:0,6:0},pb:0,animal:0,total:266000,proGrade:{A:0,B:0,C:0,D:0,E:0,F:100},goal:270000},
+  '익산 상아약국(특약)':{monthly:{1:-445504,2:0,3:-334128,4:-1002384,5:-222752,6:0},pb:0,animal:0,total:-2004768,proGrade:{A:11,B:11,C:39,D:17,E:11,F:11},goal:-500000}
 };
 
 const NEWS = {
@@ -529,13 +607,13 @@ function makeData(arr) {
     monthGoal, monthCurrent, monthDay: 24, monthDays: 30,
     daily, proTop, genTop, hsTop, pbThisMonthItems,
     catRatio, catSales, catTrend,
-    pb3mAvg: Math.round(pbMonthly * 0.92),
-    vet3mAvg: hasVet ? Math.round(vetM * 100000) : 0,
+    pb3mAvg: (PHARMACY_REAL[name]) ? Math.round(PHARMACY_REAL[name].pb / 6) : Math.round(pbMonthly * 0.92),
+    vet3mAvg: (PHARMACY_REAL[name]) ? Math.round(PHARMACY_REAL[name].animal / 6) : (hasVet ? Math.round(vetM * 100000) : 0),
     news: NEWS,
     memo: [],
     route, lat, lng,
     // 전문약 등급별 비율 (실제 데이터 입력 전 샘플)
-    proGrade: { A: 30, B: 25, C: 20, D: 15, E: 7, F: 3 }
+    proGrade: (PHARMACY_REAL[name] && PHARMACY_REAL[name].proGrade) ? PHARMACY_REAL[name].proGrade : { A: 30, B: 25, C: 20, D: 15, E: 7, F: 3 }
   };
 }
 
@@ -775,409 +853,4 @@ function render(name) {
   html += '</div></div>';
 
   document.getElementById('Result').innerHTML = html;
-  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 100);
-}
-
-// ============================================================
-// 빠른 태그
-// ============================================================
-function insertTag(tag) {
-  const el = document.getElementById('Memo');
-  if (!el) return;
-  const now = new Date();
-  const t = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  const text = '['+t+'] ' + tag + ' — ';
-  const pos = el.selectionStart;
-  el.value = el.value.slice(0, pos) + (el.value.length > 0 && el.value[el.value.length-1] !== '\n' && pos === el.value.length ? '\n' : '') + text;
-  el.focus();
-  el.selectionStart = el.selectionEnd = el.value.length;
-}
-
-function clearMemoInput() {
-  const el = document.getElementById('Memo');
-  if (el) { el.value = ''; el.focus(); }
-}
-
-// ============================================================
-// 음성 입력
-// ============================================================
-let recognition = null;
-let isRecording = false;
-
-function initRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return null;
-  const r = new SR();
-  r.lang = 'ko-KR'; r.continuous = true; r.interimResults = true;
-  return r;
-}
-
-function toggleVoice(name) {
-  const btn = document.getElementById('VoiceBtn');
-  const status = document.getElementById('VoiceStatus');
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('이 브라우저는 음성 입력을 지원하지 않습니다.\nSafari(iOS 14.5+) 또는 Chrome에서 이용하세요.'); return; }
-  if (isRecording) {
-    if (recognition) recognition.stop();
-    isRecording = false;
-    btn.classList.remove('recording'); btn.textContent = '🎤';
-    status.textContent = '음성'; status.classList.remove('active');
-  } else {
-    recognition = initRecognition();
-    if (!recognition) return;
-    isRecording = true;
-    btn.classList.add('recording'); btn.textContent = '⏹';
-    status.textContent = '녹음 중...'; status.classList.add('active');
-    const el = document.getElementById('Memo');
-    let baseText = el.value;
-    recognition.onresult = function(e) {
-      let interim = '', final = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final += e.results[i][0].transcript;
-        else interim += e.results[i][0].transcript;
-      }
-      if (final) { baseText += final + ' '; }
-      el.value = baseText + interim;
-      el.scrollTop = el.scrollHeight;
-    };
-    recognition.onerror = function(e) {
-      isRecording = false;
-      if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
-      if (status) { status.textContent = '음성'; status.classList.remove('active'); }
-      if (e.error !== 'aborted') alert('음성 인식 오류: ' + e.error);
-    };
-    recognition.onend = function() { if (isRecording) recognition.start(); };
-    recognition.start();
-  }
-}
-
-// ============================================================
-// 라이브러리 동적 로드
-// ============================================================
-function loadScript(src, check) {
-  return new Promise((resolve, reject) => {
-    if (window[check]) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = src; s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-// ============================================================
-// 차트
-// ============================================================
-function drawDaily(data, goal, days) {
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
-    const ctx = document.getElementById('DailyChart');
-    if (!ctx) return;
-    const goalLine = [];
-    for (let i=0; i<=days; i++) goalLine.push(Math.round(goal/days*i));
-    new Chart(ctx, {
-      type: 'line',
-      data: { labels: data.map((_,i)=>i), datasets: [
-        { label: '실제 누적', data: data, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.1)', fill: true, tension: 0.3, pointRadius: 0 },
-        { label: '목표선', data: goalLine, borderColor: '#888780', borderDash: [4,4], fill: false, pointRadius: 0 }
-      ]},
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 11 } } } },
-        scales: {
-          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => (v/10000).toFixed(0)+'만' } },
-          x: { ticks: { font: { size: 10 }, callback: (v,i) => i%5===0 ? i+'일' : '' } }
-        }
-      }
-    });
-  }).catch(() => {});
-}
-
-function drawCat(ratio) {
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
-    const ctx = document.getElementById('CatChart');
-    if (!ctx) return;
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels: ['전문약','일반약','건기식','PB'], datasets: [{ data: [ratio.pro, ratio.gen, ratio.hs, ratio.pb], backgroundColor: ['#378ADD','#EF9F27','#97C459','#7F77DD'], borderWidth: 0 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
-    });
-  }).catch(() => {});
-}
-
-function drawGrade(proGrade) {
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
-    const ctx = document.getElementById('GradeChart');
-    if (!ctx) return;
-    const labels = Object.keys(proGrade).map(g => g+'등급');
-    const values = Object.values(proGrade);
-    const colors = ['#1D9E75','#378ADD','#EF9F27','#E24B4A','#7F77DD','#888780'];
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
-    });
-  }).catch(() => {});
-}
-
-// ============================================================
-// 매출·목표액 수정
-// ============================================================
-function editSales(name) {
-  const d = DATA[name];
-  const input = prompt(
-    '[ ' + name + ' ] 이번달 매출 수정\n현재: ' + d.sales.toLocaleString() + '원\n\n실제 매출 금액을 입력하세요 (숫자만):',
-    d.sales
-  );
-  if (input === null) return;
-  const newSales = parseInt(String(input).replace(/[^0-9]/g, ''));
-  if (isNaN(newSales) || newSales < 0) { alert('올바른 금액을 입력해주세요.'); return; }
-  DATA[name].sales = newSales;
-  DATA[name].monthCurrent = Math.round(newSales * 0.81);
-  saveSalesToFirestore();
-  render(name);
-}
-
-async function saveSalesToFirestore() {
-  if (!currentUser) return;
-  try {
-    const ok = await initFirebase();
-    if (!ok) return;
-    const sales = {};
-    Object.keys(DATA).forEach(n => { sales[n] = DATA[n].sales; });
-    await _db.collection('users').doc(currentUser.id).set({ sales }, { merge: true });
-  } catch(e) { console.warn('Sales save failed:', e); }
-}
-
-function editGoal(name) {
-  const d = DATA[name];
-  const input = prompt(
-    '[ ' + name + ' ] 월 목표 금액 수정\n현재: ' + d.monthGoal.toLocaleString() + '원\n\n새 목표 금액을 입력하세요 (숫자만):',
-    d.monthGoal
-  );
-  if (input === null) return; // 취소
-  const newGoal = parseInt(String(input).replace(/[^0-9]/g, ''));
-  if (isNaN(newGoal) || newGoal <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
-  DATA[name].monthGoal = newGoal;
-  saveGoalsToFirestore();
-  render(name);
-}
-
-async function saveGoalsToFirestore() {
-  if (!currentUser) return;
-  try {
-    const ok = await initFirebase();
-    if (!ok) return;
-    const goals = {};
-    Object.keys(DATA).forEach(n => { goals[n] = DATA[n].monthGoal; });
-    await _db.collection('users').doc(currentUser.id).set({ goals }, { merge: true });
-  } catch(e) { console.warn('Goals save failed:', e); }
-}
-
-// ============================================================
-// 메모 — Firestore + localStorage 이중 저장
-// ============================================================
-const MEMO_KEY = 'oneclick-smalltalk-memos-v4';
-
-function loadMemosFromStorage() {
-  try {
-    const saved = localStorage.getItem(MEMO_KEY);
-    if (!saved) return;
-    const memos = JSON.parse(saved);
-    Object.keys(memos).forEach(name => { if (DATA[name]) DATA[name].memo = memos[name]; });
-  } catch(e) {}
-}
-
-function saveMemosToStorage() {
-  try {
-    const memos = {};
-    Object.keys(DATA).forEach(name => { if (DATA[name].memo && DATA[name].memo.length > 0) memos[name] = DATA[name].memo; });
-    localStorage.setItem(MEMO_KEY, JSON.stringify(memos));
-  } catch(e) {}
-}
-
-async function loadMemosFromFirestore(userId) {
-  try {
-    const ok = await initFirebase();
-    if (!ok) { loadMemosFromStorage(); return; }
-    const doc = await _db.collection('users').doc(userId).get();
-    if (doc.exists) {
-      const data = doc.data();
-      // 메모 불러오기
-      if (data.memos) {
-        Object.keys(data.memos).forEach(name => { if (DATA[name]) DATA[name].memo = data.memos[name]; });
-      }
-      // 목표액 불러오기
-      if (data.goals) {
-        Object.keys(data.goals).forEach(name => { if (DATA[name]) DATA[name].monthGoal = data.goals[name]; });
-      }
-      // 매출 불러오기
-      if (data.sales) {
-        Object.keys(data.sales).forEach(name => {
-          if (DATA[name]) {
-            DATA[name].sales = data.sales[name];
-            DATA[name].monthCurrent = Math.round(data.sales[name] * 0.81);
-          }
-        });
-      }
-    }
-  } catch(e) {
-    console.warn('Firestore 불러오기 실패, localStorage 사용:', e);
-    loadMemosFromStorage();
-  }
-}
-
-async function saveMemosToFirestore() {
-  if (!currentUser) { saveMemosToStorage(); return; }
-  try {
-    const ok = await initFirebase();
-    if (!ok) { saveMemosToStorage(); return; }
-    const memos = {};
-    Object.keys(DATA).forEach(name => { if (DATA[name].memo && DATA[name].memo.length > 0) memos[name] = DATA[name].memo; });
-    await _db.collection('users').doc(currentUser.id).set({ memos }, { merge: true });
-    saveMemosToStorage();
-  } catch(e) {
-    console.warn('Firestore 저장 실패, localStorage 사용:', e);
-    saveMemosToStorage();
-  }
-}
-
-function saveMemo(name) {
-  const txt = document.getElementById('Memo').value.trim();
-  if (!txt) return;
-  const now = new Date();
-  const t = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  DATA[name].memo.unshift({ time: t, text: txt, ai: null });
-  saveMemosToFirestore();
-  render(name);
-}
-
-function deleteMemo(name, index) {
-  if (!confirm('이 메모를 삭제하시겠습니까?')) return;
-  DATA[name].memo.splice(index, 1);
-  saveMemosToFirestore();
-  render(name);
-}
-
-// ============================================================
-// 메모 내보내기 (CSV)
-// ============================================================
-function exportMemos() {
-  const rows = [['거래처명', '등급', '담당루트', '작성일시', '메모내용']];
-  let totalCount = 0;
-  Object.keys(DATA).forEach(name => {
-    const d = DATA[name];
-    if (d.memo && d.memo.length > 0) {
-      d.memo.forEach(m => {
-        rows.push([name, d.grade || '', d.route || '', m.time || '', m.text || '']);
-        totalCount++;
-      });
-    }
-  });
-  if (totalCount === 0) { alert('저장된 메모가 없습니다.'); return; }
-  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const today = new Date();
-  const ds = today.getFullYear() + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2);
-  const userName = currentUser ? '_' + currentUser.name : '';
-  a.href = url; a.download = '원클릭스몰톡_메모' + userName + '_' + ds + '.csv';
-  a.click(); URL.revokeObjectURL(url);
-}
-
-// ============================================================
-// 지도
-// ============================================================
-let leafletMap = null;
-let locMarker = null;
-
-function openMap() {
-  document.getElementById('MapModal').classList.add('open');
-  if (!document.querySelector('link[href*="leaflet"]')) {
-    const lnk = document.createElement('link');
-    lnk.rel = 'stylesheet';
-    lnk.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-    document.head.appendChild(lnk);
-  }
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js', 'L').then(() => {
-    setTimeout(initMap, 100);
-  }).catch(() => {
-    document.getElementById('map').innerHTML = '<div style="padding:20px;text-align:center;color:#666;">지도를 로드할 수 없습니다.</div>';
-  });
-}
-
-function closeMap() {
-  document.getElementById('MapModal').classList.remove('open');
-}
-
-function initMap() {
-  if (leafletMap) { leafletMap.invalidateSize(); return; }
-  leafletMap = L.map('map').setView([35.948, 126.958], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors', maxZoom: 19
-  }).addTo(leafletMap);
-
-  Object.values(DATA).forEach(d => {
-    const routeInfo = ROUTE_INFO[d.route] || {};
-    const routeMembers = routeInfo.members || [];
-    const routeLine = routeMembers.map(m => m === d.name ? '<strong>'+m+'</strong>' : m).join(' → ');
-    const gradeColor = d.grade === 'A' ? '#0C447C' : d.grade === 'B' ? '#633806' : '#7C0C0C';
-    const marker = L.circleMarker([d.lat, d.lng], { radius: 10, fillColor: '#1D74C8', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }).addTo(leafletMap);
-    const popupHtml = `<div class="lf-popup" style="min-width:200px;">
-      <h4>🏪 ${d.name} <span class="lf-grade" style="background:${d.grade==='A'?'#E6F1FB':d.grade==='B'?'#FAEEDA':'#FBE5E5'};color:${gradeColor};">등급 ${d.grade}</span></h4>
-      <div class="lf-sub">${d.region} · 약사 ${d.pharmacist}</div>
-      <div class="lf-sales">${fmt(d.sales)} <span style="color:${d.salesTrend.startsWith('+')?'#639922':'#E24B4A'};font-size:12px;">${d.salesTrend}</span></div>
-      <div class="lf-route">📦 ${d.route} (${routeInfo.days||''})</div>
-      <div class="lf-route-list">${routeLine}</div>
-      <button class="lf-btn" onclick="pickFromMap('${d.name}')">자세히 보기 →</button>
-    </div>`;
-    marker.bindPopup(popupHtml, { maxWidth: 260 });
-  });
-
-  NEW_PHARMACIES.forEach(p => {
-    const marker = L.circleMarker([p.lat, p.lng], { radius: 10, fillColor: '#2d9c5a', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }).addTo(leafletMap);
-    const popupHtml = `<div class="lf-popup" style="min-width:180px;">
-      <h4>🏪 ${p.name}</h4>
-      <div class="lf-sub">${p.region}</div>
-      <div class="lf-new-badge">🟢 신규 개척 가능</div>
-      <div style="font-size:12px;color:#6B6963;margin-bottom:8px;">거래 이력 없음 — 개척 대상</div>
-      <button class="lf-btn lf-btn-new" onclick="newPharmacyNote('${p.name}', '${p.region}')">📝 메모 작성</button>
-    </div>`;
-    marker.bindPopup(popupHtml, { maxWidth: 220 });
-  });
-}
-
-function pickFromMap(name) {
-  closeMap();
-  document.getElementById('Q').value = name;
-  pick(name);
-}
-
-function newPharmacyNote(name, region) {
-  closeMap();
-  alert(name + ' (' + region + ')\n신규 개척 대상입니다.\n검색창에서 이름을 입력하면 메모를 작성할 수 있습니다.');
-}
-
-function locateMe() {
-  if (!navigator.geolocation) { alert('이 브라우저는 위치 서비스를 지원하지 않습니다.'); return; }
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude, lng = pos.coords.longitude;
-    if (!leafletMap) return;
-    if (locMarker) locMarker.remove();
-    locMarker = L.circleMarker([lat, lng], { radius: 8, fillColor: '#E24B4A', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(leafletMap);
-    locMarker.bindPopup('📍 내 현재 위치').openPopup();
-    leafletMap.setView([lat, lng], 14);
-  }, () => { alert('위치를 가져올 수 없습니다. 위치 권한을 허용해주세요.'); });
-}
-
-// ============================================================
-// 시작
-// ============================================================
-(function start() {
-  initUserSelect();
-  const savedId = localStorage.getItem(USER_KEY);
-  if (savedId) {
-    const saved = USERS.find(u => u.id === savedId);
-    if (saved) { selectUser(saved); return; }
-  }
-})();
-</script>
-</body>
-</html>
+  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 10
