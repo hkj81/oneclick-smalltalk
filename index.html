@@ -3460,11 +3460,17 @@ function renderTab(name, tab) {
   let list, label, catClass, dataObj;
   if (tab === 'pro') { list = d.proTop; label = '전문약'; catClass = 'pro'; dataObj = PRO_ITEMS_MONTHLY; }
   else { list = d.genTop; label = '일반약'; catClass = 'gen'; dataObj = GEN_ITEMS_MONTHLY; }
-  // 전체 거래처 중 각 품목 주문처 수
+  // 전체 거래처 중 각 품목 주문처 수 + 약국명 목록
   const pharmCounts = {};
-  Object.values(dataObj).forEach(items => {
+  window._tabPharmMap = {};
+  Object.entries(dataObj).forEach(([ph, items]) => {
+    const shortPh = ph.split(' ').slice(1).join(' ') || ph;
     Object.entries(items).forEach(([k,v]) => {
-      if (v[currentMonth] && v[currentMonth].a > 0) pharmCounts[k] = (pharmCounts[k]||0) + 1;
+      if (v[currentMonth] && v[currentMonth].a > 0) {
+        pharmCounts[k] = (pharmCounts[k]||0) + 1;
+        if (!window._tabPharmMap[k]) window._tabPharmMap[k] = [];
+        window._tabPharmMap[k].push(shortPh);
+      }
     });
   });
   const total = list.reduce((s, x) => s + x.sales, 0);
@@ -3477,15 +3483,23 @@ function renderTab(name, tab) {
   if (list.length === 0) { h += '<div class="empty">'+currentMonth+'월 '+label+' 출고 내역 없음</div>'; return h; }
   list.forEach((item, i) => {
     const pc = pharmCounts[item.name] || 0;
-    const qtyStr = item.qty ? item.qty+'개' : '';
-    const pcStr = pc ? pc+'처' : '';
-    const subInfo = [qtyStr, pcStr].filter(Boolean).join(' · ');
+    const ep = item.name.replace(/'/g,"\\'");
     h += '<div class="top-row"><div class="top-rank">'+(i+1)+'</div>';
-    h += '<div class="top-name">'+item.name+(subInfo?' <span style="font-size:11px;color:#888;">'+subInfo+'</span>':'')+'</div>';
+    h += '<div class="top-name">'+item.name;
+    if (item.qty) h += ' <span style="font-size:11px;color:#888;">'+item.qty+'개</span>';
+    if (pc) h += ' <span style="font-size:11px;color:#6C5CE7;cursor:pointer;text-decoration:underline;" onclick="showTabPharms(\''+ep+'\')">'+pc+'처</span>';
+    h += '</div>';
     h += '<span class="top-cat cat-'+catClass+'">'+label+'</span>';
     h += '<div class="top-amount">'+fmt(item.sales)+'</div></div>';
   });
   return h;
+}
+
+function showTabPharms(prod) {
+  const list = (window._tabPharmMap || {})[prod] || [];
+  const html = '<div style="font-size:12px;color:#888;margin-bottom:8px;">'+prod+' 주문 거래처 ('+list.length+'처)</div>'
+    + '<div style="font-size:13px;line-height:2;">'+list.map(p=>'<span style="display:inline-block;background:#F0EEFF;color:#3C3489;border-radius:6px;padding:2px 8px;margin:2px;">'+p+'</span>').join('')+'</div>';
+  openModal(prod+' — '+list.length+'처 주문 현황', html);
 }
 
 // ============================================================
