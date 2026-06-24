@@ -862,7 +862,16 @@ function render(name) {
   html += '<span class="route-badge">📦 '+d.route+' ('+routeInfo.days+')</span>';
   html += '</div></div>';
   html += '<div class="metrics">';
-  html += '<div class="metric" style="cursor:pointer;position:relative;" onclick="editSales(\''+name+'\')" title="클릭하여 수정"><div class="metric-label">이번달 매출 <span style="font-size:10px;color:#1D9E75;">✏️</span></div><div class="metric-value">'+fmt(d.sales)+'</div><div class="metric-trend '+(trendUp?'up':'down')+'">'+d.salesTrend+'</div></div>';
+  html += '<div class="metric" style="position:relative;">';
+  html += '<div class="metric-label" style="display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span>이번달 매출 <span style="cursor:pointer;" onclick="editGoal(\''+name+'\')">✏️</span></span>';
+  html += '<span style="font-size:10px;color:#bbb;cursor:pointer;" onclick="setGoalFromAvg(\''+name+'\')">3개월평균</span></div>';
+  html += '<div style="display:flex;gap:14px;margin:6px 0;flex-wrap:wrap;">';
+  html += '<div><span style="font-size:10px;color:#6B6963;">목표</span><br><span style="font-size:15px;font-weight:700;color:#1D9E75;">'+fmt(d.monthGoal)+'</span></div>';
+  html += '<div><span style="font-size:10px;color:#6B6963;">현매출</span><br><span style="font-size:15px;font-weight:700;">'+fmt(d.sales)+'</span></div>';
+  html += '</div>';
+  html += '<div class="metric-trend '+(trendUp?'up':'down')+'">'+d.salesTrend+'</div>';
+  html += '</div>';
   html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div class="metric-trend '+(d.returnRate<3?'up':'down')+'">'+(d.returnRate<3?'양호':'주의')+'</div></div>';
   html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
   html += '</div>';
@@ -1145,6 +1154,18 @@ async function saveSalesToFirestore() {
     Object.keys(DATA).forEach(n => { sales[n] = DATA[n].sales; });
     await _db.collection('users').doc(currentUser.id).set({ sales }, { merge: true });
   } catch(e) { console.warn('Sales save failed:', e); }
+}
+
+function setGoalFromAvg(name) {
+  const real = PHARMACY_REAL[name];
+  if (!real) { alert('실데이터 없음'); return; }
+  const months = [4,5,6].map(m => real.monthly[m] || 0).filter(v => v > 0);
+  if (!months.length) { alert('3개월 데이터 없음'); return; }
+  const avg = Math.round(months.reduce((a,b)=>a+b,0)/months.length / 10000) * 10000;
+  if (!confirm('[ ' + name + ' ]\n4~6월 평균 목표: ' + avg.toLocaleString() + '원\n\n이 금액으로 목표를 설정하시겠습니까?')) return;
+  DATA[name].monthGoal = avg;
+  saveGoalsToFirestore();
+  render(name);
 }
 
 function editGoal(name) {
