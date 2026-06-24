@@ -1564,7 +1564,7 @@ function makeData(arr) {
   const returnAmt = (RETURN_AMTS_MONTHLY[name] && RETURN_AMTS_MONTHLY[name][currentMonth]) ? RETURN_AMTS_MONTHLY[name][currentMonth] : 0;
   const returnRate = sales > 0 ? Math.round(returnAmt / sales * 1000) / 10 : (RETURN_RATES[name] !== undefined ? RETURN_RATES[name] : _returnRate);
   const real = PHARMACY_REAL[name];
-  const realPbM     = (PB_MONTHLY[name] && PB_MONTHLY[name][currentMonth]) ? PB_MONTHLY[name][currentMonth] : (real ? Math.round(real.pb / 6) : 0);
+  let realPbM     = (PB_MONTHLY[name] && PB_MONTHLY[name][currentMonth]) ? PB_MONTHLY[name][currentMonth] : (real ? Math.round(real.pb / 6) : 0);
   const realAnimalM = real ? Math.round(real.animal / 6) : 0;
   const realProM0  = (PRO_MONTHLY[name] && PRO_MONTHLY[name][currentMonth]) ? PRO_MONTHLY[name][currentMonth] : 0;
   const realGenM0  = (GEN_MONTHLY[name] && GEN_MONTHLY[name][currentMonth]) ? GEN_MONTHLY[name][currentMonth] : 0;
