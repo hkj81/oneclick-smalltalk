@@ -983,7 +983,7 @@ function render(name) {
   html += '</div>';
   html += '<div class="metric-trend '+(trendUp?'up':'down')+'" style="margin-top:4px;">'+d.salesTrend+'</div>';
   html += '</div>';
-  html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div style="font-size:11px;color:#888;margin-top:2px;">'+fmt(d.returnAmt)+'</div><div class="metric-trend '+(d.returnRate<7?'up':'down')+'">'+(d.returnRate<7?'양호':'주의')+'</div></div>';
+  html += '<div class="metric"><div class="metric-label">반품률</div><div style="display:flex;align-items:baseline;gap:6px;"><div class="metric-value">'+d.returnRate+'%</div><div style="font-size:11px;color:#888;">'+fmt(d.returnAmt)+'</div></div><div class="metric-trend '+(d.returnRate<7?'up':'down')+'">'+(d.returnRate<7?'양호':'주의')+'</div></div>';
   html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
   html += '</div>';
   html += '<div style="background:#F5F4EE;border-radius:8px;padding:10px 14px;margin-top:4px;font-size:13px;">';
