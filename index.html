@@ -854,3 +854,389 @@ function render(name) {
 
   document.getElementById('Result').innerHTML = html;
   setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 10
+  document.getElementById('Result').innerHTML = html;
+  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 100);
+}
+
+// ============================================================
+// 빠른 태그
+// ============================================================
+function insertTag(tag) {
+  const el = document.getElementById('Memo');
+  if (!el) return;
+  const now = new Date();
+  const t = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const text = '['+t+'] ' + tag + ' — ';
+  const pos = el.selectionStart;
+  el.value = el.value.slice(0, pos) + (el.value.length > 0 && el.value[el.value.length-1] !== '\n' && pos === el.value.length ? '\n' : '') + text;
+  el.focus();
+  el.selectionStart = el.selectionEnd = el.value.length;
+}
+
+function clearMemoInput() {
+  const el = document.getElementById('Memo');
+  if (el) { el.value = ''; el.focus(); }
+}
+
+// ============================================================
+// 음성 입력
+// ============================================================
+let recognition = null;
+let isRecording = false;
+
+function initRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.lang = 'ko-KR'; r.continuous = true; r.interimResults = true;
+  return r;
+}
+
+function toggleVoice(name) {
+  const btn = document.getElementById('VoiceBtn');
+  const status = document.getElementById('VoiceStatus');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('이 브라우저는 음성 입력을 지원하지 않습니다.\nSafari(iOS 14.5+) 또는 Chrome에서 이용하세요.'); return; }
+  if (isRecording) {
+    if (recognition) recognition.stop();
+    isRecording = false;
+    btn.classList.remove('recording'); btn.textContent = '🎤';
+    status.textContent = '음성'; status.classList.remove('active');
+  } else {
+    recognition = initRecognition();
+    if (!recognition) return;
+    isRecording = true;
+    btn.classList.add('recording'); btn.textContent = '⏹';
+    status.textContent = '녹음 중...'; status.classList.add('active');
+    const el = document.getElementById('Memo');
+    let baseText = el.value;
+    recognition.onresult = function(e) {
+      let interim = '', final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      if (final) { baseText += final + ' '; }
+      el.value = baseText + interim;
+      el.scrollTop = el.scrollHeight;
+    };
+    recognition.onerror = function(e) {
+      isRecording = false;
+      if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+      if (status) { status.textContent = '음성'; status.classList.remove('active'); }
+      if (e.error !== 'aborted') alert('음성 인식 오류: ' + e.error);
+    };
+    recognition.onend = function() { if (isRecording) recognition.start(); };
+    recognition.start();
+  }
+}
+
+// ============================================================
+// 라이브러리 동적 로드
+// ============================================================
+function loadScript(src, check) {
+  return new Promise((resolve, reject) => {
+    if (window[check]) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// ============================================================
+// 차트
+// ============================================================
+function drawDaily(data, goal, days) {
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
+    const ctx = document.getElementById('DailyChart');
+    if (!ctx) return;
+    const goalLine = [];
+    for (let i=0; i<=days; i++) goalLine.push(Math.round(goal/days*i));
+    new Chart(ctx, {
+      type: 'line',
+      data: { labels: data.map((_,i)=>i), datasets: [
+        { label: '실제 누적', data: data, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.1)', fill: true, tension: 0.3, pointRadius: 0 },
+        { label: '목표선', data: goalLine, borderColor: '#888780', borderDash: [4,4], fill: false, pointRadius: 0 }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 11 } } } },
+        scales: {
+          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => (v/10000).toFixed(0)+'만' } },
+          x: { ticks: { font: { size: 10 }, callback: (v,i) => i%5===0 ? i+'일' : '' } }
+        }
+      }
+    });
+  }).catch(() => {});
+}
+
+function drawCat(ratio) {
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
+    const ctx = document.getElementById('CatChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: ['전문약','일반약','건기식','PB'], datasets: [{ data: [ratio.pro, ratio.gen, ratio.hs, ratio.pb], backgroundColor: ['#378ADD','#EF9F27','#97C459','#7F77DD'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
+    });
+  }).catch(() => {});
+}
+
+function drawGrade(proGrade) {
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
+    const ctx = document.getElementById('GradeChart');
+    if (!ctx) return;
+    const labels = Object.keys(proGrade).map(g => g+'등급');
+    const values = Object.values(proGrade);
+    const colors = ['#1D9E75','#378ADD','#EF9F27','#E24B4A','#7F77DD','#888780'];
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
+    });
+  }).catch(() => {});
+}
+
+// ============================================================
+// 매출·목표액 수정
+// ============================================================
+function editSales(name) {
+  const d = DATA[name];
+  const input = prompt(
+    '[ ' + name + ' ] 이번달 매출 수정\n현재: ' + d.sales.toLocaleString() + '원\n\n실제 매출 금액을 입력하세요 (숫자만):',
+    d.sales
+  );
+  if (input === null) return;
+  const newSales = parseInt(String(input).replace(/[^0-9]/g, ''));
+  if (isNaN(newSales) || newSales < 0) { alert('올바른 금액을 입력해주세요.'); return; }
+  DATA[name].sales = newSales;
+  DATA[name].monthCurrent = Math.round(newSales * 0.81);
+  saveSalesToFirestore();
+  render(name);
+}
+
+async function saveSalesToFirestore() {
+  if (!currentUser) return;
+  try {
+    const ok = await initFirebase();
+    if (!ok) return;
+    const sales = {};
+    Object.keys(DATA).forEach(n => { sales[n] = DATA[n].sales; });
+    await _db.collection('users').doc(currentUser.id).set({ sales }, { merge: true });
+  } catch(e) { console.warn('Sales save failed:', e); }
+}
+
+function editGoal(name) {
+  const d = DATA[name];
+  const input = prompt(
+    '[ ' + name + ' ] 월 목표 금액 수정\n현재: ' + d.monthGoal.toLocaleString() + '원\n\n새 목표 금액을 입력하세요 (숫자만):',
+    d.monthGoal
+  );
+  if (input === null) return;
+  const newGoal = parseInt(String(input).replace(/[^0-9]/g, ''));
+  if (isNaN(newGoal) || newGoal <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
+  DATA[name].monthGoal = newGoal;
+  saveGoalsToFirestore();
+  render(name);
+}
+
+async function saveGoalsToFirestore() {
+  if (!currentUser) return;
+  try {
+    const ok = await initFirebase();
+    if (!ok) return;
+    const goals = {};
+    Object.keys(DATA).forEach(n => { goals[n] = DATA[n].monthGoal; });
+    await _db.collection('users').doc(currentUser.id).set({ goals }, { merge: true });
+  } catch(e) { console.warn('Goals save failed:', e); }
+}
+
+// ============================================================
+// 메모 — Firestore + localStorage 이중 저장
+// ============================================================
+const MEMO_KEY = 'oneclick-smalltalk-memos-v4';
+
+function loadMemosFromStorage() {
+  try {
+    const saved = localStorage.getItem(MEMO_KEY);
+    if (!saved) return;
+    const memos = JSON.parse(saved);
+    Object.keys(memos).forEach(name => { if (DATA[name]) DATA[name].memo = memos[name]; });
+  } catch(e) {}
+}
+
+function saveMemosToStorage() {
+  try {
+    const memos = {};
+    Object.keys(DATA).forEach(name => { if (DATA[name].memo && DATA[name].memo.length > 0) memos[name] = DATA[name].memo; });
+    localStorage.setItem(MEMO_KEY, JSON.stringify(memos));
+  } catch(e) {}
+}
+
+async function loadMemosFromFirestore(userId) {
+  try {
+    const ok = await initFirebase();
+    if (!ok) { loadMemosFromStorage(); return; }
+    // 5초 타임아웃 적용
+    const doc = await Promise.race([
+      _db.collection('users').doc(userId).get(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+    ]);
+    if (doc.exists) {
+      const data = doc.data();
+      if (data.memos) {
+        Object.keys(data.memos).forEach(name => { if (DATA[name]) DATA[name].memo = data.memos[name]; });
+      }
+      if (data.goals) {
+        Object.keys(data.goals).forEach(name => { if (DATA[name]) DATA[name].monthGoal = data.goals[name]; });
+      }
+      if (data.sales) {
+        Object.keys(data.sales).forEach(name => {
+          if (DATA[name]) {
+            DATA[name].sales = data.sales[name];
+            DATA[name].monthCurrent = Math.round(data.sales[name] * 0.81);
+          }
+        });
+      }
+    }
+  } catch(e) {
+    console.warn('Firestore 불러오기 실패, localStorage 사용:', e);
+    loadMemosFromStorage();
+  }
+}
+
+async function saveMemosToFirestore() {
+  if (!currentUser) { saveMemosToStorage(); return; }
+  try {
+    const ok = await initFirebase();
+    if (!ok) { saveMemosToStorage(); return; }
+    const memos = {};
+    Object.keys(DATA).forEach(name => { if (DATA[name].memo && DATA[name].memo.length > 0) memos[name] = DATA[name].memo; });
+    await _db.collection('users').doc(currentUser.id).set({ memos }, { merge: true });
+    saveMemosToStorage();
+  } catch(e) {
+    console.warn('Firestore 저장 실패, localStorage 사용:', e);
+    saveMemosToStorage();
+  }
+}
+
+function saveMemo(name) {
+  const txt = document.getElementById('Memo').value.trim();
+  if (!txt) return;
+  const now = new Date();
+  const t = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  DATA[name].memo.unshift({ time: t, text: txt, ai: null });
+  saveMemosToFirestore();
+  render(name);
+}
+
+function deleteMemo(name, index) {
+  if (!confirm('이 메모를 삭제하시겠습니까?')) return;
+  DATA[name].memo.splice(index, 1);
+  saveMemosToFirestore();
+  render(name);
+}
+
+// ============================================================
+// 메모 내보내기 (CSV)
+// ============================================================
+function exportMemos() {
+  const rows = [['거래처명', '등급', '담당루트', '작성일시', '메모내용']];
+  let totalCount = 0;
+  Object.keys(DATA).forEach(name => {
+    const d = DATA[name];
+    if (d.memo && d.memo.length > 0) {
+      d.memo.forEach(m => {
+        rows.push([name, d.grade || '', d.route || '', m.time || '', m.text || '']);
+        totalCount++;
+      });
+    }
+  });
+  if (totalCount === 0) { alert('저장된 메모가 없습니다.'); return; }
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date();
+  const ds = today.getFullYear() + ('0'+(today.getMonth()+1)).slice(-2) + ('0'+today.getDate()).slice(-2);
+  const userName = currentUser ? '_' + currentUser.name : '';
+  a.href = url; a.download = '원클릭스몰톡_메모' + userName + '_' + ds + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// 지도
+// ============================================================
+let leafletMap = null;
+let locMarker = null;
+
+function openMap() {
+  document.getElementById('MapModal').classList.add('open');
+  if (!document.querySelector('link[href*="leaflet"]')) {
+    const lnk = document.createElement('link');
+    lnk.rel = 'stylesheet';
+    lnk.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(lnk);
+  }
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js', 'L').then(() => {
+    setTimeout(initMap, 100);
+  }).catch(() => {
+    document.getElementById('map').innerHTML = '<div style="padding:20px;text-align:center;color:#666;">지도를 로드할 수 없습니다.</div>';
+  });
+}
+
+function closeMap() {
+  document.getElementById('MapModal').classList.remove('open');
+}
+
+function initMap() {
+  if (leafletMap) { leafletMap.invalidateSize(); return; }
+  leafletMap = L.map('map').setView([35.948, 126.958], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(leafletMap);
+
+  Object.values(DATA).forEach(d => {
+    if (!d.lat || !d.lng) return;
+    const marker = L.circleMarker([d.lat, d.lng], { radius: 10, fillColor: '#1D74C8', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }).addTo(leafletMap);
+    const popupHtml = `<div class="lf-popup" style="min-width:200px;">
+      <h4>🏪 ${d.name} <span class="lf-grade">등급 ${d.grade}</span></h4>
+      <div class="lf-sub">${d.region}</div>
+      <div class="lf-sales">${fmt(d.sales)} <span style="color:${d.salesTrend.startsWith('+')?'#639922':'#E24B4A'};font-size:12px;">${d.salesTrend}</span></div>
+      <button class="lf-btn" onclick="pickFromMap('${d.name}')">자세히 보기 →</button>
+    </div>`;
+    marker.bindPopup(popupHtml, { maxWidth: 260 });
+  });
+}
+
+function pickFromMap(name) {
+  closeMap();
+  document.getElementById('Q').value = name;
+  pick(name);
+}
+
+function locateMe() {
+  if (!navigator.geolocation) { alert('이 브라우저는 위치 서비스를 지원하지 않습니다.'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (!leafletMap) return;
+    if (locMarker) locMarker.remove();
+    locMarker = L.circleMarker([lat, lng], { radius: 8, fillColor: '#E24B4A', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(leafletMap);
+    locMarker.bindPopup('📍 내 현재 위치').openPopup();
+    leafletMap.setView([lat, lng], 14);
+  }, () => { alert('위치를 가져올 수 없습니다. 위치 권한을 허용해주세요.'); });
+}
+
+// ============================================================
+// 시작
+// ============================================================
+(function start() {
+  initUserSelect();
+  const savedId = localStorage.getItem(USER_KEY);
+  if (savedId) {
+    const saved = USERS.find(u => u.id === savedId);
+    if (saved) { selectUser(saved); return; }
+  }
+})();
+</script>
+</body>
+</html>
