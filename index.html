@@ -998,7 +998,7 @@ function render(name) {
   html += '</div>';
   html += '<div class="goal-box"><div class="goal-row">';
   html += '<div><span class="goal-pct">'+pct+'%</span> <span style="font-size:13px;color:#6B6963;">달성 ('+d.monthDay+'일 차 / '+d.monthDays+'일)</span></div>';
-  html += '<div style="text-align:right;font-size:13px;"><strong>'+fmt(d.monthCurrent)+'</strong> / <span style="color:#1D9E75;font-weight:600;">'+fmt(d.monthGoal)+'</span></div></div>';
+  html += '<div style="text-align:right;font-size:13px;"><span style="color:#1D9E75;font-weight:600;">'+fmt(d.monthGoal)+'</span> / <strong>'+fmt(d.monthCurrent)+'</strong></div></div>';
   html += '<div class="bar-track"><div class="bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+(pct>=100?'#1D9E75':pct>=80?'#639922':pct>=50?'#BA7517':'#E24B4A')+'"></div></div>';
   html += '<div class="goal-meta"><span>남은 '+remainingDays+'일</span><span>일평균 '+fmt(dailyNeed)+' 필요</span><span>'+(pct>=100?'목표 달성!':'목표까지 '+fmt(remaining))+'</span></div></div>';
   html += '<div class="chart-wrap"><canvas id="DailyChart"></canvas></div></div>';
