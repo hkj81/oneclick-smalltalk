@@ -3396,42 +3396,32 @@ function switchTab(tab) {
 function renderTab(name, tab) {
   const d = DATA[name];
 
-  // ── 월별 추이 탭 ──────────────────────────────────
+  // ── 노선 비교 탭 ──────────────────────────────────
   if (tab === 'trend') {
-    const trend = MONTHLY_TREND[name] || {};
-    const months = [1,2,3,4,5,6];
-    const labels = ['1월','2월','3월','4월','5월','6월'];
-    const proVals = months.map(m => trend[m] ? trend[m].pro : 0);
-    const genVals = months.map(m => trend[m] ? trend[m].gen : 0);
-    const maxVal = Math.max(...proVals, ...genVals, 1);
-    let h = '<div style="font-size:12px;color:#888;margin-bottom:12px;">월별 전문약·일반약 매출 추이 (실제 출고 기준)</div>';
-    h += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;align-items:end;">';
-    months.forEach((m, i) => {
-      const pPct = Math.round(proVals[i]/maxVal*100);
-      const gPct = Math.round(genVals[i]/maxVal*100);
-      const isCur = (m === currentMonth);
-      h += '<div style="text-align:center;">';
-      h += '<div style="display:flex;gap:2px;justify-content:center;align-items:flex-end;height:80px;">';
-      h += '<div title="전문약 '+fmt(proVals[i])+'" style="width:14px;background:'+(isCur?'#3C3489':'#B0A8E0')+';height:'+pPct+'%;border-radius:3px 3px 0 0;"></div>';
-      h += '<div title="일반약 '+fmt(genVals[i])+'" style="width:14px;background:'+(isCur?'#1D9E75':'#7FD4B8')+';height:'+gPct+'%;border-radius:3px 3px 0 0;"></div>';
+    const routeInfo = ROUTE_INFO[d.route] || {};
+    const members = routeInfo.members || [];
+    if (!members.length) return '<div class="empty">노선 정보 없음</div>';
+    const routeData = members.map(m => DATA[m]).filter(Boolean);
+    const sorted = [...routeData].sort((a,b) => b.sales - a.sales);
+    const maxSales = Math.max(...sorted.map(x=>x.sales), 1);
+    let h = '<div style="font-size:12px;color:#888;margin-bottom:10px;">📦 '+d.route+' ('+routeInfo.days+') · '+members.length+'개 거래처 매출 비교</div>';
+    sorted.forEach((r, i) => {
+      const isMe = (r.name === name);
+      const pct = Math.round(r.sales / maxSales * 100);
+      const shortN = r.name.split(' ').slice(1).join(' ') || r.name;
+      const pbR = r.catRatio ? r.catRatio.pb : 0;
+      h += '<div style="padding:8px 0;border-bottom:1px solid #F0EEE5;'+(isMe?'background:#F5F4FE;margin:0 -12px;padding:8px 12px;border-radius:6px;':'')+ '">';
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">';
+      h += '<span style="width:18px;text-align:center;font-weight:700;color:#888;font-size:12px;">'+(i+1)+'</span>';
+      h += '<span style="flex:1;font-size:13px;font-weight:'+(isMe?700:400)+';color:'+(isMe?'#3C3489':'#2B2B2B')+';">'+shortN+(isMe?' ◀':'')+'</span>';
+      h += '<span style="font-size:11px;color:#888;">PB '+pbR+'%</span>';
+      h += '<span style="font-size:13px;font-weight:600;color:'+(isMe?'#3C3489':'#2B2B2B')+';">'+fmt(r.sales)+'</span>';
       h += '</div>';
-      h += '<div style="font-size:10px;color:'+(isCur?'#3C3489':'#888')+';font-weight:'+(isCur?700:400)+';">'+labels[i]+'</div>';
-      h += '</div>';
+      h += '<div style="display:flex;gap:2px;align-items:center;">';
+      h += '<div style="width:18px;"></div>';
+      h += '<div style="flex:1;height:6px;background:#F0EEE5;border-radius:3px;"><div style="height:100%;width:'+pct+'%;background:'+(isMe?'#3C3489':'#B0A8E0')+';border-radius:3px;"></div></div>';
+      h += '</div></div>';
     });
-    h += '</div>';
-    h += '<div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:#888;">';
-    h += '<span><span style="display:inline-block;width:10px;height:10px;background:#3C3489;border-radius:2px;margin-right:4px;"></span>전문약</span>';
-    h += '<span><span style="display:inline-block;width:10px;height:10px;background:#1D9E75;border-radius:2px;margin-right:4px;"></span>일반약</span>';
-    h += '</div>';
-    h += '<div style="margin-top:14px;border-top:1px solid #F0EEE5;padding-top:10px;">';
-    months.forEach((m, i) => {
-      const total = proVals[i] + genVals[i];
-      const isCur = (m === currentMonth);
-      h += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;'+(isCur?'font-weight:700;color:#3C3489;':'')+'">';
-      h += '<span>'+labels[i]+'</span><span>전문약 '+fmt(proVals[i])+'</span><span>일반약 '+fmt(genVals[i])+'</span><span>합계 '+fmt(total)+'</span>';
-      h += '</div>';
-    });
-    h += '</div>';
     return h;
   }
 
@@ -3467,9 +3457,16 @@ function renderTab(name, tab) {
   }
 
   // ── 전문약 / 일반약 탭 ────────────────────────────
-  let list, label, catClass;
-  if (tab === 'pro') { list = d.proTop; label = '전문약'; catClass = 'pro'; }
-  else { list = d.genTop; label = '일반약'; catClass = 'gen'; }
+  let list, label, catClass, dataObj;
+  if (tab === 'pro') { list = d.proTop; label = '전문약'; catClass = 'pro'; dataObj = PRO_ITEMS_MONTHLY; }
+  else { list = d.genTop; label = '일반약'; catClass = 'gen'; dataObj = GEN_ITEMS_MONTHLY; }
+  // 전체 거래처 중 각 품목 주문처 수
+  const pharmCounts = {};
+  Object.values(dataObj).forEach(items => {
+    Object.entries(items).forEach(([k,v]) => {
+      if (v[currentMonth] && v[currentMonth].a > 0) pharmCounts[k] = (pharmCounts[k]||0) + 1;
+    });
+  });
   const total = list.reduce((s, x) => s + x.sales, 0);
   let h = '<div class="tab-summary">';
   h += '<div class="tab-sum-item"><span class="tab-sum-label">'+label+' 품목</span><span class="tab-sum-val">'+list.length+'개</span></div>';
@@ -3479,8 +3476,10 @@ function renderTab(name, tab) {
   h += '</div>';
   if (list.length === 0) { h += '<div class="empty">'+currentMonth+'월 '+label+' 출고 내역 없음</div>'; return h; }
   list.forEach((item, i) => {
+    const pc = pharmCounts[item.name] || 0;
     h += '<div class="top-row"><div class="top-rank">'+(i+1)+'</div>';
     h += '<div class="top-name">'+item.name+(item.qty?' <span style="font-size:11px;color:#888;">'+item.qty+'개</span>':'')+'</div>';
+    h += '<span style="font-size:11px;color:#6C5CE7;width:28px;text-align:right;flex-shrink:0;">'+pc+'처</span>';
     h += '<span class="top-cat cat-'+catClass+'">'+label+'</span>';
     h += '<div class="top-amount">'+fmt(item.sales)+'</div></div>';
   });
@@ -3645,7 +3644,7 @@ function render(name) {
   html += '<div class="tabs">';
   html += '<button class="tab tab-pro active" id="tab-pro" onclick="switchTab(\'pro\')">전문약</button>';
   html += '<button class="tab tab-gen" id="tab-gen" onclick="switchTab(\'gen\')">일반약</button>';
-  html += '<button class="tab tab-hs" id="tab-trend" onclick="switchTab(\'trend\')">📈 월별 추이</button>';
+  html += '<button class="tab tab-hs" id="tab-trend" onclick="switchTab(\'trend\')">🏪 노선 비교</button>';
   html += '<button class="tab tab-pb" id="tab-new" onclick="switchTab(\'new\')">🆕 신규 품목</button>';
   html += '</div><div id="tab-content">'+renderTab(name, 'pro')+'</div></div>';
 
