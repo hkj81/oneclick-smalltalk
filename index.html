@@ -1905,10 +1905,12 @@ function render(name) {
   html += '<div><span class="'+(pbTrendUp?'up':'down')+'" style="font-weight:600;font-size:14px;">전월 대비 '+d.catTrend.pb+'</span></div></div>';
   html += '<div class="pb-grid">';
   const pbTotalAll = Object.values(PB_MONTHLY).reduce((s, m) => s + (m[currentMonth] || 0), 0);
+  const vetTotalAll = Object.values(PHARMACY_REAL).reduce((s, r) => s + (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)), 0);
+  const shortName = d.name.split(' ').slice(1).join(' ') || d.name;
   html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB 전체 (전 거래처)</div><div class="pb-stat-value">'+fmt(pbTotalAll)+'</div><div class="pb-stat-sub">담당 거래처 합산</div></div>';
-  html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB (이 거래처)</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
-  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB 21품목 (이 거래처)</div><div class="pb-stat-value">'+fmt(pb21Sum)+'</div><div class="pb-stat-sub">이달의 PB 21품목 합계</div></div>';
-  html += '<div class="pb-stat"><div class="pb-stat-label">동물약 3개월 평균</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB ('+shortName+')</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">PB 21품목 ('+shortName+')</div><div class="pb-stat-value">'+fmt(pb21Sum)+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(pbTotalAll)+'</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">동물약 ('+shortName+')</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(vetTotalAll)+'</div></div>';
   html += '</div></div>';
   // PB 품목별 금액 테이블
   if (d.pbThisMonthItems && d.pbThisMonthItems.length > 0) {
