@@ -715,9 +715,8 @@ let curName = null;
 let curTab = 'pro';
 
 function fmt(n) {
-  if (n >= 100000000) return (n/100000000).toFixed(1)+'억';
-  if (n >= 10000) return (n/10000).toFixed(0)+'만원';
-  return n.toLocaleString()+'원';
+  if (!n || n <= 0) return '0원';
+  return Math.round(n).toLocaleString() + '원';
 }
 
 // ============================================================
