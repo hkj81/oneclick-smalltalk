@@ -54,10 +54,10 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .pb-hero-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
 .pb-pct { font-size: 30px; font-weight: 600; color: #3C3489; }
 .pb-label { font-size: 13px; color: #534AB7; margin-left: 8px; }
-.pb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.pb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
 .pb-stat { background: #fff; border-radius: 8px; padding: 10px 12px; border: 1px solid #CECBF6; }
 .pb-stat-label { font-size: 12px; color: #534AB7; }
-.pb-stat-value { font-size: 17px; font-weight: 600; color: #3C3489; margin-top: 4px; }
+.pb-stat-value { font-size: 15px; font-weight: 600; color: #3C3489; margin-top: 4px; }
 .pb-stat-sub { font-size: 11px; color: #7F77DD; margin-top: 2px; }
 .tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid #E8E6DC; overflow-x: auto; }
 .tab { padding: 10px 16px; font-size: 14px; cursor: pointer; border: none; background: transparent; color: #6B6963; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; font-weight: 500; white-space: nowrap; min-height: 44px; }
@@ -1907,9 +1907,14 @@ function render(name) {
   const pbTotalAll = Object.values(PB_MONTHLY).reduce((s, m) => s + (m[currentMonth] || 0), 0);
   const vetTotalAll = Object.values(PHARMACY_REAL).reduce((s, r) => s + (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)), 0);
   const shortName = d.name.split(' ').slice(1).join(' ') || d.name;
+  const pb21TotalAll = Object.entries(PB_ITEMS_MONTHLY).reduce((total, [ph, items]) => {
+    return total + Object.entries(items)
+      .filter(([k]) => monthKws.some(kw => k.includes(kw)))
+      .reduce((s, [k, v]) => s + (v[currentMonth] || 0), 0);
+  }, 0);
   html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB 전체 (전 거래처)</div><div class="pb-stat-value">'+fmt(pbTotalAll)+'</div><div class="pb-stat-sub">담당 거래처 합산</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB ('+shortName+')</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
-  html += '<div class="pb-stat"><div class="pb-stat-label">PB 21품목 ('+shortName+')</div><div class="pb-stat-value">'+fmt(pb21Sum)+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(pbTotalAll)+'</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">PB 21품목 ('+shortName+')</div><div class="pb-stat-value">'+fmt(pb21Sum)+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(pb21TotalAll)+'</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">동물약 ('+shortName+')</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(vetTotalAll)+'</div></div>';
   html += '</div></div>';
   // PB 품목별 금액 테이블
