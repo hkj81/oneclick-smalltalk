@@ -2543,28 +2543,44 @@ function closePbModal() {
 }
 
 // 카드1: 전 거래처 PB 품목별
+window._pbPharmMap = {};
+function showPbPharmsFor(prod) {
+  const list = window._pbPharmMap[prod] || [];
+  const el = document.getElementById('pbPharmDetail');
+  if (!el) return;
+  if (el._lastProd === prod && el.style.display !== 'none') { el.style.display='none'; el._lastProd=null; return; }
+  el._lastProd = prod;
+  el.innerHTML = '<span style="font-weight:700;color:#3C3489;">'+prod+'</span> 거래처 ('+list.length+'처)<br><span style="color:#555;">'+list.join(', ')+'</span>';
+  el.style.display = 'block';
+}
 function openPbModal() {
   const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
-  const totals = {}, qtotals = {}, ptotals = {};
-  Object.values(PB_ITEMS_MONTHLY).forEach(items => {
+  const totals = {}, qtotals = {}, ptotals = {}, pharmsMap = {};
+  Object.entries(PB_ITEMS_MONTHLY).forEach(([ph, items]) => {
+    const shortPh = ph.split(' ').slice(1).join(' ') || ph;
     Object.entries(items).forEach(([prod, months]) => {
       const amt = months[currentMonth] ? months[currentMonth].a : 0;
       if (amt > 0) {
         totals[prod] = (totals[prod] || 0) + amt;
         qtotals[prod] = (qtotals[prod]||0) + (months[currentMonth].q||0);
         ptotals[prod] = (ptotals[prod]||0) + 1;
+        if (!pharmsMap[prod]) pharmsMap[prod] = [];
+        pharmsMap[prod].push(shortPh);
       }
     });
   });
+  window._pbPharmMap = pharmsMap;
   const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]);
   const grandTotal = sorted.reduce((s,[,v])=>s+v,0);
   let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">총 '+sorted.length+'개 품목 / 합계 '+fmt(grandTotal)+'원</div>';
+  html += '<div id="pbPharmDetail" style="display:none;background:#F0EEFF;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:10px;line-height:1.7;"></div>';
   sorted.forEach(([prod, amt]) => {
     const pct = grandTotal>0?Math.round(amt/grandTotal*100):0;
     const isKw = kws.some(kw=>prod.includes(kw));
     const q = qtotals[prod]||0;
     const p = ptotals[prod]||0;
-    html += '<div class="pb-modal-item"><span style="width:100px;flex-shrink:0;'+(isKw?'font-weight:700;color:#3C3489;':'')+'">'+prod+(isKw?' ★':'')+'</span><span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+q+'개</span><span style="width:24px;text-align:right;color:#6C5CE7;font-size:11px;flex-shrink:0;">'+p+'처</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
+    const escapedProd = prod.replace(/'/g,"\\'");
+    html += '<div class="pb-modal-item"><span style="width:100px;flex-shrink:0;'+(isKw?'font-weight:700;color:#3C3489;':'')+'">'+prod+(isKw?' ★':'')+'</span><span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+q+'개</span><span style="width:26px;text-align:right;color:#6C5CE7;font-size:11px;flex-shrink:0;cursor:pointer;text-decoration:underline;" onclick="showPbPharmsFor(\''+escapedProd+'\')">'+p+'처</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
   });
   openModal(currentMonth+'월 전 거래처 PB 품목별 합계', html);
 }
