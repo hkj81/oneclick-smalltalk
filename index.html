@@ -54,7 +54,7 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .pb-hero-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
 .pb-pct { font-size: 30px; font-weight: 600; color: #3C3489; }
 .pb-label { font-size: 13px; color: #534AB7; margin-left: 8px; }
-.pb-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 8px; }
+.pb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
 .pb-stat { background: #fff; border-radius: 8px; padding: 10px 12px; border: 1px solid #CECBF6; }
 .pb-stat-label { font-size: 12px; color: #534AB7; }
 .pb-stat-value { font-size: 17px; font-weight: 600; color: #3C3489; margin-top: 4px; }
@@ -1907,6 +1907,7 @@ function render(name) {
   const pbTotalAll = Object.values(PB_MONTHLY).reduce((s, m) => s + (m[currentMonth] || 0), 0);
   html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB 전체 (전 거래처)</div><div class="pb-stat-value">'+fmt(pbTotalAll)+'</div><div class="pb-stat-sub">담당 거래처 합산</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB (이 거래처)</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB 21품목 (이 거래처)</div><div class="pb-stat-value">'+fmt(pb21Sum)+'</div><div class="pb-stat-sub">이달의 PB 21품목 합계</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">동물약 3개월 평균</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
   html += '</div></div>';
   // PB 품목별 금액 테이블
