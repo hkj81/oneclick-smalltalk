@@ -159,7 +159,7 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .us-box {
   width: 100%; max-width: 360px;
   background: radial-gradient(circle, #FDFAF0 55%, transparent 56%);
-  padding-top: 145px;
+  padding-top: 168px;
   position: relative;
 }
 .us-box::before {
@@ -306,18 +306,18 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
         <div class="us-search-wrap">
           <div style="position:relative;">
             <input class="us-search-input" id="UsSearchInput" type="text"
-              placeholder="ONE"
+              placeholder=""
               readonly
               onclick="toggleUsDropdown()"
-              autocomplete="off"
-              style="padding-right:40px;" />
-            <svg width="22" height="26" viewBox="0 0 22 26"
-              style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;"
-              xmlns="http://www.w3.org/2000/svg">
-              <!-- 표준 마우스 커서 - 왼쪽 위 방향 -->
-              <polygon points="3,3 3,22 8,17 12,25 16,23 12,15 18,15"
-                fill="#1F1E1D" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
-            </svg>
+              autocomplete="off" />
+            <!-- ONE + 커서 오버레이 (E 바로 옆에 커서) -->
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:5px;pointer-events:none;">
+              <span style="color:#C9A227;font-weight:700;font-family:Georgia,serif;font-size:17px;letter-spacing:2px;">ONE</span>
+              <svg width="20" height="24" viewBox="0 0 20 24" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="3,3 3,21 8,16 11,24 15,22 11,14 17,14"
+                  fill="#1F1E1D" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>
+              </svg>
+            </div>
           </div>
           <div class="us-dropdown" id="UsDropdown"></div>
         </div>
