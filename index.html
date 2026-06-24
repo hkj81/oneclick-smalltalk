@@ -199,6 +199,18 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .filter-target-val { font-size:15px; font-weight:700; color:#1D9E75; cursor:pointer; padding:3px 10px; border:1.5px dashed #1D9E75; border-radius:6px; min-width:120px; text-align:center; }
 .filter-target-val:hover { background:#F0FBF6; }
 .filter-sep { width:1px; height:24px; background:#E8E6DC; }
+
+.pb-modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.45); z-index:1000; justify-content:center; align-items:flex-start; padding-top:60px; }
+.pb-modal-overlay.open { display:flex; }
+.pb-modal { background:#fff; border-radius:14px; width:92%; max-width:520px; max-height:80vh; overflow-y:auto; padding:20px; box-shadow:0 8px 40px rgba(0,0,0,0.18); }
+.pb-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.pb-modal-title { font-size:16px; font-weight:700; color:#3C3489; }
+.pb-modal-close { font-size:22px; cursor:pointer; color:#888; border:none; background:none; line-height:1; }
+.pb-modal-item { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #F0EEE5; font-size:13px; }
+.pb-modal-item:last-child { border-bottom:none; }
+.pb-modal-bar-wrap { flex:1; height:6px; background:#EDE9FF; border-radius:3px; overflow:hidden; }
+.pb-modal-bar { height:100%; background:#6C5CE7; border-radius:3px; }
+.pb-modal-amt { width:80px; text-align:right; font-weight:600; color:#3C3489; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -1912,7 +1924,7 @@ function render(name) {
       .filter(([k]) => monthKws.some(kw => k.includes(kw)))
       .reduce((s, [k, v]) => s + (v[currentMonth] || 0), 0);
   }, 0);
-  html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB 전체 (전 거래처)</div><div class="pb-stat-value">'+fmt(pbTotalAll)+'</div><div class="pb-stat-sub">담당 거래처 합산</div></div>';
+  html += '<div class="pb-stat" onclick="openPbModal()" style="cursor:pointer;" title="클릭하여 품목별 상세 보기"><div class="pb-stat-label">'+currentMonth+'월 PB 전체 (전 거래처) 🔍</div><div class="pb-stat-value">'+fmt(pbTotalAll)+'</div><div class="pb-stat-sub">담당 거래처 합산</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">'+currentMonth+'월 PB ('+shortName+')</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">PB 21품목 ('+shortName+')</div><div class="pb-stat-value">'+fmt(pb21Sum)+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(pb21TotalAll)+'</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">동물약 ('+shortName+')</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(vetTotalAll)+'</div></div>';
@@ -2340,6 +2352,47 @@ function locateMe() {
     if (saved) { selectUser(saved); return; }
   }
 })();
+
+function openPbModal() {
+  const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
+  // 전 거래처 품목별 합산
+  const totals = {};
+  Object.values(PB_ITEMS_MONTHLY).forEach(items => {
+    Object.entries(items).forEach(([prod, months]) => {
+      const amt = months[currentMonth] || 0;
+      if (amt > 0) totals[prod] = (totals[prod] || 0) + amt;
+    });
+  });
+  const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]);
+  const grandTotal = sorted.reduce((s,[,v])=>s+v,0);
+  document.getElementById('pbModalTitle').textContent = currentMonth+'월 전 거래처 PB 품목별 합계';
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">총 '+sorted.length+'개 품목 / 합계 '+fmt(grandTotal)+'원</div>';
+  sorted.forEach(([prod, amt]) => {
+    const pct = grandTotal > 0 ? Math.round(amt/grandTotal*100) : 0;
+    const isKw = kws.length > 0 && kws.some(kw => prod.includes(kw));
+    html += '<div class="pb-modal-item">';
+    html += '<span style="width:130px;flex-shrink:0;'+(isKw?'font-weight:600;color:#3C3489;':'')+'">'+prod+(isKw?' ★':'')+'</span>';
+    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div>';
+    html += '<span class="pb-modal-amt">'+fmt(amt)+'</span>';
+    html += '</div>';
+  });
+  document.getElementById('pbModalBody').innerHTML = html;
+  document.getElementById('pbModalOverlay').classList.add('open');
+}
+function closePbModal() {
+  document.getElementById('pbModalOverlay').classList.remove('open');
+}
+
 </script>
+
+<div class="pb-modal-overlay" id="pbModalOverlay" onclick="if(event.target===this)closePbModal()">
+  <div class="pb-modal">
+    <div class="pb-modal-header">
+      <span class="pb-modal-title" id="pbModalTitle">전 거래처 PB 품목별 합계</span>
+      <button class="pb-modal-close" onclick="closePbModal()">×</button>
+    </div>
+    <div id="pbModalBody"></div>
+  </div>
+</div>
 </body>
 </html>                                                                                                                                                                                        
