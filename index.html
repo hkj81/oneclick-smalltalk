@@ -2119,10 +2119,10 @@ function render(name) {
   }, 0);
   html += '<div class="pb-stat" onclick="openPbModal()" style="cursor:pointer;" title="클릭하여 품목별 상세 보기"><div class="pb-stat-label">'+currentMonth+'월 PB 전체 (전 거래처) 🔍</div><div class="pb-stat-value">'+fmt(pbTotalAll)+'</div><div class="pb-stat-sub">담당 거래처 합산</div></div>';
   html += '<div class="pb-stat" onclick="openPharmPbModal(curName)" style="cursor:pointer;"><div class="pb-stat-label">'+currentMonth+'월 PB ('+shortName+') 🔍</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
-  html += '<div class="pb-stat" onclick="openPb21CheckModal()" style="cursor:pointer;"><div class="pb-stat-label">PB 21품목 매출 현황 🔍</div>';
-  const kw21Count = (MONTHLY_PB_KEYWORDS[currentMonth]||[]).filter(kw=>Object.values(PB_ITEMS_MONTHLY).some(items=>Object.entries(items).find(([k])=>k.includes(kw))&&Object.entries(items).find(([k])=>k.includes(kw))[1][currentMonth]>0)).length;
-  html += '<div class="pb-stat-value">'+kw21Count+' / '+(MONTHLY_PB_KEYWORDS[currentMonth]||[]).length+'</div>';
-  html += '<div class="pb-stat-sub">매출 발생 품목 / 합계 '+fmt(pb21TotalAll)+'</div></div>';
+  html += '<div class="pb-stat" onclick="openPb21CheckModal()" style="cursor:pointer;"><div class="pb-stat-label">PB 21품목 ('+shortName+') 🔍</div>';
+  const kw21Count = (MONTHLY_PB_KEYWORDS[currentMonth]||[]).filter(kw=>Object.values(PB_ITEMS_MONTHLY).some(items=>Object.entries(items).find(([k])=>k.includes(kw))&&(Object.entries(items).find(([k])=>k.includes(kw))[1][currentMonth]||0)>0)).length;
+  html += '<div class="pb-stat-value">'+fmt(pb21Sum)+' / '+fmt(pb21TotalAll)+'</div>';
+  html += '<div class="pb-stat-sub">'+kw21Count+' / '+(MONTHLY_PB_KEYWORDS[currentMonth]||[]).length+' 품목 매출 발생</div></div>';
   html += '<div class="pb-stat" onclick="openVetModal(curName)" style="cursor:pointer;"><div class="pb-stat-label">동물약 ('+shortName+') 🔍</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(vetTotalAll)+'</div></div>';
   html += '</div></div>';
   // PB 품목별 금액 테이블
