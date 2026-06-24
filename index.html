@@ -3477,9 +3477,11 @@ function renderTab(name, tab) {
   if (list.length === 0) { h += '<div class="empty">'+currentMonth+'월 '+label+' 출고 내역 없음</div>'; return h; }
   list.forEach((item, i) => {
     const pc = pharmCounts[item.name] || 0;
+    const qtyStr = item.qty ? item.qty+'개' : '';
+    const pcStr = pc ? pc+'처' : '';
+    const subInfo = [qtyStr, pcStr].filter(Boolean).join(' · ');
     h += '<div class="top-row"><div class="top-rank">'+(i+1)+'</div>';
-    h += '<div class="top-name">'+item.name+(item.qty?' <span style="font-size:11px;color:#888;">'+item.qty+'개</span>':'')+'</div>';
-    h += '<span style="font-size:11px;color:#6C5CE7;width:28px;text-align:right;flex-shrink:0;">'+pc+'처</span>';
+    h += '<div class="top-name">'+item.name+(subInfo?' <span style="font-size:11px;color:#888;">'+subInfo+'</span>':'')+'</div>';
     h += '<span class="top-cat cat-'+catClass+'">'+label+'</span>';
     h += '<div class="top-amount">'+fmt(item.sales)+'</div></div>';
   });
