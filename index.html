@@ -478,7 +478,7 @@ function changeMonth(delta) {
       DATA[name].monthGoal = calc3mGoal(name, currentMonth);
       const rProM = (PRO_MONTHLY[name] && PRO_MONTHLY[name][currentMonth]) ? PRO_MONTHLY[name][currentMonth] : 0;
       const rGenM = (GEN_MONTHLY[name] && GEN_MONTHLY[name][currentMonth]) ? GEN_MONTHLY[name][currentMonth] : 0;
-      const rPbM  = PHARMACY_REAL[name] ? Math.round(PHARMACY_REAL[name].pb / 6) : 0;
+      const rPbM  = (PB_MONTHLY[name] && PB_MONTHLY[name][currentMonth]) ? PB_MONTHLY[name][currentMonth] : (PHARMACY_REAL[name] ? Math.round(PHARMACY_REAL[name].pb / 6) : 0);
       const rAnM  = PHARMACY_REAL[name] ? Math.round(PHARMACY_REAL[name].animal / 6) : 0;
       const s = DATA[name].sales;
       DATA[name].catSales = { pro: rProM, gen: rGenM, animal: rAnM, pb: rPbM };
@@ -700,6 +700,49 @@ const RETURN_RATES = {
   '황등 황등종로약국': 3.7,
 };
 
+const PB_MONTHLY = {
+  '용안 중앙약국': {1:34000,2:87000,3:90000,4:70200,5:178000,6:117000},
+  '익산 광제약국': {2:9000,3:37000,4:33000,5:59850},
+  '익산 대성약국': {3:40500},
+  '익산 대학종로약국': {1:28300,2:42300,3:344050,4:441250,5:139200,6:217650},
+  '익산 모인약국': {2:18000,4:22860,6:18000},
+  '익산 문약국': {2:12150,3:9000,4:39600,5:48600,6:189000},
+  '익산 보람찬약국': {2:24000,4:33000,6:15000},
+  '익산 보름달약국': {4:33000},
+  '익산 비타민약국': {2:2940},
+  '익산 상아약국': {1:79770,2:45000,3:20700,4:65300,5:88700,6:68500},
+  '익산 성실약국': {1:64000,2:10000,3:41800,4:25000,5:129800,6:96000},
+  '익산 세계로약국': {1:204500,3:37000,4:61550,6:72500},
+  '익산 어양우리약국': {1:24000,2:24000,4:33000,5:36000,6:24000},
+  '익산 웃음약국': {1:38900,2:10000,3:48960,4:33000,6:34500},
+  '익산 유한약국': {5:27600},
+  '익산 익산 라온약국': {},
+  '익산 익산건강한약국': {4:8250,6:3300},
+  '익산 익산종합약국': {1:49400,2:176000,3:22500,4:78250,5:82770,6:68000},
+  '익산 정문약국': {1:93000},
+  '익산 정성온누리약국': {1:35000,2:42900,3:46000,4:74950,5:162150,6:70200},
+  '익산 청십자약국': {1:13800,3:37000,4:70000},
+  '익산 초당약국': {1:70000,4:121500,5:162000},
+  '익산 하나로약국': {1:42000,2:59000,4:33200,5:90000,6:90000},
+  '전주 나을약국': {1:3300,2:28000,3:3300,4:56650,6:30700},
+  '함열 박약국': {1:329800},
+  '함열 성심약국': {1:4950,2:12800,3:3300,4:160500,5:98500,6:16500},
+  '함열 약손약국': {3:45000},
+  '함열 유명종로약국': {1:85000,2:240000,3:6900,6:210000},
+  '함열 일등약국': {3:59000,4:33000,5:40500,6:24000},
+  '함열 함열건강약국': {},
+  '함열 함열보령약국': {},
+  '함열 함열온누리약국': {1:13350,2:6900,3:97700,4:25080,5:49950,6:24150},
+  '함열 함열태평양약국': {4:140000,5:119700},
+  '황등 온누리약국': {},
+  '황등 평화약국': {1:36810},
+  '황등 호남약국': {1:149400,2:29800,3:45600,4:58500,5:6900,6:61800},
+  '황등 황등바른약국': {},
+  '황등 황등사랑약국': {},
+  '황등 황등솔약국': {},
+  '황등 황등종로약국': {1:29500,3:23600,4:5900,6:45600},
+};
+
 const PRO_MONTHLY = {
   '용안 중앙약국': {1:2552108,2:2596993,3:3292388,4:2669847,5:3412024,6:1843967},
   '익산 광제약국': {1:8114033,2:10113238,3:9247927,4:10049798,5:9365729,6:7270478},
@@ -851,7 +894,7 @@ function makeData(arr) {
   const returnAmt = (RETURN_AMTS_MONTHLY[name] && RETURN_AMTS_MONTHLY[name][currentMonth]) ? RETURN_AMTS_MONTHLY[name][currentMonth] : 0;
   const returnRate = sales > 0 ? Math.round(returnAmt / sales * 1000) / 10 : (RETURN_RATES[name] !== undefined ? RETURN_RATES[name] : _returnRate);
   const real = PHARMACY_REAL[name];
-  const realPbM     = real ? Math.round(real.pb / 6) : 0;
+  const realPbM     = (PB_MONTHLY[name] && PB_MONTHLY[name][currentMonth]) ? PB_MONTHLY[name][currentMonth] : (real ? Math.round(real.pb / 6) : 0);
   const realAnimalM = real ? Math.round(real.animal / 6) : 0;
   const realProM0  = (PRO_MONTHLY[name] && PRO_MONTHLY[name][currentMonth]) ? PRO_MONTHLY[name][currentMonth] : 0;
   const realGenM0  = (GEN_MONTHLY[name] && GEN_MONTHLY[name][currentMonth]) ? GEN_MONTHLY[name][currentMonth] : 0;
@@ -1134,7 +1177,7 @@ function render(name) {
   html += '<div><span class="pb-pct">'+d.catRatio.pb+'%</span><span class="pb-label">전체 매출 중 PB 비중</span></div>';
   html += '<div><span class="'+(pbTrendUp?'up':'down')+'" style="font-weight:600;font-size:14px;">전월 대비 '+d.catTrend.pb+'</span></div></div>';
   html += '<div class="pb-grid">';
-  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB 매출</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">'+d.monthDay+'일 차 누적</div></div>';
+  html += '<div class="pb-stat"><div class="pb-stat-label">이번달 PB (21품목)</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">'+d.monthDay+'일 차 누적</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">PB 3개월 평균</div><div class="pb-stat-value">'+fmt(d.pb3mAvg)+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
   html += '<div class="pb-stat"><div class="pb-stat-label">동물약 3개월 평균</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">월평균 (최근 3개월)</div></div>';
   html += '</div></div>';
