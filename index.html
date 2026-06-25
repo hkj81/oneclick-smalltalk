@@ -838,11 +838,6 @@ const PB_MONTHLY_kimih = {
 const RETURN_AMTS_kimih = {
 };
 
-// 김일호 데이터를 전역 객체에 병합 (초기화 시)
-Object.assign(PHARMACY_REAL, PHARMACY_REAL_kimih);
-Object.assign(PB_MONTHLY, PB_MONTHLY_kimih);
-Object.assign(RETURN_AMTS_MONTHLY, RETURN_AMTS_kimih);
-
 // ── 팀원별 약국 데이터 (각자 데이터 추가) ──────────────────
 const LIST_ext_01   = []; // 외부1
 const LIST_ext_02   = []; // 외부2
@@ -6236,6 +6231,11 @@ function locateMe() {
     leafletMap.setView([lat, lng], 14);
   }, () => { alert('위치를 가져올 수 없습니다. 위치 권한을 허용해주세요.'); });
 }
+
+// 김일호 데이터를 전역 객체에 병합
+Object.assign(PHARMACY_REAL, PHARMACY_REAL_kimih);
+Object.assign(PB_MONTHLY, PB_MONTHLY_kimih);
+Object.assign(RETURN_AMTS_MONTHLY, RETURN_AMTS_kimih);
 
 // ============================================================
 // 시작
