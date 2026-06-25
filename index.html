@@ -520,6 +520,8 @@ async function selectUser(user) {
 
   // Firestore에서 메모 불러오기
   await loadMemosFromFirestore(user.id);
+  // 목표액 불러오기
+  await loadTargetFromFirestore(user.id);
 
   // 오버레이 숨기기
   document.getElementById('UserSelect').classList.add('hidden');
@@ -621,6 +623,26 @@ async function saveUserTargetToFirestore() {
     await _db.collection('users').doc(currentUser.id).set({ monthlyTarget: userMonthlyTarget }, { merge: true });
   } catch(e) {
     localStorage.setItem('oneclick-target-' + currentUser.id, userMonthlyTarget);
+  }
+}
+
+async function loadTargetFromFirestore(userId) {
+  try {
+    const ok = await initFirebase();
+    if (ok) {
+      const doc = await _db.collection('users').doc(userId).get();
+      if (doc.exists && doc.data().monthlyTarget) {
+        userMonthlyTarget = doc.data().monthlyTarget;
+        updateFilterBar();
+        return;
+      }
+    }
+  } catch(e) {}
+  // Firestore 실패 시 localStorage에서 복원
+  const saved = localStorage.getItem('oneclick-target-' + userId);
+  if (saved) {
+    userMonthlyTarget = parseInt(saved);
+    updateFilterBar();
   }
 }
 
