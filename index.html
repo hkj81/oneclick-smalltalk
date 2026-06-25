@@ -535,6 +535,7 @@ async function selectUser(user) {
 
 function changeUser() {
   currentUser = null;
+  userMonthlyTarget = 0;
   localStorage.removeItem(USER_KEY);
   document.getElementById('UserSelect').classList.remove('hidden');
   document.getElementById('Q').value = '';
