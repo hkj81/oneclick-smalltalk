@@ -5538,7 +5538,7 @@ function renderSummary(userName) {
   const total = Object.keys(DATA).length;
   const pctColor = pct >= 100 ? '#1D9E75' : pct >= 80 ? '#639922' : pct >= 50 ? '#BA7517' : '#E24B4A';
   let h = '<div class="card" style="border:2px solid #1D9E75;">';
-  h += '<div style="margin-bottom:12px;"><h3 style="margin:0 0 2px;font-size:17px;">\uD83D\uDC4B ' + userName + '\ub2d8, 6\uc6d4 \ucd1d\ub9e4\ucd9c \ud604\ud669</h3>';
+  h += '<div style="margin-bottom:12px;"><h3 style="margin:0 0 2px;font-size:17px;">\uD83D\uDC4B ' + userName + '\ub2d8, ' + currentMonth + '\uc6d4 \ucd1d\ub9e4\ucd9c \ud604\ud669</h3>';
   h += '<p style="margin:0;font-size:12px;color:#6B6963;">\uc804\uccb4 \uac70\ub798\uce58 ' + total + '\uacf3 \ud569\uc0b0</p></div>';
   h += '<div style="background:#F5F4EE;border-radius:10px;padding:16px;margin-bottom:14px;">';
   h += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">';
