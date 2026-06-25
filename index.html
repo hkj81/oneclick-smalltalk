@@ -5320,6 +5320,9 @@ function onQuery() {
   const q = document.getElementById('Q').value.trim();
   const dd = document.getElementById('Dropdown');
   if (!q) {
+    // 검색어 지우면 요약 화면으로 복귀
+    document.getElementById('Result').innerHTML = '';
+    if (currentUser) renderSummary(currentUser.name);
     const all = Object.keys(DATA);
     dd.innerHTML = '<div class="dd-count">거래처 (총 ' + all.length + '곳)</div>' +
       all.map(ddRow).join('');
