@@ -5821,11 +5821,12 @@ function render(name) {
   html += '<div><span class="pb-pct">'+d.catRatio.pb+'%</span><span class="pb-label">전체 매출 중 PB 비중</span></div>';
   html += '<div><span class="'+(pbTrendUp?'up':'down')+'" style="font-weight:600;font-size:14px;">전월 대비 '+d.catTrend.pb+'</span></div></div>';
   html += '<div class="pb-grid">';
-  const pbTotalAll = Object.values(PB_MONTHLY).reduce((s, m) => s + (m[currentMonth] || 0), 0);
+  const myNames = Object.keys(DATA);
+  const pbTotalAll = myNames.reduce((s, n) => s + ((PB_MONTHLY[n] && PB_MONTHLY[n][currentMonth]) || 0), 0);
   const pbTotalAllAvg = Math.round([1,2,3].map(i => currentMonth - i).filter(m => m >= 1)
-    .reduce((s, m) => s + Object.values(PB_MONTHLY).reduce((ss, ph) => ss + (ph[m] || 0), 0), 0)
+    .reduce((s, m) => s + myNames.reduce((ss, n) => ss + ((PB_MONTHLY[n] && PB_MONTHLY[n][m]) || 0), 0), 0)
     / Math.min(3, currentMonth - 1 >= 1 ? 3 : currentMonth - 1));
-  const vetTotalAll = Object.values(PHARMACY_REAL).reduce((s, r) => s + (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)), 0);
+  const vetTotalAll = myNames.reduce((s, n) => { const r = PHARMACY_REAL[n]; return s + (r ? (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) : 0); }, 0);
   const shortName = d.name.split(' ').slice(1).join(' ') || d.name;
   const pb21TotalAll = Object.entries(PB_ITEMS_MONTHLY).reduce((total, [ph, items]) => {
     return total + Object.entries(items)
