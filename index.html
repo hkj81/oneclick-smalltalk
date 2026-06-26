@@ -77,7 +77,7 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .bar-fill { height: 100%; background: #1D9E75; transition: width 0.5s ease; }
 .goal-meta { display: flex; justify-content: space-between; font-size: 12px; color: #6B6963; margin-top: 8px; flex-wrap: wrap; gap: 4px; }
 .chart-wrap { height: 140px; margin: 8px 0; }
-.chart-square { height: 220px; position: relative; }
+.chart-square { height: 160px; position: relative; }
 .top-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
 .top-row:last-child { border-bottom: none; }
 .top-row-pb { background: #F5F4FE; padding: 10px 10px; border-radius: 6px; border-bottom: none; margin-bottom: 2px; }
@@ -90,8 +90,8 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 .cat-pb { background: #CECBF6; color: #3C3489; }
 .top-amount { font-weight: 600; min-width: 80px; text-align: right; }
 .cat-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: center; }
-.cat-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #E8E6DC; }
-.cat-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
+.cat-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px dashed #E8E6DC; }
+.cat-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
 .news { padding: 12px 14px; background: #F5F4EE; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
 .memo-section { display: flex; flex-direction: column; gap: 10px; }
 .memo-quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
@@ -5904,19 +5904,20 @@ function render(name) {
     .map(([mfr, months]) => ({ mfr, cur: months[currentMonth]||0 }))
     .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
   const mfrCurTotal = mfrAllData.reduce((s,x)=>s+x.cur,0);
-  const mfrTop7 = mfrAllData.slice(0,7);
-  const mfrEtcAmt = mfrAllData.slice(7).reduce((s,x)=>s+x.cur,0);
-  const mfrColors7 = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE'];
+  // 1% 이상 제약사 전부 표시, 미만은 기타
+  const mfrVisible = mfrAllData.filter(x => mfrCurTotal > 0 && x.cur / mfrCurTotal >= 0.01);
+  const mfrEtcAmt = mfrAllData.filter(x => mfrCurTotal <= 0 || x.cur / mfrCurTotal < 0.01).reduce((s,x)=>s+x.cur,0);
+  const mfrPalette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
   html += '<div>';
   html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">🏭 제약사별 <button onclick="openMfrModal()" style="font-size:10px;padding:2px 7px;border:1px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:5px;cursor:pointer;font-weight:600;">전체 🔍</button></div>';
   html += '<div class="chart-square"><canvas id="MfrChart"></canvas></div>';
-  mfrTop7.forEach((x, i) => {
+  mfrVisible.forEach((x, i) => {
     const pct = mfrCurTotal > 0 ? Math.round(x.cur / mfrCurTotal * 100) : 0;
-    html += '<div class="cat-item"><div><span class="cat-dot" style="background:'+mfrColors7[i]+'"></span><strong>'+x.mfr+'</strong> ('+pct+'%)</div><div>'+fmt(x.cur)+'</div></div>';
+    html += '<div class="cat-item"><div><span class="cat-dot" style="background:'+(mfrPalette[i]||'#999')+'"></span><strong>'+x.mfr+'</strong> ('+pct+'%)</div><div>'+fmt(x.cur)+'</div></div>';
   });
   if (mfrEtcAmt > 0) {
     const etcPct = mfrCurTotal > 0 ? Math.round(mfrEtcAmt / mfrCurTotal * 100) : 0;
-    html += '<div class="cat-item"><div><span class="cat-dot" style="background:#AAAAAA"></span>기타 ('+etcPct+'%)</div><div>'+fmt(mfrEtcAmt)+'</div></div>';
+    html += '<div class="cat-item"><div><span class="cat-dot" style="background:#CCCCCC"></span>기타 ('+etcPct+'%)</div><div>'+fmt(mfrEtcAmt)+'</div></div>';
   }
   html += '</div>';
 
@@ -6142,11 +6143,14 @@ function drawMfr() {
     const mfrAllData = Object.entries(MFR_MONTHLY)
       .map(([mfr, months]) => ({ mfr, cur: months[currentMonth]||0 }))
       .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
-    const top7 = mfrAllData.slice(0,7);
-    const etcAmt = mfrAllData.slice(7).reduce((s,x)=>s+x.cur,0);
-    const labels = top7.map(x=>x.mfr);
-    const values = top7.map(x=>x.cur);
-    const colors = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE'];
+    const total = mfrAllData.reduce((s,x)=>s+x.cur,0);
+    const visible = mfrAllData.filter(x => total > 0 && x.cur / total >= 0.01);
+    const etcAmt = mfrAllData.filter(x => total <= 0 || x.cur / total < 0.01).reduce((s,x)=>s+x.cur,0);
+    const palette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
+    const top7 = visible;
+    const labels = visible.map(x=>x.mfr);
+    const values = visible.map(x=>x.cur);
+    const colors = visible.map((_,i) => palette[i] || '#999');
     if (etcAmt > 0) { labels.push('기타'); values.push(etcAmt); colors.push('#AAAAAA'); }
     const total = values.reduce((s,v)=>s+v,0);
     new Chart(ctx, {
@@ -26891,4 +26895,4 @@ function openVetModal(name) {
   </div>
 </div>
 </body>
-</html>tml>
+</html>
