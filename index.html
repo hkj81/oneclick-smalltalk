@@ -5941,6 +5941,7 @@ function render(name) {
     .reduce((s, m) => s + myNames.reduce((ss, n) => ss + ((PB_MONTHLY[n] && PB_MONTHLY[n][m]) || 0), 0), 0)
     / Math.min(3, currentMonth - 1 >= 1 ? 3 : currentMonth - 1));
   const vetTotalAll = myNames.reduce((s, n) => { const r = PHARMACY_REAL[n]; return s + (r ? (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) : 0); }, 0);
+  const vetCount = myNames.filter(n => { const r = PHARMACY_REAL[n]; return r && (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) > 0; }).length;
   const shortName = d.name.split(' ').slice(1).join(' ') || d.name;
   const pb21TotalAll = Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).reduce((total, [ph, items]) => {
     return total + Object.entries(items)
@@ -5953,7 +5954,7 @@ function render(name) {
   const kw21Count = (MONTHLY_PB_KEYWORDS[currentMonth]||[]).filter(kw=>Object.entries(PB_ITEMS_MONTHLY).filter(([ph])=>DATA[ph]).some(([ph,items])=>{const e=Object.entries(items).find(([k])=>k.includes(kw));return e&&e[1][currentMonth]&&e[1][currentMonth].a>0;})).length;
   html += '<div class="pb-stat-value">'+fmt(pb21Sum)+' / '+fmt(pb21TotalAll)+'</div>';
   html += '<div class="pb-stat-sub">'+kw21Count+' / '+(MONTHLY_PB_KEYWORDS[currentMonth]||[]).length+' 품목 매출 발생</div></div>';
-  html += '<div class="pb-stat" onclick="openVetModal(curName)" style="cursor:pointer;"><div class="pb-stat-label">동물약 ('+shortName+') 🔍</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(vetTotalAll)+'</div></div>';
+  html += '<div class="pb-stat" onclick="openVetModal(curName)" style="cursor:pointer;"><div class="pb-stat-label">동물약 ('+shortName+') 🔍</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처('+vetCount+'개) 합계 '+fmt(vetTotalAll)+'</div></div>';
   html += '</div></div>';
   html += '<div class="insight" style="background:#F5F4FE;color:#3C3489;"><strong>영업 인사이트:</strong> ';
   if (d.catRatio.pb >= 15) html += '✓ PB 비중 우수. 신제품 PB·동물약 카테고리 확장 권장.';
