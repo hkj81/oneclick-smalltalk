@@ -6151,8 +6151,9 @@ function drawMfr() {
       .map(([mfr, months]) => ({ mfr, cur: months[currentMonth]||0 }))
       .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
     const mfrSum = mfrAllData.reduce((s,x)=>s+x.cur,0);
-    const visible = mfrAllData.slice(0, 5);
-    const etcAmt = mfrAllData.slice(5).reduce((s,x)=>s+x.cur,0);
+    // 도넛: 2% 이상 전부 표시
+    const visible = mfrAllData.filter(x => mfrSum > 0 && x.cur / mfrSum >= 0.02);
+    const etcAmt = mfrAllData.filter(x => mfrSum <= 0 || x.cur / mfrSum < 0.02).reduce((s,x)=>s+x.cur,0);
     const palette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
     const labels = visible.map(x=>x.mfr);
     const values = visible.map(x=>x.cur);
