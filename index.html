@@ -5905,8 +5905,8 @@ function render(name) {
     .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
   const mfrCurTotal = mfrAllData.reduce((s,x)=>s+x.cur,0);
   // 1% 이상 제약사 전부 표시, 미만은 기타
-  const mfrVisible = mfrAllData.filter(x => mfrCurTotal > 0 && x.cur / mfrCurTotal >= 0.02);
-  const mfrEtcAmt = mfrAllData.filter(x => mfrCurTotal <= 0 || x.cur / mfrCurTotal < 0.02).reduce((s,x)=>s+x.cur,0);
+  const mfrVisible = mfrAllData.filter(x => mfrCurTotal > 0 && x.cur / mfrCurTotal >= 0.03);
+  const mfrEtcAmt = mfrAllData.filter(x => mfrCurTotal <= 0 || x.cur / mfrCurTotal < 0.03).reduce((s,x)=>s+x.cur,0);
   const mfrPalette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
   html += '<div>';
   html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">🏭 제약사별 <button onclick="openMfrModal()" style="font-size:10px;padding:2px 7px;border:1px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:5px;cursor:pointer;font-weight:600;">전체 🔍</button></div>';
@@ -6144,8 +6144,8 @@ function drawMfr() {
       .map(([mfr, months]) => ({ mfr, cur: months[currentMonth]||0 }))
       .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
     const mfrSum = mfrAllData.reduce((s,x)=>s+x.cur,0);
-    const visible = mfrAllData.filter(x => mfrSum > 0 && x.cur / mfrSum >= 0.02);
-    const etcAmt = mfrAllData.filter(x => mfrSum <= 0 || x.cur / mfrSum < 0.02).reduce((s,x)=>s+x.cur,0);
+    const visible = mfrAllData.filter(x => mfrSum > 0 && x.cur / mfrSum >= 0.03);
+    const etcAmt = mfrAllData.filter(x => mfrSum <= 0 || x.cur / mfrSum < 0.03).reduce((s,x)=>s+x.cur,0);
     const palette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
     const labels = visible.map(x=>x.mfr);
     const values = visible.map(x=>x.cur);
