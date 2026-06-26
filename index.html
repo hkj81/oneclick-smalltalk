@@ -6143,11 +6143,10 @@ function drawMfr() {
     const mfrAllData = Object.entries(MFR_MONTHLY)
       .map(([mfr, months]) => ({ mfr, cur: months[currentMonth]||0 }))
       .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
-    const total = mfrAllData.reduce((s,x)=>s+x.cur,0);
-    const visible = mfrAllData.filter(x => total > 0 && x.cur / total >= 0.01);
-    const etcAmt = mfrAllData.filter(x => total <= 0 || x.cur / total < 0.01).reduce((s,x)=>s+x.cur,0);
+    const mfrSum = mfrAllData.reduce((s,x)=>s+x.cur,0);
+    const visible = mfrAllData.filter(x => mfrSum > 0 && x.cur / mfrSum >= 0.01);
+    const etcAmt = mfrAllData.filter(x => mfrSum <= 0 || x.cur / mfrSum < 0.01).reduce((s,x)=>s+x.cur,0);
     const palette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
-    const top7 = visible;
     const labels = visible.map(x=>x.mfr);
     const values = visible.map(x=>x.cur);
     const colors = visible.map((_,i) => palette[i] || '#999');
