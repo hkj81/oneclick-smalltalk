@@ -5971,6 +5971,7 @@ function render(name) {
   html += '<div class="memo-actions">';
   html += '<button class="memo-save-btn" onclick="saveMemo(\''+name+'\')">💾 저장</button>';
   html += '<button onclick="clearMemoInput()">✕ 지우기</button>';
+  html += '<button onclick="open3DayMemoModal()" style="padding:10px 16px;border:2px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📋 3일치 메모</button>';
   html += '<button onclick="exportMemos()" style="margin-left:auto;padding:10px 16px;border:2px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📥 메모 내보내기</button>';
   html += '</div>';
   if (d.memo.length === 0) {
@@ -6255,6 +6256,66 @@ function deleteMemo(name, index) {
   DATA[name].memo.splice(index, 1);
   saveMemosToFirestore();
   render(name);
+}
+
+function open3DayMemoModal() {
+  // 최근 3일 날짜 구하기 (오늘 포함)
+  const today = new Date();
+  const cutoff = new Date(today);
+  cutoff.setDate(cutoff.getDate() - 2);
+  cutoff.setHours(0, 0, 0, 0);
+
+  // 전체 거래처 메모 수집 → 날짜별 그룹
+  const byDate = {}; // {'2026-06-26': [{pharm, grade, route, time, text}, ...]}
+  Object.keys(DATA).forEach(name => {
+    const d = DATA[name];
+    if (!d.memo || d.memo.length === 0) return;
+    d.memo.forEach(m => {
+      if (!m.time) return;
+      const mDate = new Date(m.time.replace(' ', 'T'));
+      if (mDate < cutoff) return;
+      const dateKey = m.time.slice(0, 10);
+      if (!byDate[dateKey]) byDate[dateKey] = [];
+      byDate[dateKey].push({
+        pharm: name.split(' ').slice(1).join(' ') || name,
+        grade: d.grade || '',
+        time: m.time.slice(11, 16),
+        text: m.text
+      });
+    });
+  });
+
+  const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
+  const totalCount = sortedDates.reduce((s, k) => s + byDate[k].length, 0);
+
+  const dayNames = ['일','월','화','수','목','금','토'];
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:14px;">최근 3일간 전 거래처 메모 <strong style="color:#2B2B2B;">'+totalCount+'건</strong></div>';
+
+  if (totalCount === 0) {
+    html += '<div style="text-align:center;padding:30px;color:#888;font-size:14px;">최근 3일간 작성된 메모가 없습니다.</div>';
+  } else {
+    sortedDates.forEach(dateKey => {
+      const dt = new Date(dateKey + 'T00:00:00');
+      const dow = dayNames[dt.getDay()];
+      const isToday = dateKey === today.toISOString().slice(0,10);
+      const dateLabel = dateKey.slice(5).replace('-','/') + ' (' + dow + ')' + (isToday ? ' 오늘' : '');
+      html += '<div style="font-weight:700;font-size:13px;color:#3C3489;margin:12px 0 6px;padding:6px 10px;background:#F0EEFF;border-radius:6px;">📅 ' + dateLabel + ' · ' + byDate[dateKey].length + '건</div>';
+      // 시간 역순 정렬
+      byDate[dateKey].sort((a,b) => b.time.localeCompare(a.time)).forEach(m => {
+        const gradeHtml = m.grade ? '<span style="background:#3C3489;color:#fff;border-radius:4px;padding:1px 5px;font-size:10px;margin-right:4px;">'+m.grade+'등급</span>' : '';
+        html += '<div style="border:1px solid #E8E6DC;border-radius:8px;padding:10px 12px;margin-bottom:6px;">';
+        html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">';
+        html += gradeHtml;
+        html += '<span style="font-weight:600;font-size:13px;color:#2B2B2B;">'+m.pharm+'</span>';
+        html += '<span style="margin-left:auto;font-size:11px;color:#888;">'+m.time+'</span>';
+        html += '</div>';
+        html += '<div style="font-size:13px;color:#444;line-height:1.6;">'+m.text.replace(/\n/g,'<br>')+'</div>';
+        html += '</div>';
+      });
+    });
+  }
+
+  openModal('📋 3일치 메모 요약', html);
 }
 
 function exportMemos() {
@@ -26454,7 +26515,7 @@ function openPb21CheckModal() {
       if (matched && matched[1][currentMonth] && matched[1][currentMonth].a > 0) pharmacies.push(ph.split(' ').slice(1).join(' '));
     });
     const hasAny = pharmacies.length > 0;
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F0EEE5;">';
+        html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F0EEE5;">';
     html += '<span style="font-size:16px;">'+(hasAny?'✅':'❌')+'</span>';
     html += '<span style="flex:1;font-size:13px;font-weight:'+(hasAny?600:400)+';">'+kw+'</span>';
     html += '<span style="font-size:11px;color:#888;">'+pharmacies.length+'곳</span>';
@@ -26480,7 +26541,7 @@ function openVetModal(name) {
   const allTotal = Object.values(allTotals).reduce((s,v)=>s+v,0);
   const myTotal = mySorted.reduce((s,x)=>s+x.amt,0);
   let html = '';
-  const shortN = name.split(' ').slice(1).join(' ');
+  const shortN = name.split(' ').slice(1).join(' ') || name;
   html += '<div style="font-weight:700;font-size:13px;color:#3C3489;margin-bottom:6px;">📍 '+shortN+' ('+fmt(myTotal)+'원)</div>';
   if (mySorted.length === 0) {
     html += '<div style="font-size:12px;color:#888;padding:8px 0 12px;">이번 달 동물약 매출 없음</div>';
