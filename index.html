@@ -5679,10 +5679,10 @@ function renderTab(name, tab) {
   let list, label, catClass, dataObj;
   if (tab === 'pro') { list = d.proTop; label = '전문약'; catClass = 'pro'; dataObj = PRO_ITEMS_MONTHLY; }
   else { list = d.genTop; label = '일반약'; catClass = 'gen'; dataObj = GEN_ITEMS_MONTHLY; }
-  // 전체 거래처 중 각 품목 주문처 수 + 약국명 목록
+  // 전체 거래처 중 각 품목 주문처 수 + 약국명 목록 (현재 사용자 거래처만)
   const pharmCounts = {};
   window._tabPharmMap = {};
-  Object.entries(dataObj).forEach(([ph, items]) => {
+  Object.entries(dataObj).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
     const shortPh = ph.split(' ').slice(1).join(' ') || ph;
     Object.entries(items).forEach(([k,v]) => {
       if (v[currentMonth] && v[currentMonth].a > 0) {
@@ -5721,10 +5721,10 @@ function openProGenModal(tab, name) {
   const catClass = isPro ? 'pro' : 'gen';
   const dataObj = isPro ? PRO_ITEMS_MONTHLY : GEN_ITEMS_MONTHLY;
   const list = isPro ? d.proTop : d.genTop;
-  // 처수 맵 빌드
+  // 처수 맵 빌드 (현재 사용자 거래처만)
   window._tabPharmMap = {};
   const pharmCounts = {};
-  Object.entries(dataObj).forEach(([ph, items]) => {
+  Object.entries(dataObj).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
     const shortPh = ph.split(' ').slice(1).join(' ') || ph;
     Object.entries(items).forEach(([k,v]) => {
       if (v[currentMonth] && v[currentMonth].a > 0) {
@@ -5911,7 +5911,7 @@ function render(name) {
     / Math.min(3, currentMonth - 1 >= 1 ? 3 : currentMonth - 1));
   const vetTotalAll = myNames.reduce((s, n) => { const r = PHARMACY_REAL[n]; return s + (r ? (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) : 0); }, 0);
   const shortName = d.name.split(' ').slice(1).join(' ') || d.name;
-  const pb21TotalAll = Object.entries(PB_ITEMS_MONTHLY).reduce((total, [ph, items]) => {
+  const pb21TotalAll = Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).reduce((total, [ph, items]) => {
     return total + Object.entries(items)
       .filter(([k]) => monthKws.some(kw => k.includes(kw)))
       .reduce((s, [k, v]) => s + (v[currentMonth] ? v[currentMonth].a : 0), 0);
@@ -5919,7 +5919,7 @@ function render(name) {
   html += '<div class="pb-stat" onclick="openPbModal()" style="cursor:pointer;" title="클릭하여 품목별 상세 보기"><div class="pb-stat-label">'+currentMonth+'월 PB 전체 (전 거래처) 🔍</div><div class="pb-stat-value">'+fmt(pbTotalAll)+'</div><div class="pb-stat-sub">담당 거래처 합산 / 3개월 평균 '+fmt(pbTotalAllAvg)+'</div></div>';
   html += '<div class="pb-stat" onclick="openPharmPbModal(curName)" style="cursor:pointer;"><div class="pb-stat-label">'+currentMonth+'월 PB ('+shortName+') 🔍</div><div class="pb-stat-value">'+fmt(pbThisMonth)+'</div><div class="pb-stat-sub">3개월 평균 '+fmt(d.pb3mAvg)+'</div></div>';
   html += '<div class="pb-stat" onclick="openPb21CheckModal()" style="cursor:pointer;"><div class="pb-stat-label">PB 21품목 ('+shortName+') 🔍</div>';
-  const kw21Count = (MONTHLY_PB_KEYWORDS[currentMonth]||[]).filter(kw=>Object.values(PB_ITEMS_MONTHLY).some(items=>{const e=Object.entries(items).find(([k])=>k.includes(kw));return e&&e[1][currentMonth]&&e[1][currentMonth].a>0;})).length;
+  const kw21Count = (MONTHLY_PB_KEYWORDS[currentMonth]||[]).filter(kw=>Object.entries(PB_ITEMS_MONTHLY).filter(([ph])=>DATA[ph]).some(([ph,items])=>{const e=Object.entries(items).find(([k])=>k.includes(kw));return e&&e[1][currentMonth]&&e[1][currentMonth].a>0;})).length;
   html += '<div class="pb-stat-value">'+fmt(pb21Sum)+' / '+fmt(pb21TotalAll)+'</div>';
   html += '<div class="pb-stat-sub">'+kw21Count+' / '+(MONTHLY_PB_KEYWORDS[currentMonth]||[]).length+' 품목 매출 발생</div></div>';
   html += '<div class="pb-stat" onclick="openVetModal(curName)" style="cursor:pointer;"><div class="pb-stat-label">동물약 ('+shortName+') 🔍</div><div class="pb-stat-value">'+(d.vet3mAvg>0?fmt(d.vet3mAvg):'미발주')+'</div><div class="pb-stat-sub">전 거래처 합계 '+fmt(vetTotalAll)+'</div></div>';
@@ -25699,7 +25699,7 @@ function showPbPharmsFor(prod) {
 function openPbModal() {
   const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
   const totals = {}, qtotals = {}, ptotals = {}, pharmsMap = {};
-  Object.entries(PB_ITEMS_MONTHLY).forEach(([ph, items]) => {
+  Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
     const shortPh = ph.split(' ').slice(1).join(' ') || ph;
     Object.entries(items).forEach(([prod, months]) => {
       const amt = months[currentMonth] ? months[currentMonth].a : 0;
@@ -25750,7 +25750,7 @@ function openPb21CheckModal() {
   let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">'+currentMonth+'월 이달의 PB 21품목 전 거래처 매출 현황</div>';
   kws.forEach(kw => {
     const pharmacies = [];
-    Object.entries(PB_ITEMS_MONTHLY).forEach(([ph, items]) => {
+    Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
       const matched = Object.entries(items).find(([k]) => k.includes(kw));
       if (matched && matched[1][currentMonth] && matched[1][currentMonth].a > 0) pharmacies.push(ph.split(' ').slice(1).join(' '));
     });
