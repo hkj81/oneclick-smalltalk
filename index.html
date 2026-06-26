@@ -5875,9 +5875,9 @@ function render(name) {
   html += '<div class="chart-wrap"><canvas id="DailyChart"></canvas></div></div>';
 
   html += '<div class="card"><div class="section" style="margin-top:0">📊 카테고리 분석</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">';
 
-  // ── 왼쪽: 카테고리별 ──
+  // ── 1: 카테고리별 ──
   html += '<div>';
   html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;text-align:center;">카테고리별</div>';
   html += '<div class="chart-square"><canvas id="CatChart"></canvas></div>';
@@ -5887,7 +5887,7 @@ function render(name) {
   html += '<div class="cat-item" style="background:#F5F4FE;padding:8px 10px;border-radius:6px;border-bottom:none;margin-top:6px;"><div><span class="cat-dot" style="background:#7F77DD"></span><strong style="color:#3C3489;">PB</strong> ('+d.catRatio.pb+'%)</div><div style="color:#3C3489;font-weight:600;">'+fmt(d.catSales.pb)+' <span class="'+(d.catTrend.pb.startsWith('+')?'up':'down')+'" style="font-size:12px;">'+d.catTrend.pb+'</span></div></div>';
   html += '</div>';
 
-  // ── 오른쪽: 전문약 등급별 ──
+  // ── 2: 전문약 등급별 ──
   const gradeColors = { A:'#1D9E75', B:'#378ADD', C:'#EF9F27', D:'#E24B4A', E:'#7F77DD', F:'#888780' };
   const proTotal = d.catSales.pro;
   html += '<div>';
@@ -5897,6 +5897,27 @@ function render(name) {
     const amt = Math.round(proTotal * pct / 100);
     html += '<div class="cat-item"><div><span class="cat-dot" style="background:'+gradeColors[g]+'"></span><strong>'+g+'등급</strong> ('+pct+'%)</div><div>'+fmt(amt)+'</div></div>';
   });
+  html += '</div>';
+
+  // ── 3: 제약사별 ──
+  const mfrAllData = Object.entries(MFR_MONTHLY)
+    .map(([mfr, months]) => ({ mfr, cur: months[currentMonth]||0 }))
+    .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
+  const mfrCurTotal = mfrAllData.reduce((s,x)=>s+x.cur,0);
+  const mfrTop7 = mfrAllData.slice(0,7);
+  const mfrEtcAmt = mfrAllData.slice(7).reduce((s,x)=>s+x.cur,0);
+  const mfrColors7 = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE'];
+  html += '<div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">🏭 제약사별 <button onclick="openMfrModal()" style="font-size:10px;padding:2px 7px;border:1px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:5px;cursor:pointer;font-weight:600;">전체 🔍</button></div>';
+  html += '<div class="chart-square"><canvas id="MfrChart"></canvas></div>';
+  mfrTop7.forEach((x, i) => {
+    const pct = mfrCurTotal > 0 ? Math.round(x.cur / mfrCurTotal * 100) : 0;
+    html += '<div class="cat-item"><div><span class="cat-dot" style="background:'+mfrColors7[i]+'"></span><strong>'+x.mfr+'</strong> ('+pct+'%)</div><div>'+fmt(x.cur)+'</div></div>';
+  });
+  if (mfrEtcAmt > 0) {
+    const etcPct = mfrCurTotal > 0 ? Math.round(mfrEtcAmt / mfrCurTotal * 100) : 0;
+    html += '<div class="cat-item"><div><span class="cat-dot" style="background:#AAAAAA"></span>기타 ('+etcPct+'%)</div><div>'+fmt(mfrEtcAmt)+'</div></div>';
+  }
   html += '</div>';
 
   html += '</div></div>';
@@ -5931,33 +5952,6 @@ function render(name) {
   else if (d.catRatio.pb >= 10) html += '○ PB 평균 수준. 동물약 ' + (d.vet3mAvg>0 ? '유지' : '미발주 — 신규 영업 기회') + '.';
   else html += '⚠ PB 비중 낮음. 마진 큰 PB 신규 도입 + 동물약 영업 우선순위.';
   html += '</div></div>';
-
-  // ── 제약사별 매출 카드 ─────────────────────────────
-  const mfrData = Object.entries(MFR_MONTHLY).filter(([m]) => true)
-    .map(([mfr, months]) => ({ mfr, total: Object.values(months).reduce((s,v)=>s+v,0), cur: months[currentMonth]||0 }))
-    .filter(x => x.total > 0)
-    .sort((a,b) => b.cur - a.cur);
-  const mfrCurTotal = mfrData.reduce((s,x)=>s+x.cur,0);
-  const mfrTop5 = mfrData.slice(0,5);
-  html += '<div class="card"><div class="section" style="margin-top:0;display:flex;align-items:center;justify-content:space-between;">🏭 제약사별 전문약 매출<button onclick="openMfrModal()" style="font-size:12px;padding:4px 10px;border:1px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:6px;cursor:pointer;font-weight:600;">전체 보기 🔍</button></div>';
-  html += '<div style="font-size:12px;color:#888;margin-bottom:10px;">'+currentMonth+'월 기준 · 전문약 합계 '+fmt(mfrCurTotal)+'원 · '+mfrData.length+'개 제약사</div>';
-  if (mfrCurTotal > 0) {
-    mfrTop5.forEach((x, i) => {
-      const pct = Math.round(x.cur / mfrCurTotal * 100);
-      const colors = ['#3C3489','#6C5CE7','#1D9E75','#E67E22','#E74C3C'];
-      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
-      html += '<span style="width:14px;font-size:11px;color:#888;flex-shrink:0;">'+(i+1)+'</span>';
-      html += '<span style="width:70px;flex-shrink:0;font-size:13px;font-weight:600;color:#2B2B2B;">'+x.mfr+'</span>';
-      html += '<div style="flex:1;background:#F0EEE5;border-radius:4px;height:10px;"><div style="background:'+colors[i]+';width:'+pct+'%;height:10px;border-radius:4px;"></div></div>';
-      html += '<span style="width:34px;text-align:right;font-size:11px;color:#888;">'+pct+'%</span>';
-      html += '<span style="width:70px;text-align:right;font-size:12px;font-weight:600;">'+fmt(x.cur)+'</span>';
-      html += '</div>';
-    });
-    if (mfrData.length > 5) html += '<div style="font-size:11px;color:#888;text-align:center;margin-top:4px;">외 '+(mfrData.length-5)+'개 제약사 · <span style="color:#6C5CE7;cursor:pointer;text-decoration:underline;" onclick="openMfrModal()">전체 보기</span></div>';
-  } else {
-    html += '<div style="padding:10px;text-align:center;color:#888;font-size:13px;">'+currentMonth+'월 전문약 매출 없음</div>';
-  }
-  html += '</div>';
 
   html += '<div class="card"><div class="section" style="margin-top:0">🏆 매출 상위 품목</div>';
   html += '<div class="tabs">';
@@ -6015,7 +6009,7 @@ function render(name) {
   html += '</div></div>';
 
   document.getElementById('Result').innerHTML = html;
-  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); }, 100);
+  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); drawMfr(); }, 100);
 }
 
 // ============================================================
@@ -6137,6 +6131,28 @@ function drawCat(ratio) {
       type: 'doughnut',
       data: { labels: ['전문약','일반약','동물약','PB'], datasets: [{ data: [ratio.pro, ratio.gen, ratio.animal, ratio.pb], backgroundColor: ['#378ADD','#EF9F27','#39A2AE','#7F77DD'], borderWidth: 0 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: c => c.label+': '+c.parsed+'%' } } }, cutout: '60%' }
+    });
+  }).catch(() => {});
+}
+
+function drawMfr() {
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
+    const ctx = document.getElementById('MfrChart');
+    if (!ctx) return;
+    const mfrAllData = Object.entries(MFR_MONTHLY)
+      .map(([mfr, months]) => ({ mfr, cur: months[currentMonth]||0 }))
+      .filter(x => x.cur > 0).sort((a,b) => b.cur - a.cur);
+    const top7 = mfrAllData.slice(0,7);
+    const etcAmt = mfrAllData.slice(7).reduce((s,x)=>s+x.cur,0);
+    const labels = top7.map(x=>x.mfr);
+    const values = top7.map(x=>x.cur);
+    const colors = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE'];
+    if (etcAmt > 0) { labels.push('기타'); values.push(etcAmt); colors.push('#AAAAAA'); }
+    const total = values.reduce((s,v)=>s+v,0);
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label+': '+Math.round(c.parsed/total*100)+'% ('+c.parsed.toLocaleString()+'원)' } } }, cutout: '60%' }
     });
   }).catch(() => {});
 }
