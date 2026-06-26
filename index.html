@@ -5910,13 +5910,13 @@ function render(name) {
   const mfrEtcAmt = mfrAllData.slice(5).reduce((s,x)=>s+x.cur,0);
   const mfrPalette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
   html += '<div>';
-  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:4px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">🏭 제약사별 <button onclick="openMfrModal()" style="font-size:10px;padding:2px 7px;border:1px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:5px;cursor:pointer;font-weight:600;">전체 🔍</button></div>';
-  html += '<div style="display:flex;justify-content:center;gap:3px;margin-bottom:4px;">';
+  let mfrHeaderHtml = '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px;">🏭 제약사별 <button onclick="openMfrModal()" style="font-size:10px;padding:2px 7px;border:1px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:5px;cursor:pointer;font-weight:600;">전체 🔍</button>';
   [1,2,3,4,5,6].forEach(m => {
     const isActive = m === currentMonth;
-    html += '<button onclick="jumpToMonth('+m+')" style="font-size:10px;padding:2px 6px;border:1px solid '+(isActive?'#3C3489':'#ccc')+';background:'+(isActive?'#3C3489':'#fff')+';color:'+(isActive?'#fff':'#888')+';border-radius:4px;cursor:pointer;font-weight:'+(isActive?'700':'400')+';">'+m+'월</button>';
+    mfrHeaderHtml += '<button onclick="jumpToMonth('+m+')" style="font-size:10px;padding:1px 5px;border:1px solid '+(isActive?'#3C3489':'#ccc')+';background:'+(isActive?'#3C3489':'#fff')+';color:'+(isActive?'#fff':'#888')+';border-radius:4px;cursor:pointer;font-weight:'+(isActive?'700':'400')+';">'+m+'월</button>';
   });
-  html += '</div>';
+  mfrHeaderHtml += '</div>';
+  html += mfrHeaderHtml;
   html += '<div class="chart-square"><canvas id="MfrChart"></canvas></div>';
   mfrVisible.forEach((x, i) => {
     const pct = mfrCurTotal > 0 ? Math.round(x.cur / mfrCurTotal * 100) : 0;
