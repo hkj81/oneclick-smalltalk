@@ -357,7 +357,6 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <button class="user-badge" id="UserBadge" onclick="changeUser()">👤 <span id="UserBadgeName">로딩 중...</span> <span style="font-size:11px;opacity:0.7;">변경</span></button>
       <button class="map-btn" onclick="openMap()">📍 지도 보기</button>
-      <button class="map-btn" onclick="openAnalytics()" style="background:#3C3489;color:#fff;">📊 통계</button>
     </div>
   </div>
 </div>
@@ -467,7 +466,8 @@ function initUserSelect() {
 
   const teamLabel = document.createElement('div');
   teamLabel.className = 'us-dd-group-label';
-  teamLabel.textContent = '📊 영업팀';
+  teamLabel.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+  teamLabel.innerHTML = '<span>📊 영업팀</span><button onclick="event.stopPropagation();openAnalytics();" style="font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid #3C3489;background:#3C3489;color:#fff;cursor:pointer;font-family:inherit;">📈 통계</button>';
   dd.appendChild(teamLabel);
 
   teamUsers.forEach(u => {
