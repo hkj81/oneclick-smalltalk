@@ -357,6 +357,7 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <button class="user-badge" id="UserBadge" onclick="changeUser()">👤 <span id="UserBadgeName">로딩 중...</span> <span style="font-size:11px;opacity:0.7;">변경</span></button>
       <button class="map-btn" onclick="openMap()">📍 지도 보기</button>
+      <button class="map-btn" onclick="openAnalytics()" style="background:#3C3489;color:#fff;">📊 통계</button>
     </div>
   </div>
 </div>
@@ -532,6 +533,7 @@ async function selectUser(user) {
   // 오버레이 숨기기
   document.getElementById('UserSelect').classList.add('hidden');
   document.getElementById('UserBadgeName').textContent = user.name;
+  logUsage('sessions');
 
   // 필터바 표시 + 총매출 요약 카드
   document.getElementById('FilterBar').style.display = '';
@@ -557,8 +559,9 @@ function changeUser() {
 let currentMonth = 6;
 let userMonthlyTarget = 0;
 
-function jumpToMonth(m) { const delta = m - currentMonth; if (delta !== 0) changeMonth(delta); }
+function jumpToMonth(m) { const delta = m - currentMonth; if (delta !== 0) { logUsage('month_jump'); changeMonth(delta); } }
 function changeMonth(delta) {
+  logUsage('month_change');
   const newM = currentMonth + delta;
   if (newM < 1 || newM > 6) { alert('1~6월 데이터만 있습니다.'); return; }
   currentMonth = newM;
@@ -603,6 +606,7 @@ function changeMonth(delta) {
 }
 
 function setUserTarget() {
+  logUsage('set_target');
   const cur = userMonthlyTarget > 0 ? userMonthlyTarget : '';
   const input = prompt('월 목표액을 입력하세요 (숫자만):\n예: 730000000  (7억 3천만원)', cur);
   if (input === null) return;
@@ -11645,11 +11649,13 @@ function pick(name) {
   document.getElementById('Q').value = name;
   document.getElementById('Dropdown').style.display = 'none';
   render(name);
+  logUsage('pharmacy_open');
 }
 
 function doSearch() {
   const q = document.getElementById('Q').value.trim();
   if (!q) return;
+  logUsage('search');
   const found = Object.keys(DATA).find(k => k.includes(q));
   if (found) pick(found);
 }
@@ -11666,6 +11672,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('tab-content').innerHTML = renderTab(curName, tab);
+  logUsage('tab_'+tab);
 }
 
 function renderTab(name, tab) {
@@ -11771,6 +11778,7 @@ function renderTab(name, tab) {
 }
 
 function openProGenModal(tab, name) {
+  logUsage('modal_'+tab);
   const d = DATA[name];
   const isPro = (tab === 'pro');
   const label = isPro ? '전문약' : '일반약';
@@ -12369,7 +12377,7 @@ function deleteMemo(name, index) {
 }
 
 function openMfrModal(selMonth) {
-  if (selMonth === undefined) selMonth = currentMonth;
+  if (selMonth === undefined) { selMonth = currentMonth; logUsage('modal_mfr'); }
   const mfrData = Object.entries(MFR_MONTHLY)
     .map(([mfr, months]) => {
       const total = Object.values(months).reduce((s,v)=>s+v,0);
@@ -12415,6 +12423,7 @@ function openMfrModal(selMonth) {
 }
 
 function open3DayMemoModal() {
+  logUsage('modal_3day_memo');
   // 최근 3일 날짜 구하기 (오늘 포함)
   const today = new Date();
   const cutoff = new Date(today);
@@ -12497,6 +12506,7 @@ function exportMemos() {
 let leafletMap = null, locMarker = null;
 
 function openMap() {
+  logUsage('map_view');
   document.getElementById('MapModal').classList.add('open');
   if (!document.querySelector('link[href*="leaflet"]')) {
     const lnk = document.createElement('link'); lnk.rel='stylesheet';
@@ -49189,6 +49199,85 @@ function openModal(title, bodyHtml) {
   document.getElementById('pbModalBody').innerHTML = bodyHtml;
   document.getElementById('pbModalOverlay').classList.add('open');
 }
+
+// ── 사용 통계 로깅 ─────────────────────────────────────────
+async function logUsage(action) {
+  if (!currentUser) return;
+  try {
+    const ok = await initFirebase();
+    if (!ok) return;
+    const inc = firebase.firestore.FieldValue.increment(1);
+    await _db.collection('analytics').doc(currentUser.id).set({
+      name: currentUser.name,
+      last_active: new Date().toISOString(),
+      [action]: inc
+    }, { merge: true });
+  } catch(e) { /* silent */ }
+}
+
+async function openAnalytics() {
+  const ok = await initFirebase();
+  if (!ok) { openModal('📊 사용 통계', '<div style="color:#888;padding:20px;text-align:center;">Firebase 연결 실패</div>'); return; }
+  try {
+    const snap = await _db.collection('analytics').get();
+    const rows = [];
+    snap.forEach(doc => rows.push({ id: doc.id, ...doc.data() }));
+    rows.sort((a,b) => (b.sessions||0)-(a.sessions||0));
+
+    const COLS = [
+      { key:'sessions',    label:'세션' },
+      { key:'pharmacy_open', label:'약국클릭' },
+      { key:'tab_pro',     label:'전문약탭' },
+      { key:'tab_gen',     label:'일반약탭' },
+      { key:'tab_trend',   label:'노선비교' },
+      { key:'modal_mfr',   label:'제약사전체' },
+      { key:'modal_pb',    label:'PB전체' },
+      { key:'modal_vet',   label:'동물약거래처' },
+      { key:'modal_pro',   label:'전문약상세' },
+      { key:'modal_gen',    label:'일반약상세' },
+      { key:'modal_pharm_pb', label:'약국PB상세' },
+      { key:'modal_vet_items',label:'동물약품목' },
+      { key:'modal_pb21',    label:'21품목' },
+      { key:'modal_3day_memo',label:'3일메모' },
+      { key:'month_change',  label:'월이동' },
+      { key:'month_jump',    label:'월바로가기' },
+      { key:'map_view',      label:'지도보기' },
+      { key:'search',        label:'검색' },
+      { key:'set_target',    label:'목표액설정' },
+    ];
+
+    let html = '<div style="font-size:11px;color:#888;margin-bottom:12px;">'+rows.length+'명 · 누적 클릭 집계</div>';
+    html += '<div style="overflow-x:auto;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+    html += '<thead><tr style="background:#F5F4EE;">';
+    html += '<th style="text-align:left;padding:6px 8px;font-weight:700;color:#3C3489;white-space:nowrap;">이름</th>';
+    COLS.forEach(c => {
+      html += '<th style="text-align:center;padding:6px 4px;font-weight:600;color:#555;white-space:nowrap;">'+c.label+'</th>';
+    });
+    html += '<th style="text-align:center;padding:6px 4px;font-weight:600;color:#555;white-space:nowrap;">마지막접속</th>';
+    html += '</tr></thead><tbody>';
+
+    rows.forEach((r, i) => {
+      const bg = i%2===0 ? '#fff' : '#FAF9F6';
+      html += '<tr style="background:'+bg+';">';
+      html += '<td style="padding:6px 8px;font-weight:600;color:#2B2B2B;white-space:nowrap;">'+(r.name||r.id)+'</td>';
+      COLS.forEach(c => {
+        const v = r[c.key] || 0;
+        html += '<td style="text-align:center;padding:6px 4px;color:'+(v>0?'#3C3489':'#ccc')+';font-weight:'+(v>0?'700':'400')+';">'+v+'</td>';
+      });
+      const last = r.last_active ? r.last_active.slice(0,16).replace('T',' ') : '-';
+      html += '<td style="text-align:center;padding:6px 4px;color:#888;font-size:11px;white-space:nowrap;">'+last+'</td>';
+      html += '</tr>';
+    });
+
+    if (rows.length === 0) html += '<tr><td colspan="'+(COLS.length+2)+'" style="text-align:center;color:#aaa;padding:20px;">아직 데이터 없음</td></tr>';
+    html += '</tbody></table></div>';
+    openModal('📊 사용 통계', html);
+  } catch(e) {
+    openModal('📊 사용 통계', '<div style="color:#888;padding:20px;text-align:center;">데이터 로드 실패: '+e.message+'</div>');
+  }
+}
+
 function closePbModal() {
   document.getElementById('pbModalOverlay').classList.remove('open');
 }
@@ -49205,6 +49294,7 @@ function showPbPharmsFor(prod) {
   el.style.display = 'block';
 }
 function openPbModal() {
+  logUsage('modal_pb');
   const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
   const totals = {}, qtotals = {}, ptotals = {}, pharmsMap = {};
   Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
@@ -49238,6 +49328,7 @@ function openPbModal() {
 
 // 카드2: 해당 약국 출하 품목
 function openPharmPbModal(name) {
+  logUsage('modal_pharm_pb');
   const items = PB_ITEMS_MONTHLY[name] || {};
   const sorted = Object.entries(items)
     .map(([k,v])=>({name:k,amt:v[currentMonth]?v[currentMonth].a:0,qty:v[currentMonth]?v[currentMonth].q:0}))
@@ -49253,6 +49344,7 @@ function openPharmPbModal(name) {
 
 // 카드3: 21품목 전 거래처 매출 유무
 function openPb21CheckModal() {
+  logUsage('modal_pb21');
   const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
   if (!kws.length) { openModal('21품목 매출 현황', '<p>이번 달 지정 품목 없음</p>'); return; }
   let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">'+currentMonth+'월 이달의 PB 21품목 전 거래처 매출 현황</div>';
@@ -49275,6 +49367,7 @@ function openPb21CheckModal() {
 
 // 카드4: 해당 거래처 동물약 + 전거래처 상위 품목
 function openVetCountModal() {
+  logUsage('modal_vet');
   const list = Object.keys(DATA).filter(n => {
     const r = PHARMACY_REAL[n];
     return r && (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) > 0;
@@ -49294,6 +49387,7 @@ function openVetCountModal() {
 }
 
 function openVetModal(name) {
+  logUsage('modal_vet_items');
   const myItems = ANIMAL_ITEMS_MONTHLY[name] || {};
   const mySorted = Object.entries(myItems)
     .map(([k,v])=>({name:k,amt:v[currentMonth]||0}))
