@@ -466,8 +466,7 @@ function initUserSelect() {
 
   const teamLabel = document.createElement('div');
   teamLabel.className = 'us-dd-group-label';
-  teamLabel.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
-  teamLabel.innerHTML = '<span>📊 영업팀</span><button onclick="event.stopPropagation();openAnalytics();" style="font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid #3C3489;background:#3C3489;color:#fff;cursor:pointer;font-family:inherit;">📈 통계</button>';
+  teamLabel.innerHTML = '📊 영업팀';
   dd.appendChild(teamLabel);
 
   teamUsers.forEach(u => {
