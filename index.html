@@ -12063,7 +12063,7 @@ function render(name) {
   html += '<div class="memo-actions">';
   html += '<button class="memo-save-btn" onclick="saveMemo(\''+name+'\')">💾 저장</button>';
   html += '<button onclick="clearMemoInput()">✕ 지우기</button>';
-  html += '<button onclick="open3DayMemoModal()" style="padding:10px 16px;border:2px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📋 3일치 메모</button>';
+  html += '<button onclick="open3DayMemoModal()" style="padding:10px 16px;border:2px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📋 7일치 메모</button>';
   html += '<button onclick="exportMemos()" style="margin-left:auto;padding:10px 16px;border:2px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📥 메모 내보내기</button>';
   html += '</div>';
   if (d.memo.length === 0) {
@@ -12422,11 +12422,11 @@ function openMfrModal(selMonth) {
 }
 
 function open3DayMemoModal() {
-  logUsage('modal_3day_memo');
+  logUsage('modal_7day_memo');
   // 최근 3일 날짜 구하기 (오늘 포함)
   const today = new Date();
   const cutoff = new Date(today);
-  cutoff.setDate(cutoff.getDate() - 2);
+  cutoff.setDate(cutoff.getDate() - 6);
   cutoff.setHours(0, 0, 0, 0);
 
   // 전체 거래처 메모 수집 → 날짜별 그룹
@@ -12453,10 +12453,10 @@ function open3DayMemoModal() {
   const totalCount = sortedDates.reduce((s, k) => s + byDate[k].length, 0);
 
   const dayNames = ['일','월','화','수','목','금','토'];
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:14px;">최근 3일간 전 거래처 메모 <strong style="color:#2B2B2B;">'+totalCount+'건</strong></div>';
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:14px;">최근 7일간 전 거래처 메모 <strong style="color:#2B2B2B;">'+totalCount+'건</strong></div>';
 
   if (totalCount === 0) {
-    html += '<div style="text-align:center;padding:30px;color:#888;font-size:14px;">최근 3일간 작성된 메모가 없습니다.</div>';
+    html += '<div style="text-align:center;padding:30px;color:#888;font-size:14px;">최근 7일간 작성된 메모가 없습니다.</div>';
   } else {
     sortedDates.forEach(dateKey => {
       const dt = new Date(dateKey + 'T00:00:00');
@@ -12479,7 +12479,7 @@ function open3DayMemoModal() {
     });
   }
 
-  openModal('📋 3일치 메모 요약', html);
+  openModal('📋 7일치 메모 요약', html);
 }
 
 function exportMemos() {
@@ -49235,7 +49235,7 @@ async function openAnalytics() {
       { key:'modal_pharm_pb', label:'약국PB상세' },
       { key:'modal_vet_items',label:'동물약품목' },
       { key:'modal_pb21',     label:'21품목' },
-      { key:'modal_3day_memo',label:'3일메모' },
+      { key:'modal_7day_memo',label:'7일메모' },
       { key:'month_change',   label:'월이동' },
       { key:'month_jump',     label:'월바로가기' },
       { key:'map_view',       label:'지도보기' },
