@@ -53660,7 +53660,7 @@ async function openAISmallTalk(name) {
     : '(메모 없음)';
   const newsText = [...marketNews, ...localNews].map(n => '- ' + n.title + ': ' + n.desc).join('\n') || '(뉴스 없음)';
 
-  const aiPrompt = `당신은 제약사 영업담당자의 약국 방문 도우미입니다.\n\n약국명: ${name}\n최근 메모 기록:\n${memoText}\n\n오늘의 뉴스:\n${newsText}\n\n위 정보를 바탕으로 이 약국 약사와 나눌 수 있는 스몰톡 주제 3가지를 제안해주세요.\n각 주제는 실제 대화에서 쓸 수 있는 자연스러운 한국어 문장으로 작성해주세요.\n형식: 번호. [주제] 제안 문장\n답변은 간결하게, 각 항목 3줄 이내로 작성해주세요.`;
+  const aiPrompt = `당신은 제약사 영업사원의 약국 방문 도우미입니다. 아래 정보를 분석해서 오늘 방문 시 약사와 나눌 스몰톡 주제 3가지를 추천해주세요.\n\n약국명: ${name}\n\n[최근 메모 (주문/요청/이슈 기록)]\n${memoText}\n\n[오늘 뉴스]\n${newsText}\n\n추천 기준 (우선순위 순):\n1순위: 메모에서 미확인 사항, 요청했던 것 후속 확인 (예: '지난번 ○○ 처리됐는지 확인', '○○ 주문 잘 받으셨나요?')\n2순위: 메모의 품목/이슈와 관련된 대화 소재\n3순위: 오늘 뉴스 중 약사가 관심 가질 만한 것\n\n형식: 번호. [카테고리] 한 문장 대화 시작 멘트\n간결하게, 각 항목 2줄 이내.`;
 
   try {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
