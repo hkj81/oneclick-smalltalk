@@ -16290,6 +16290,7 @@ function render(name) {
   html += '<button class="memo-save-btn" onclick="saveMemo(\''+name+'\')">💾 저장</button>';
   html += '<button onclick="clearMemoInput()">✕ 지우기</button>';
   html += '<button onclick="open3DayMemoModal()" style="padding:10px 16px;border:2px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📋 7일치 메모</button>';
+  html += '<button onclick="openAISmallTalk(\''+name+'\')" style="padding:10px 16px;border:2px solid #E17055;background:#FFF5F5;color:#D63031;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">🤖 AI 스몰톡</button>';
   html += '<button onclick="exportMemos()" style="margin-left:auto;padding:10px 16px;border:2px solid #1D9E75;background:#fff;color:#1D9E75;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;min-height:44px;">📥 메모 내보내기</button>';
   html += '</div>';
   if (d.memo.length === 0) {
@@ -53631,6 +53632,60 @@ function openVetModal(name) {
   }
   openModal(shortName+' 동물약 품목 ('+currentMonth+'월)', html);
 }
+
+// ============ AI 스몰톡 ============
+function getGeminiKey() { return localStorage.getItem('gemini_api_key') || ''; }
+function setGeminiKey(key) { localStorage.setItem('gemini_api_key', key); }
+
+async function openAISmallTalk(name) {
+  let apiKey = getGeminiKey();
+  if (!apiKey) {
+    const k = prompt('Gemini API 키를 입력하세요 (�한 번만 입력하면 브라우저에 저장됩니다):', '');
+    if (!k) return;
+    setGeminiKey(k);
+    apiKey = k;
+  }
+  const d = DATA[name];
+  const memos = d.memo || [];
+  const marketNews = (d.news && d.news.market) ? d.news.market : [];
+  const localNews = (d.news && d.news.local) ? d.news.local : [];
+
+  document.getElementById('aiSmallTalkTitle').textContent = '🤖 AI 스몰톡 — ' + name;
+  document.getElementById('aiSmallTalkBody').innerHTML = '<div style="text-align:center;padding:30px;color:#6B6963;">⏳ AI가 스몰톡 주제를 생성 중입니다...</div>';
+  document.getElementById('aiSmallTalkOverlay').classList.add('open');
+
+  const recentMemos = memos.slice(-5);
+  const memoText = recentMemos.length > 0
+    ? recentMemos.map(m => '[' + m.time + '] ' + m.text).join('\n')
+    : '(메모 없음)';
+  const newsText = [...marketNews, ...localNews].map(n => '- ' + n.title + ': ' + n.desc).join('\n') || '(뉴스 없음)';
+
+  const prompt = `당신은 제약사 영업담당자의 약국 방문 도우미입니다.\n\n약국명: ${name}\n최근 메모 기록:\n${memoText}\n\n오늘의 뉴스:\n${newsText}\n\n위 정보를 바탕으로 이 약국 약사와 나눌 수 있는 스몰톡 주제 3가지를 제안해주세요.\n각 주제는 실제 대화에서 쓸 수 있는 자연스러운 한국어 문장으로 작성해주세요.\n형식: 번호. [주제] 제안 문장\n답변은 간결하게, 각 항목 3줄 이내로 작성해주세요.`;
+
+  try {
+    const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({contents: [{parts: [{text: prompt}]}]})
+    });
+    const data = await resp.json();
+    if (data.candidates && data.candidates[0]) {
+      const text = data.candidates[0].content.parts[0].text;
+      const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      document.getElementById('aiSmallTalkBody').innerHTML =
+        '<div style="background:#FFF5F5;border-left:4px solid #E17055;border-radius:8px;padding:16px;font-size:13px;line-height:1.9;color:#2B2B2B;">' + formatted + '</div>' +
+        '<div style="margin-top:10px;font-size:11px;color:#aaa;text-align:right;">Powered by Google Gemini · 메모 ' + recentMemos.length + '개 + 뉴스 ' + (marketNews.length + localNews.length) + '개 기반</div>';
+    } else {
+      throw new Error(JSON.stringify(data));
+    }
+  } catch(e) {
+    document.getElementById('aiSmallTalkBody').innerHTML = '<div style="color:#E24B4A;padding:14px;">⚠️ 오류: ' + e.message + '<br><small>잠시 후 다시 시도해주세요.</small></div>';
+  }
+}
+
+function closeAISmallTalk() {
+  document.getElementById('aiSmallTalkOverlay').classList.remove('open');
+}
 </script>
 
 <div class="pb-modal-overlay" id="pbModalOverlay" onclick="if(event.target===this)closePbModal()">
@@ -53643,6 +53698,15 @@ function openVetModal(name) {
   </div>
 </div>
 
+
+<div class="pb-modal-overlay" id="aiSmallTalkOverlay" onclick="if(event.target===this)closeAISmallTalk()">
+  <div class="pb-modal">
+    <div class="pb-modal-header">
+      <span class="pb-modal-title" id="aiSmallTalkTitle"></span>
+      <button class="pb-modal-close" onclick="closeAISmallTalk()">×</button>
+    </div>
+    <div id="aiSmallTalkBody"></div>
+  </div>
+</div>
 </body>
 </html>
-                                                                                                                                                                                                                                        
