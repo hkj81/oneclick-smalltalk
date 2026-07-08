@@ -444,7 +444,7 @@ const USERS = [
   { id: 'ext_01', name: '조현욱', team: '전주 영업', type: 'ext' },
   { id: 'ext_02', name: '최병철', team: '무진장 영업', type: 'ext' },
   { id: 'ext_03', name: '최익환', team: '군산 영업', type: 'ext' },
-  { id: 'ext_04', name: '외부4', team: '외부 참여', type: 'ext' },
+  { id: 'ext_04', name: '장진호', team: '김제·금구 영업', type: 'ext' },
   { id: 'ext_05', name: '외부5', team: '외부 참여', type: 'ext' },
 ];
 
@@ -7097,7 +7097,63 @@ const LIST_ext_03 = [
   ['이서 밝은약국','전북 군산','약사','E',0,'+0%',0.0,0,0,91.9,false,0.0,'군산노선',0,0],
   ['군산 준피부과의원','전북 군산','약사','E',0,'+0%',0.0,0,0,0.0,false,0.0,'군산노선',0,0],
 ]; // 외부3 최익환
-const LIST_ext_04   = []; // 외부4
+const LIST_ext_04 = [
+  ['김제 부영약국','전북 김제','약사','A',102686563,'+9%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 21세기박약국','전북 김제','약사','B',69848205,'-15%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['전주 으뜸안과(인후동)','전북 전주','약사','C',38538488,'-35%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 온약국','전북 김제','약사','C',42794236,'+17%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['전주 문수정안과','전북 전주','약사','C',30065546,'+18%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 보신약국','전북 김제','약사','C',28184131,'+7%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 효자조은약국','전북 전주','약사','D',15943845,'-12%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['김제 솔약국','전북 김제','약사','D',17576890,'+5%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['전주 효자제일약국','전북 전주','약사','D',17338029,'+2%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 우리약국','전북 김제','약사','D',16244811,'-7%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['전주 항도외과','전북 전주','약사','D',14779994,'-24%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 광혜당약국','전북 전주','약사','D',8380437,'-25%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['김제 선일약국','전북 김제','약사','D',14321935,'+5%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 소망약국','전북 김제','약사','D',14767453,'+4%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 푸른안과의원','전북 전주','약사','D',20525216,'-24%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['금구 혜인당약국','전북 금구','약사','D',11891979,'-1%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['김제 편한약국','전북 김제','약사','E',10221580,'+3%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 자인온누리약국','전북 전주','약사','E',8861120,'-13%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 온빛약국','전북 김제','약사','E',8743460,'-6%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 맘약국','전북 전주','약사','E',549876,'-60%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 맑은정신건강의학과의원','전북 전주','약사','E',7250640,'-29%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 새종로약국','전북 김제','약사','E',5675519,'-5%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 안녕마음아정신건강의학','전북 전주','약사','E',15291025,'+190%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 미르피아여성병원','전북 전주','약사','E',5737570,'+20%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 전북약국','전북 전주','약사','E',4060916,'-5%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 현대약국','전북 김제','약사','E',5362008,'+2%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 명성약국','전북 전주','약사','E',4148901,'+12%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 조은약국','전북 김제','약사','E',2475242,'+23%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 관통약국','전북 전주','약사','E',2958149,'-11%',0.0,0,0,0.1,true,0.0,'장진호노선',0,0],
+  ['전주 옵티마런던약국','전북 전주','약사','E',3109209,'-9%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['전주 효자우리약국','전북 전주','약사','E',1124943,'-24%',0.0,0,0,0.0,true,0.0,'장진호노선',0,0],
+  ['전주 대자연약국','전북 전주','약사','E',3346599,'-3%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 학산요양병원','전북 전주','약사','E',3929749,'-3%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 큰사랑약국','전북 김제','약사','E',1393879,'-29%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 메디팜동일약국','전북 전주','약사','E',4649391,'+110%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 김제백제약국','전북 김제','약사','E',2159340,'+23%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 파랑약국','전북 전주','약사','E',667175,'-68%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 오근영정신건강의학과','전북 전주','약사','E',1943260,'-14%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 전일한방병원','전북 전주','약사','E',1368100,'-72%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 우리들항외과의원','전북 전주','약사','E',1398182,'+0%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 홉킨스전일내과의원','전북 전주','약사','E',1190786,'-42%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 본병원（중화산동）','전북 전주','약사','E',897376,'+89%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 계산재단문실버요양병원','전북 전주','약사','E',809063,'+8%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 연세바른안과의원','전북 전주','약사','E',429974,'+342%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 자인약국','전북 전주','약사','E',357824,'-64%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 동산종로약국','전북 전주','약사','E',1288059,'-5%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['김제 21세기박약국(특약)','전북 김제','약사','E',0,'-56%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 누가한방병원','전북 전주','약사','E',0,'-72%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 만성산부인과','전북 전주','약사','E',0,'+0%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 미소심는치과','전북 전주','약사','E',0,'-1%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 으뜸안과(특약)','전북 전주','약사','E',355200,'+33%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 눈이편한안과','전북 전주','약사','E',0,'+0%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 예일치과의원','전북 전주','약사','E',98600,'+109%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 최치과의원','전북 전주','약사','E',70000,'-13%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+  ['전주 스카이성형외과의원','전북 전주','약사','E',0,'+0%',0.0,0,0,0.0,false,0.0,'장진호노선',0,0],
+]; // 외부4 장진호
 const LIST_ext_05   = []; // 외부5
 
 const USER_LISTS = {
@@ -53634,322 +53690,62 @@ const PHARMACY_REAL_ext03 = {
   "군산 준피부과의원":{monthly:{4:42000},pb:0,animal:0,total:42000,proGrade:{A:0,B:0,C:1,D:0,E:0,F:0},goal:0},
 };
 Object.assign(PHARMACY_REAL, PHARMACY_REAL_ext03);
-Object.assign(RETURN_AMTS_MONTHLY, RETURN_AMTS_kjj);
-Object.assign(PRO_MONTHLY, PRO_MONTHLY_kjj);
-Object.assign(GEN_MONTHLY, GEN_MONTHLY_kjj);
-Object.assign(MFR_MONTHLY, MFR_MONTHLY_kjj);
-Object.assign(PRO_ITEMS_MONTHLY, PRO_ITEMS_MONTHLY_kjj);
-Object.assign(GEN_ITEMS_MONTHLY, GEN_ITEMS_MONTHLY_kjj);
-Object.assign(PB_ITEMS_MONTHLY, PB_ITEMS_MONTHLY_kjj);
-Object.assign(ANIMAL_ITEMS_MONTHLY, ANIMAL_ITEMS_MONTHLY_kjj);
-
-// ============================================================
-// 시작
-// ============================================================
-(function start() {
-  initUserSelect();
-  const savedId = localStorage.getItem(USER_KEY);
-  if (savedId) {
-    const saved = USERS.find(u => u.id === savedId);
-    if (saved) { selectUser(saved); return; }
-  }
-})();
-
-// 모달 공통
-function openModal(title, bodyHtml) {
-  document.getElementById('pbModalTitle').textContent = title;
-  document.getElementById('pbModalBody').innerHTML = bodyHtml;
-  document.getElementById('pbModalOverlay').classList.add('open');
-}
-
-// ── 사용 통계 로깅 ─────────────────────────────────────────
-async function logUsage(action) {
-  if (!currentUser) return;
-  try {
-    const ok = await initFirebase();
-    if (!ok) return;
-    const inc = firebase.firestore.FieldValue.increment(1);
-    await _db.collection('analytics').doc(currentUser.id).set({
-      name: currentUser.name,
-      last_active: new Date().toISOString(),
-      [action]: inc
-    }, { merge: true });
-  } catch(e) { /* silent */ }
-}
-
-async function openAnalytics() {
-  const ok = await initFirebase();
-  if (!ok) { openModal('📊 사용 통계', '<div style="color:#888;padding:20px;text-align:center;">Firebase 연결 실패</div>'); return; }
-  try {
-    const snap = await _db.collection('analytics').get();
-    const rows = [];
-    snap.forEach(doc => rows.push({ id: doc.id, ...doc.data() }));
-    rows.sort((a,b) => (b.sessions||0)-(a.sessions||0));
-
-    const COLS = [
-      { key:'sessions',       label:'세션' },
-      { key:'pharmacy_open',  label:'약국클릭' },
-      { key:'modal_pro',      label:'전문약탭' },
-      { key:'modal_gen',      label:'일반약탭' },
-      { key:'tab_trend',      label:'노선비교' },
-      { key:'modal_mfr',      label:'제약사전체' },
-      { key:'modal_pb',       label:'PB전체' },
-      { key:'modal_vet',      label:'동물약거래처' },
-      { key:'modal_pharm_pb', label:'약국PB상세' },
-      { key:'modal_vet_items',label:'동물약품목' },
-      { key:'modal_pb21',     label:'21품목' },
-      { key:'modal_7day_memo',label:'7일메모' },
-      { key:'month_change',   label:'월이동' },
-      { key:'month_jump',     label:'월바로가기' },
-      { key:'map_view',       label:'지도보기' },
-      { key:'search',         label:'검색' },
-      { key:'set_target',     label:'목표액설정' },
-    ];
-
-    let html = '<div style="font-size:11px;color:#888;margin-bottom:12px;">'+rows.length+'명 · 누적 클릭 집계</div>';
-    html += '<div style="overflow-x:auto;">';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-    html += '<thead><tr style="background:#F5F4EE;">';
-    html += '<th style="text-align:left;padding:6px 8px;font-weight:700;color:#3C3489;white-space:nowrap;">이름</th>';
-    COLS.forEach(c => {
-      html += '<th style="text-align:center;padding:6px 4px;font-weight:600;color:#555;white-space:nowrap;">'+c.label+'</th>';
-    });
-    html += '<th style="text-align:center;padding:6px 4px;font-weight:600;color:#555;white-space:nowrap;">마지막접속</th>';
-    html += '</tr></thead><tbody>';
-
-    rows.forEach((r, i) => {
-      const bg = i%2===0 ? '#fff' : '#FAF9F6';
-      html += '<tr style="background:'+bg+';">';
-      html += '<td style="padding:6px 8px;font-weight:600;color:#2B2B2B;white-space:nowrap;">'+(r.name||r.id)+'</td>';
-      COLS.forEach(c => {
-        const v = r[c.key] || 0;
-        html += '<td style="text-align:center;padding:6px 4px;color:'+(v>0?'#3C3489':'#ccc')+';font-weight:'+(v>0?'700':'400')+';">'+v+'</td>';
-      });
-      const last = r.last_active ? r.last_active.slice(0,16).replace('T',' ') : '-';
-      html += '<td style="text-align:center;padding:6px 4px;color:#888;font-size:11px;white-space:nowrap;">'+last+'</td>';
-      html += '</tr>';
-    });
-
-    if (rows.length === 0) html += '<tr><td colspan="'+(COLS.length+2)+'" style="text-align:center;color:#aaa;padding:20px;">아직 데이터 없음</td></tr>';
-    html += '</tbody></table></div>';
-    openModal('📊 사용 통계', html);
-  } catch(e) {
-    openModal('📊 사용 통계', '<div style="color:#888;padding:20px;text-align:center;">데이터 로드 실패: '+e.message+'</div>');
-  }
-}
-
-function closePbModal() {
-  document.getElementById('pbModalOverlay').classList.remove('open');
-}
-
-// 카드1: 전 거래처 PB 품목별
-window._pbPharmMap = {};
-function showPbPharmsFor(prod) {
-  const list = window._pbPharmMap[prod] || [];
-  const el = document.getElementById('pbPharmDetail');
-  if (!el) return;
-  if (el._lastProd === prod && el.style.display !== 'none') { el.style.display='none'; el._lastProd=null; return; }
-  el._lastProd = prod;
-  el.innerHTML = '<span style="font-weight:700;color:#3C3489;">'+prod+'</span> 거래처 ('+list.length+'처)<br><span style="color:#555;">'+list.join(', ')+'</span>';
-  el.style.display = 'block';
-}
-function openPbModal() {
-  logUsage('modal_pb');
-  const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
-  const totals = {}, qtotals = {}, ptotals = {}, pharmsMap = {};
-  Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
-    const shortPh = ph.split(' ').slice(1).join(' ') || ph;
-    Object.entries(items).forEach(([prod, months]) => {
-      const amt = months[currentMonth] ? months[currentMonth].a : 0;
-      if (amt > 0) {
-        totals[prod] = (totals[prod] || 0) + amt;
-        qtotals[prod] = (qtotals[prod]||0) + (months[currentMonth].q||0);
-        ptotals[prod] = (ptotals[prod]||0) + 1;
-        if (!pharmsMap[prod]) pharmsMap[prod] = [];
-        pharmsMap[prod].push(shortPh);
-      }
-    });
-  });
-  window._pbPharmMap = pharmsMap;
-  const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]);
-  const grandTotal = sorted.reduce((s,[,v])=>s+v,0);
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">총 '+sorted.length+'개 품목 / 합계 '+fmt(grandTotal)+'원</div>';
-  html += '<div id="pbPharmDetail" style="display:none;background:#F0EEFF;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:10px;line-height:1.7;"></div>';
-  sorted.forEach(([prod, amt]) => {
-    const pct = grandTotal>0?Math.round(amt/grandTotal*100):0;
-    const isKw = kws.some(kw=>prod.includes(kw));
-    const q = qtotals[prod]||0;
-    const p = ptotals[prod]||0;
-    const escapedProd = prod.replace(/'/g,"\\'");
-    html += '<div class="pb-modal-item"><span style="width:100px;flex-shrink:0;'+(isKw?'font-weight:700;color:#3C3489;':'')+'">' +prod+(isKw?' ★':'')+'</span><span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+q+'개</span><span style="width:26px;text-align:right;color:#6C5CE7;font-size:11px;flex-shrink:0;cursor:pointer;text-decoration:underline;" onclick="showPbPharmsFor(\''+escapedProd+'\')">'+p+'처</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(amt)+'</span></div>';
-  });
-  openModal(currentMonth+'월 전 거래처 PB 품목별 합계', html);
-}
-
-// 카드2: 해당 약국 출하 품목
-function openPharmPbModal(name) {
-  logUsage('modal_pharm_pb');
-  const items = PB_ITEMS_MONTHLY[name] || {};
-  const sorted = Object.entries(items)
-    .map(([k,v])=>({name:k,amt:v[currentMonth]?v[currentMonth].a:0,qty:v[currentMonth]?v[currentMonth].q:0}))
-    .filter(x=>x.amt>0).sort((a,b)=>b.amt-a.amt);
-  const total = sorted.reduce((s,x)=>s+x.amt,0);
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">'+sorted.length+'개 품목 / 합계 '+fmt(total)+'원</div>';
-  sorted.forEach(x=>{
-    const pct = total>0?Math.round(x.amt/total*100):0;
-    html += '<div class="pb-modal-item"><span style="width:110px;flex-shrink:0;">'+x.name+'</span><span style="width:30px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+(x.qty||0)+'개</span><div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div><span class="pb-modal-amt">'+fmt(x.amt)+'</span></div>';
-  });
-  openModal(currentMonth+'월 PB 출하 품목 ('+name.split(' ').slice(1).join(' ')+')', html);
-}
-
-// 카드3: 21품목 전 거래처 매출 유무
-function openPb21CheckModal() {
-  logUsage('modal_pb21');
-  const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
-  if (!kws.length) { openModal('21품목 매출 현황', '<p>이번 달 지정 품목 없음</p>'); return; }
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">'+currentMonth+'월 이달의 PB 21품목 전 거래처 매출 현황</div>';
-  kws.forEach(kw => {
-    const pharmacies = [];
-    Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
-      const matched = Object.entries(items).find(([k]) => k.includes(kw));
-      if (matched && matched[1][currentMonth] && matched[1][currentMonth].a > 0) pharmacies.push(ph.split(' ').slice(1).join(' '));
-    });
-    const hasAny = pharmacies.length > 0;
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F0EEE5;">';
-    html += '<span style="font-size:16px;">'+(hasAny?'✅':'❌')+'</span>';
-    html += '<span style="flex:1;font-size:13px;font-weight:'+(hasAny?600:400)+';">'+kw+'</span>';
-    html += '<span style="font-size:11px;color:#888;">'+pharmacies.length+'곳</span>';
-    html += '</div>';
-    if (hasAny) html += '<div style="font-size:11px;color:#6C5CE7;padding:2px 28px 6px;border-bottom:1px solid #F0EEE5;">'+pharmacies.join(', ')+'</div>';
-  });
-  openModal(currentMonth+'월 PB 21품목 매출 현황', html);
-}
-
-// 카드4: 해당 거래처 동물약 + 전거래처 상위 품목
-function openVetCountModal() {
-  logUsage('modal_vet');
-  const list = Object.keys(DATA).filter(n => {
-    const r = PHARMACY_REAL[n];
-    return r && (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) > 0;
-  }).map(n => {
-    const r = PHARMACY_REAL[n];
-    const amt = r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6);
-    return { name: n.split(' ').slice(1).join(' ') || n, full: n, amt };
-  }).sort((a,b) => b.amt - a.amt);
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 동물약 취급 거래처 · <strong style="color:#2B2B2B;">'+list.length+'개</strong></div>';
-  list.forEach((x, i) => {
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F0EEE5;">';
-    html += '<span style="font-size:13px;font-weight:600;color:#2B2B2B;">'+(i+1)+'. '+x.name+'</span>';
-    html += '<span style="font-size:12px;color:#6B6963;">'+fmt(x.amt)+'</span>';
-    html += '</div>';
-  });
-  openModal(currentMonth+'월 동물약 취급 거래처', html);
-}
-
-function openVetModal(name) {
-  logUsage('modal_vet_items');
-  const myItems = ANIMAL_ITEMS_MONTHLY[name] || {};
-  const mySorted = Object.entries(myItems)
-    .map(([k,v])=>({name:k,amt:v[currentMonth]||0}))
-    .filter(x=>x.amt>0).sort((a,b)=>b.amt-a.amt);
-  const allTotals = {};
-  Object.values(ANIMAL_ITEMS_MONTHLY).forEach(items=>{
-    Object.entries(items).forEach(([k,v])=>{
-      const a=v[currentMonth]||0; if(a>0) allTotals[k]=(allTotals[k]||0)+a;
-    });
-  });
-  const shortName = name.split(' ').slice(1).join(' ') || name;
-  const myTotal = mySorted.reduce((s,x)=>s+x.amt,0);
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 · <strong style="color:#2B2B2B;">'+mySorted.length+'개 품목</strong> / 합계 '+fmt(myTotal)+'원</div>';
-  if (mySorted.length === 0) {
-    html += '<div style="text-align:center;color:#aaa;padding:20px;">해당 월 동물약 데이터가 없습니다</div>';
-  } else {
-    mySorted.forEach((x, i) => {
-      const allAmt = allTotals[x.name] || 0;
-      html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #F0EEE5;">';
-      html += '<span style="width:20px;font-size:11px;color:#888;text-align:right;">'+(i+1)+'</span>';
-      html += '<span style="flex:1;font-size:12px;font-weight:600;color:#2B2B2B;">'+x.name+'</span>';
-      html += '<span style="font-size:12px;color:#6B6963;min-width:70px;text-align:right;">'+fmt(x.amt)+'</span>';
-      html += '</div>';
-    });
-  }
-  openModal(shortName+' 동물약 품목 ('+currentMonth+'월)', html);
-}
-
-// ============ AI 스몰톡 ============
-function getGeminiKey() { return localStorage.getItem('ai_api_key') || ''; }
-function setGeminiKey(key) { localStorage.setItem('ai_api_key', key); }
-
-async function openAISmallTalk(name) {
-  let apiKey = getGeminiKey();
-  if (!apiKey) {
-    const k = prompt('Gemini API Key (one-time setup, saved in browser):', '');
-    if (!k) return;
-    setGeminiKey(k);
-    apiKey = k;
-  }
-  const d = DATA[name];
-  const memos = d.memo || [];
-  const marketNews = (d.news && d.news.market) ? d.news.market : [];
-  const localNews = (d.news && d.news.local) ? d.news.local : [];
-
-  document.getElementById('aiSmallTalkTitle').textContent = '🤖 AI 스몰톡 — ' + name;
-  document.getElementById('aiSmallTalkBody').innerHTML = '<div style="text-align:center;padding:30px;color:#6B6963;">⏳ AI가 스몰톡 주제를 생성 중입니다...</div>';
-  document.getElementById('aiSmallTalkOverlay').classList.add('open');
-
-  const recentMemos = memos.slice(-5);
-  const memoText = recentMemos.length > 0
-    ? recentMemos.map(m => '[' + m.time + '] ' + m.text).join('\n')
-    : '(메모 없음)';
-  const newsText = [...marketNews, ...localNews].map(n => '- ' + n.title + ': ' + n.desc).join('\n') || '(뉴스 없음)';
-
-  const aiPrompt = `당신은 제약사 영업사원의 약국 방문 도우미입니다. 아래 정보를 분석해서 오늘 방문 시 약사와 나눌 스몰톡 주제 3가지를 추천해주세요.\n\n약국명: ${name}\n\n[최근 메모 (주문/요청/이슈 기록)]\n${memoText}\n\n[오늘 뉴스]\n${newsText}\n\n추천 기준 (우선순위 순):\n1순위: 메모에서 미확인 사항, 요청했던 것 후속 확인 (예: '지난번 ○○ 처리됐는지 확인', '○○ 주문 잘 받으셨나요?')\n2순위: 메모의 품목/이슈와 관련된 대화 소재\n3순위: 오늘 뉴스 중 약사가 관심 가질 만한 것\n\n형식: 번호. [카테고리] 한 문장 대화 시작 멘트\n간결하게, 각 항목 2줄 이내.`;
-
-  try {
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
-      body: JSON.stringify({model: 'llama-3.3-70b-versatile', messages: [{role: 'user', content: aiPrompt}], max_tokens: 600})
-    });
-    const data = await resp.json();
-    if (data.choices && data.choices[0]) {
-      const text = data.choices[0].message.content;
-      const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-      document.getElementById('aiSmallTalkBody').innerHTML =
-        '<div style="background:#FFF5F5;border-left:4px solid #E17055;border-radius:8px;padding:16px;font-size:13px;line-height:1.9;color:#2B2B2B;">' + formatted + '</div>' +
-        '<div style="margin-top:10px;font-size:11px;color:#aaa;text-align:right;">Powered by Google Gemini · 메모 ' + recentMemos.length + '개 + 뉴스 ' + (marketNews.length + localNews.length) + '개 기반</div>';
-    } else {
-      throw new Error(JSON.stringify(data));
-    }
-  } catch(e) {
-    document.getElementById('aiSmallTalkBody').innerHTML = '<div style="color:#E24B4A;padding:14px;">⚠️ 오류: ' + e.message + '<br><small>잠시 후 다시 시도해주세요.</small></div>';
-  }
-}
-
-function closeAISmallTalk() {
-  document.getElementById('aiSmallTalkOverlay').classList.remove('open');
-}
-</script>
-
-<div class="pb-modal-overlay" id="pbModalOverlay" onclick="if(event.target===this)closePbModal()">
-  <div class="pb-modal">
-    <div class="pb-modal-header">
-      <span class="pb-modal-title" id="pbModalTitle"></span>
-      <button class="pb-modal-close" onclick="closePbModal()">×</button>
-    </div>
-    <div id="pbModalBody"></div>
-  </div>
-</div>
-
-
-<div class="pb-modal-overlay" id="aiSmallTalkOverlay" onclick="if(event.target===this)closeAISmallTalk()">
-  <div class="pb-modal">
-    <div class="pb-modal-header">
-      <span class="pb-modal-title" id="aiSmallTalkTitle"></span>
-      <button class="pb-modal-close" onclick="closeAISmallTalk()">×</button>
-    </div>
-    <div id="aiSmallTalkBody"></div>
-  </div>
-</div>
-</body>
-</html>
+// ── 장진호 (ext_04) 데이터 ─────────────────────────
+const PHARMACY_REAL_ext04 = {
+  "김제 부영약국":{monthly:{1:104593684,2:114598199,3:94281170,4:88611252,5:95803715,6:102686563},pb:716750,animal:0,total:600574583,proGrade:{A:32,B:24,C:5375,D:3487,E:847,F:455},goal:0},
+  "김제 21세기박약국":{monthly:{1:71247808,2:79306760,3:91486254,4:86178548,5:80612815,6:69848205},pb:1364200,animal:804700,total:478680390,proGrade:{A:53,B:114,C:4064,D:4061,E:798,F:504},goal:0},
+  "전주 으뜸안과(인후동)":{monthly:{1:64114015,2:44422571,3:57259150,4:58162131,5:36857531,6:38538488},pb:0,animal:0,total:299353886,proGrade:{A:0,B:0,C:0,D:4,E:16,F:20},goal:0},
+  "김제 온약국":{monthly:{1:33862717,2:29521285,3:33247121,4:32107861,5:33524289,6:42794236},pb:1740100,animal:175000,total:205057509,proGrade:{A:16,B:52,C:2506,D:1954,E:593,F:146},goal:0},
+  "전주 문수정안과":{monthly:{1:23694130,2:36979373,3:27527204,4:36690653,5:45732208,6:30065546},pb:0,animal:0,total:200689114,proGrade:{A:0,B:0,C:0,D:5,E:22,F:35},goal:0},
+  "김제 보신약국":{monthly:{1:29859122,2:28656117,3:24315944,4:29169168,5:29151369,6:28184131},pb:-479600,animal:0,total:169335851,proGrade:{A:9,B:51,C:1176,D:888,E:323,F:168},goal:0},
+  "전주 효자조은약국":{monthly:{1:20901063,2:15634173,3:19149325,4:19153828,5:17577189,6:15943845},pb:740900,animal:108400,total:108359423,proGrade:{A:16,B:26,C:889,D:817,E:363,F:164},goal:0},
+  "김제 솔약국":{monthly:{1:15777972,2:17266636,3:16855131,4:16954426,5:18073255,6:17576890},pb:161300,animal:70300,total:102504310,proGrade:{A:6,B:32,C:1728,D:2049,E:566,F:203},goal:0},
+  "전주 효자제일약국":{monthly:{1:16239353,2:15936554,3:15728171,4:17052195,5:16076855,6:17338029},pb:16700,animal:0,total:98371157,proGrade:{A:7,B:24,C:1508,D:1555,E:443,F:238},goal:0},
+  "김제 우리약국":{monthly:{1:13663092,2:16202670,3:18323206,4:16532616,5:16239042,6:16244811},pb:1663750,animal:425100,total:97205437,proGrade:{A:13,B:32,C:1082,D:989,E:366,F:168},goal:0},
+  "전주 항도외과":{monthly:{1:21122882,2:11737356,3:16784028,4:17372426,5:11192274,6:14779994},pb:0,animal:0,total:92988960,proGrade:{A:8,B:0,C:0,D:3,E:0,F:18},goal:0},
+  "전주 광혜당약국":{monthly:{1:15866357,2:16644328,3:15049219,4:14836327,5:14080220,6:8380437},pb:696070,animal:105500,total:84856888,proGrade:{A:3,B:14,C:459,D:641,E:189,F:112},goal:0},
+  "김제 선일약국":{monthly:{1:15692414,2:14249683,3:12115888,4:14141336,5:13118978,6:14321935},pb:215590,animal:0,total:83640234,proGrade:{A:30,B:239,C:1329,D:1088,E:217,F:123},goal:0},
+  "김제 소망약국":{monthly:{1:12504329,2:14997027,3:14499487,4:12692844,5:13534354,6:14767453},pb:422600,animal:0,total:82995494,proGrade:{A:4,B:25,C:1217,D:1339,E:319,F:98},goal:0},
+  "전주 푸른안과의원":{monthly:{1:17725892,2:4636908,3:8610070,4:24218203,5:4337629,6:20525216},pb:0,animal:0,total:80053918,proGrade:{A:0,B:0,C:0,D:8,E:0,F:40},goal:0},
+  "금구 혜인당약국":{monthly:{1:16421860,2:13422758,3:11246701,4:13507267,5:12680518,6:11891979},pb:2195050,animal:980300,total:79171083,proGrade:{A:2,B:7,C:322,D:184,E:75,F:40},goal:0},
+  "김제 편한약국":{monthly:{1:8597135,2:10078032,3:9276889,4:9999127,5:9587312,6:10221580},pb:423500,animal:0,total:57760075,proGrade:{A:8,B:26,C:618,D:752,E:159,F:51},goal:0},
+  "전주 자인온누리약국":{monthly:{1:10137377,2:8920873,3:9065030,4:9774920,5:7561965,6:8861120},pb:706010,animal:0,total:54321285,proGrade:{A:19,B:45,C:492,D:371,E:159,F:80},goal:0},
+  "김제 온빛약국":{monthly:{1:7494724,2:5416246,3:7917788,4:8080540,5:6349543,6:8743460},pb:77000,animal:0,total:44002301,proGrade:{A:8,B:1,C:589,D:605,E:95,F:77},goal:0},
+  "전주 맘약국":{monthly:{1:10256888,2:8763283,3:7986005,4:9737311,5:6534287,6:549876},pb:260650,animal:0,total:43827650,proGrade:{A:4,B:4,C:282,D:416,E:81,F:38},goal:0},
+  "전주 맑은정신건강의학과의원":{monthly:{1:11004916,2:3554730,3:8060021,4:7681557,5:4004040,6:7250640},pb:0,animal:0,total:41555904,proGrade:{A:0,B:0,C:21,D:23,E:21,F:9},goal:0},
+  "김제 새종로약국":{monthly:{1:5359711,2:6527348,3:6485508,4:4769680,5:5027570,6:5675519},pb:535900,animal:0,total:33845336,proGrade:{A:5,B:15,C:292,D:322,E:92,F:25},goal:0},
+  "전주 안녕마음아정신건강의학":{monthly:{2:1502970,3:4585896,4:2491468,5:5266929,6:15291025},pb:0,animal:0,total:29138288,proGrade:{A:0,B:0,C:22,D:46,E:12,F:17},goal:0},
+  "전주 미르피아여성병원":{monthly:{1:5895744,2:4390290,3:2975312,4:5215410,5:4126996,6:5737570},pb:0,animal:0,total:28341322,proGrade:{A:7,B:0,C:40,D:43,E:14,F:30},goal:0},
+  "전주 전북약국":{monthly:{1:3838451,2:3995218,3:5083273,4:4669875,5:5237093,6:4060916},pb:156300,animal:0,total:26884826,proGrade:{A:5,B:8,C:341,D:309,E:115,F:40},goal:0},
+  "김제 현대약국":{monthly:{1:5773573,2:3979624,3:3721852,4:4352809,5:2896921,6:5362008},pb:1135450,animal:0,total:26086787,proGrade:{A:6,B:13,C:445,D:377,E:72,F:50},goal:0},
+  "전주 명성약국":{monthly:{1:5391943,2:3579871,3:4473505,4:2519362,5:3689454,6:4148901},pb:33000,animal:0,total:23803036,proGrade:{A:2,B:11,C:165,D:192,E:84,F:34},goal:0},
+  "김제 조은약국":{monthly:{1:3570425,2:3368897,3:2506464,4:3013249,5:4292814,6:2475242},pb:327900,animal:0,total:19227091,proGrade:{A:4,B:12,C:204,D:193,E:39,F:9},goal:0},
+  "전주 관통약국":{monthly:{1:3144622,2:3145486,3:3149788,4:3615058,5:3078720,6:2958149},pb:1427690,animal:845180,total:19091823,proGrade:{A:10,B:17,C:134,D:111,E:35,F:36},goal:0},
+  "전주 옵티마런던약국":{monthly:{1:3184961,2:2448857,3:3477958,4:3204460,5:2979884,6:3109209},pb:563790,animal:238800,total:18405329,proGrade:{A:5,B:10,C:210,D:140,E:49,F:34},goal:0},
+  "전주 효자우리약국":{monthly:{1:7313901,2:2342642,3:2381033,4:2229464,5:2371051,6:1124943},pb:60190,animal:49900,total:17763034,proGrade:{A:2,B:6,C:146,D:86,E:54,F:62},goal:0},
+  "전주 대자연약국":{monthly:{1:2164883,2:1719989,3:2865641,4:4084548,5:3398920,6:3346599},pb:168000,animal:0,total:17580580,proGrade:{A:6,B:26,C:150,D:99,E:57,F:51},goal:0},
+  "전주 학산요양병원":{monthly:{1:2385578,2:3227371,3:2360068,4:3454643,5:1713670,6:3929749},pb:89300,animal:0,total:17071079,proGrade:{A:1,B:6,C:117,D:74,E:47,F:6},goal:0},
+  "김제 큰사랑약국":{monthly:{1:3083426,2:3064005,3:3125151,4:3125944,5:3022772,6:1393879},pb:72000,animal:0,total:16815177,proGrade:{A:2,B:1,C:195,D:186,E:49,F:1},goal:0},
+  "전주 메디팜동일약국":{monthly:{1:1657817,2:1664152,3:1567671,4:1569146,5:1949190,6:4649391},pb:29005,animal:0,total:13057367,proGrade:{A:3,B:2,C:99,D:120,E:12,F:9},goal:0},
+  "김제 김제백제약국":{monthly:{1:2008883,2:2975162,3:1237587,4:2113824,5:1955363,6:2159340},pb:134500,animal:0,total:12450159,proGrade:{A:0,B:7,C:476,D:518,E:113,F:33},goal:0},
+  "전주 파랑약국":{monthly:{1:2941442,2:2041914,3:1343543,4:3695002,5:926341,6:667175},pb:0,animal:0,total:11615417,proGrade:{A:0,B:6,C:65,D:81,E:27,F:4},goal:0},
+  "전주 오근영정신건강의학과":{monthly:{1:2361400,2:1806100,3:1730900,4:1830900,5:1134300,6:1943260},pb:0,animal:0,total:10806860,proGrade:{A:0,B:0,C:27,D:20,E:0,F:4},goal:0},
+  "전주 전일한방병원":{monthly:{1:177800,2:1619700,3:1698700,4:3661314,5:140268,6:1368100},pb:0,animal:0,total:8665882,proGrade:{A:1,B:4,C:26,D:22,E:2,F:1},goal:0},
+  "전주 우리들항외과의원":{monthly:{1:1398182,2:1398182,3:1398182,4:1398182,5:1398182,6:1398182},pb:0,animal:0,total:8389092,proGrade:{A:0,B:0,C:0,D:0,E:0,F:6},goal:0},
+  "전주 홉킨스전일내과의원":{monthly:{1:1354807,2:1690660,3:1859300,4:1336500,5:647098,6:1190786},pb:0,animal:0,total:8079151,proGrade:{A:0,B:0,C:24,D:19,E:4,F:0},goal:0},
+  "전주 본병원（중화산동）":{monthly:{1:1207374,2:689916,3:1123014,4:499286,5:2174936,6:897376},pb:0,animal:0,total:6591902,proGrade:{A:0,B:0,C:8,D:38,E:17,F:14},goal:0},
+  "전주 계산재단문실버요양병원":{monthly:{1:668381,2:585603,3:772106,4:1001664,5:1103266,6:809063},pb:0,animal:0,total:4940083,proGrade:{A:0,B:17,C:101,D:73,E:22,F:17},goal:0},
+  "전주 연세바른안과의원":{monthly:{1:1900074,4:429974,5:1470100,6:429974},pb:0,animal:0,total:4230122,proGrade:{A:0,B:0,C:0,D:0,E:2,F:3},goal:0},
+  "전주 자인약국":{monthly:{1:585170,2:1358300,3:981856,4:295520,5:100320,6:357824},pb:0,animal:0,total:3678990,proGrade:{A:0,B:2,C:14,D:12,E:2,F:11},goal:0},
+  "전주 동산종로약국":{monthly:{1:-303670,2:386990,3:1255282,4:299452,5:187870,6:1288059},pb:0,animal:0,total:3113983,proGrade:{A:0,B:0,C:51,D:48,E:16,F:5},goal:0},
+  "김제 21세기박약국(특약)":{monthly:{1:556880,3:716480,4:556880,5:556880},pb:0,animal:0,total:2387120,proGrade:{A:0,B:0,C:0,D:0,E:0,F:5},goal:0},
+  "전주 누가한방병원":{monthly:{1:345360,2:377580,3:309930,4:714900,5:289415},pb:61000,animal:0,total:2037185,proGrade:{A:0,B:0,C:22,D:13,E:6,F:2},goal:0},
+  "전주 만성산부인과":{monthly:{2:861000,5:799120},pb:0,animal:0,total:1660120,proGrade:{A:0,B:0,C:0,D:0,E:1,F:1},goal:0},
+  "전주 미소심는치과":{monthly:{1:179880,2:289280,3:198500,5:197146},pb:0,animal:0,total:864806,proGrade:{A:0,B:0,C:3,D:9,E:0,F:1},goal:0},
+  "전주 으뜸안과(특약)":{monthly:{3:266400,6:355200},pb:0,animal:0,total:621600,proGrade:{A:0,B:0,C:0,D:0,E:0,F:2},goal:0},
+  "전주 눈이편한안과":{monthly:{1:222127,5:214987},pb:0,animal:0,total:437114,proGrade:{A:0,B:0,C:0,D:5,E:0,F:2},goal:0},
+  "전주 예일치과의원":{monthly:{2:32200,3:115650,5:143450,6:98600},pb:0,animal:0,total:389900,proGrade:{A:0,B:0,C:4,D:6,E:4,F:0},goal:0},
+  "전주 최치과의원":{monthly:{2:125520,4:80680,6:70000},pb:0,animal:0,total:276200,proGrade:{A:0,B:0,C:2,D:2,E:0,F:1},goal:0},
+  "전주 스카이성형외과의원":{monthly:{2:15570},pb:0,animal:0,total:15570,proGrade:{A:0,B:0,C:0,D:2,E:0,F:0},goal:0},
+};
+Object.assign(PHARMACY_REAL, PHARMACY_REAL_ext04);
