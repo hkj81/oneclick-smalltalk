@@ -377,7 +377,7 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
 </div>
 
 <div class="search">
-  <input type="text" id="Q" placeholder="거래처명 입력 (예: 행복, 약국, 푸른...)" oninput="onQuery()" onfocus="onQuery()" onkeydown="if(event.key==='Enter')doSearch()" autocomplete="off" />
+  <div style="position:relative;display:flex;align-items:center;width:100%;"><input type="text" id="Q" placeholder="거래처명 입력 (예: 행복, 약국, 푸른...)" oninput="onQuery();updateClearBtn()" onfocus="onQuery();updateClearBtn()" onkeydown="if(event.key==='Enter')doSearch()" autocomplete="off" style="width:100%;padding-right:36px;" /><button id="ClearBtn" onclick="clearSearch()" style="display:none;position:absolute;right:8px;background:none;border:none;font-size:18px;cursor:pointer;color:#999;line-height:1;padding:0;">×</button></div>
   <button onclick="doSearch()">검색</button>
   <div id="Dropdown" class="dd" style="display:none;"></div>
 </div>
@@ -15843,6 +15843,16 @@ function fmt(n) {
 // ============================================================
 // 검색
 // ============================================================
+function clearSearch() {
+  document.getElementById('Q').value = '';
+  document.getElementById('ClearBtn').style.display = 'none';
+  onQuery();
+  document.getElementById('Q').focus();
+}
+function updateClearBtn() {
+  const q = document.getElementById('Q').value;
+  document.getElementById('ClearBtn').style.display = q ? 'block' : 'none';
+}
 function onQuery() {
   const q = document.getElementById('Q').value.trim();
   const dd = document.getElementById('Dropdown');
