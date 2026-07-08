@@ -53640,7 +53640,7 @@ function setGeminiKey(key) { localStorage.setItem('gemini_api_key', key); }
 async function openAISmallTalk(name) {
   let apiKey = getGeminiKey();
   if (!apiKey) {
-    const k = prompt('Gemini API 키를 입력하세요 (�한 번만 입력하면 브라우저에 저장됩니다):', '');
+    const k = prompt('Gemini API Key (one-time setup, saved in browser):', '');
     if (!k) return;
     setGeminiKey(k);
     apiKey = k;
