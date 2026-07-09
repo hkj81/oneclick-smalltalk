@@ -16337,6 +16337,7 @@ function render(name) {
   html += '<div style="text-align:right;font-size:13px;"><span style="color:#1D9E75;font-weight:600;">'+fmt(d.monthGoal)+'</span> / <strong>'+fmt(d.monthCurrent)+'</strong></div></div>';
   html += '<div class="bar-track"><div class="bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+(pct>=100?'#1D9E75':pct>=80?'#639922':pct>=50?'#BA7517':'#E24B4A')+'"></div></div>';
   html += '<div class="goal-meta"><span>남은 '+remainingDays+'일</span><span>일평균 '+fmt(dailyNeed)+' 필요</span><span>'+(pct>=100?'목표 달성!':'목표까지 '+fmt(remaining))+'</span></div></div>';
+  html += '<div style="margin-top:14px;"><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">📅 1~6월 매출 추이</div><div class="chart-wrap" style="height:110px;"><canvas id="MonthlyChart"></canvas></div></div>';
   html += '<div class="chart-wrap"><canvas id="DailyChart"></canvas></div></div>';
 
   html += '<div class="card"><div class="section" style="margin-top:0">📊 카테고리 분석</div>';
@@ -16483,7 +16484,7 @@ function render(name) {
   html += '</div></div>';
 
   document.getElementById('Result').innerHTML = html;
-  setTimeout(() => { drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); drawMfr(); }, 100);
+  setTimeout(() => { drawMonthly(name); drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); drawMfr(); }, 100);
 }
 
 // ============================================================
@@ -53749,6 +53750,305 @@ const PHARMACY_REAL_ext04 = {
   "전주 스카이성형외과의원":{monthly:{2:15570},pb:0,animal:0,total:15570,proGrade:{A:0,B:0,C:0,D:2,E:0,F:0},goal:0},
 };
 Object.assign(PHARMACY_REAL, PHARMACY_REAL_ext04);
+
+// ============================================================
+// 1~6월 월별 바 차트
+// ============================================================
+function drawMonthly(name) {
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
+    const ctx = document.getElementById('MonthlyChart');
+    if (!ctx) return;
+    const real = PHARMACY_REAL[name];
+    if (!real || !real.monthly) return;
+    const labels = ['1월','2월','3월','4월','5월','6월'];
+    const values = [1,2,3,4,5,6].map(m => real.monthly[m] || 0);
+    const colors = [1,2,3,4,5,6].map(m => m === currentMonth ? '#1D9E75' : '#C8E6C9');
+    new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.parsed.y) } } },
+        scales: {
+          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => Math.round(v/10000)+'만' } },
+          x: { ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }).catch(() => {});
+}
+
+// ============================================================
+// 공통 모달 (openModal / closeModal)
+// ============================================================
+function openModal(title, bodyHtml) {
+  let overlay = document.getElementById('GenModalOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'GenModalOverlay';
+    overlay.className = 'pb-modal-overlay';
+    overlay.innerHTML = '<div class="pb-modal"><div class="pb-modal-header"><span class="pb-modal-title" id="GenModalTitle"></span><button class="pb-modal-close" onclick="closeModal()">×</button></div><div id="GenModalBody"></div></div>';
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+    document.body.appendChild(overlay);
+  }
+  document.getElementById('GenModalTitle').textContent = title;
+  document.getElementById('GenModalBody').innerHTML = bodyHtml;
+  overlay.classList.add('open');
+}
+function closeModal() {
+  const o = document.getElementById('GenModalOverlay');
+  if (o) o.classList.remove('open');
+}
+
+// ============================================================
+// logUsage — Firebase 사용 통계 (실패해도 무시)
+// ============================================================
+function logUsage(event) {
+  try {
+    if (_fbReady && _db && currentUser) {
+      _db.collection('usage').add({ event, user: currentUser.id, ts: new Date().toISOString() });
+    }
+  } catch(e) {}
+}
+
+// ============================================================
+// openPbModal — PB 전 거래처 품목 상세
+// ============================================================
+function openPbModal() {
+  logUsage('modal_pb_all');
+  const pbData = {};
+  Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
+    Object.entries(items).forEach(([prod, months]) => {
+      if (months[currentMonth] && months[currentMonth].a > 0) {
+        if (!pbData[prod]) pbData[prod] = { sales: 0, qty: 0, cnt: 0 };
+        pbData[prod].sales += months[currentMonth].a;
+        pbData[prod].qty   += months[currentMonth].q || 0;
+        pbData[prod].cnt++;
+      }
+    });
+  });
+  const sorted = Object.entries(pbData).sort((a,b) => b[1].sales - a[1].sales);
+  const total = sorted.reduce((s,[,v]) => s + v.sales, 0);
+  const grandMax = sorted.length > 0 ? sorted[0][1].sales : 1;
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 · 전 거래처 합산 <strong style="color:#3C3489;">'+fmt(total)+'</strong> · '+sorted.length+'개 품목</div>';
+  if (!sorted.length) { html += '<div style="padding:20px;text-align:center;color:#888;">'+currentMonth+'월 PB 출고 내역 없음</div>'; }
+  else sorted.forEach(([prod, v], i) => {
+    const pct = Math.round(v.sales / grandMax * 100);
+    html += '<div class="pb-modal-item"><span style="width:130px;flex-shrink:0;font-size:13px;">'+(i+1)+'. '+prod+'</span>';
+    html += '<span style="width:24px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+v.cnt+'처</span>';
+    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;"></div></div>';
+    html += '<span class="pb-modal-amt">'+fmt(v.sales)+'</span></div>';
+  });
+  openModal(currentMonth+'월 PB 전 거래처 품목 상세', html);
+}
+
+// ============================================================
+// openPharmPbModal — 거래처별 PB 품목
+// ============================================================
+function openPharmPbModal(name) {
+  logUsage('modal_pb_pharm');
+  const d = DATA[name]; if (!d) return;
+  const items = d.pbThisMonthItems || [];
+  const total = items.reduce((s,x) => s + x.sales, 0);
+  const grandMax = items.length > 0 ? items[0].sales : 1;
+  const shortName = name.split(' ').slice(1).join(' ') || name;
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 · <strong style="color:#3C3489;">'+fmt(total)+'</strong> · '+items.length+'개 품목</div>';
+  if (!items.length) { html += '<div style="padding:20px;text-align:center;color:#888;">'+currentMonth+'월 PB 출고 내역 없음</div>'; }
+  else items.forEach((item, i) => {
+    const pct = Math.round(item.sales / grandMax * 100);
+    html += '<div class="pb-modal-item"><span style="width:150px;flex-shrink:0;font-size:13px;">'+(i+1)+'. '+item.name+'</span>';
+    if (item.qty) html += '<span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+item.qty+'개</span>';
+    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;"></div></div>';
+    html += '<span class="pb-modal-amt">'+fmt(item.sales)+'</span></div>';
+  });
+  openModal(currentMonth+'월 PB 품목 ('+shortName+')', html);
+}
+
+// ============================================================
+// openPb21CheckModal — PB 21 핵심 품목 체크
+// ============================================================
+function openPb21CheckModal() {
+  logUsage('modal_pb21');
+  if (!curName) return;
+  const monthKws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
+  const pbItems  = PB_ITEMS_MONTHLY[curName] || {};
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 PB 핵심 '+monthKws.length+'개 품목 체크</div>';
+  if (!monthKws.length) { html += '<div style="padding:20px;text-align:center;color:#888;">이달 PB 핵심 품목 목록 없음</div>'; }
+  else monthKws.forEach(kw => {
+    const matched = Object.entries(pbItems).find(([k]) => k.includes(kw));
+    const hasData = matched && matched[1][currentMonth] && matched[1][currentMonth].a > 0;
+    const prodName = matched ? matched[0] : kw;
+    const sales = hasData ? matched[1][currentMonth].a : 0;
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F0EEE5;">';
+    html += '<span style="font-size:14px;">'+(hasData?'✅':'❌')+'</span>';
+    html += '<span style="flex:1;font-size:13px;color:'+(hasData?'#2B2B2B':'#888')+';">'+prodName+'</span>';
+    html += '<span style="font-size:12px;font-weight:600;color:'+(hasData?'#1D9E75':'#E24B4A')+';">'+(hasData?fmt(sales):'미발주')+'</span>';
+    html += '</div>';
+  });
+  openModal(currentMonth+'월 PB 21 체크 ('+(curName.split(' ').slice(1).join(' ')||curName)+')', html);
+}
+
+// ============================================================
+// openVetModal — 거래처별 동물약
+// ============================================================
+function openVetModal(name) {
+  logUsage('modal_vet');
+  const real = PHARMACY_REAL[name];
+  const shortName = name.split(' ').slice(1).join(' ') || name;
+  let html = '';
+  if (!real || real.animal === 0) {
+    html = '<div style="padding:20px;text-align:center;color:#888;">'+shortName+'은 동물약 거래 없음</div>';
+  } else {
+    const monthly = real.animalMonthly || {};
+    const maxVal  = Math.max(...[1,2,3,4,5,6].map(m => monthly[m] || 0), 1);
+    html += '<div style="font-size:12px;color:#888;margin-bottom:12px;">1~6월 합계 <strong style="color:#39A2AE;">'+fmt(real.animal)+'</strong> · 월평균 '+fmt(Math.round(real.animal/6))+'</div>';
+    html += '<div style="display:flex;gap:6px;align-items:flex-end;height:80px;margin-bottom:14px;">';
+    [1,2,3,4,5,6].forEach(m => {
+      const v = monthly[m] || 0;
+      const h = Math.round(v/maxVal*68);
+      const isNow = m === currentMonth;
+      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
+      html += '<div style="font-size:9px;color:#888;">'+Math.round(v/10000)+'만</div>';
+      html += '<div style="width:100%;background:'+(isNow?'#39A2AE':'#B2DFDB')+';height:'+Math.max(h,v>0?4:1)+'px;border-radius:3px 3px 0 0;"></div>';
+      html += '<div style="font-size:10px;color:'+(isNow?'#39A2AE':'#888')+';font-weight:'+(isNow?'700':'400')+';">'+m+'월</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  openModal('동물약 현황 ('+shortName+')', html);
+}
+
+// ============================================================
+// openVetCountModal — 전 거래처 동물약 통계
+// ============================================================
+function openVetCountModal() {
+  logUsage('modal_vet_count');
+  const vetList = Object.keys(DATA).map(name => {
+    const r = PHARMACY_REAL[name];
+    const v = r ? (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) : 0;
+    return { name, sales: v };
+  }).filter(x => x.sales > 0).sort((a,b) => b.sales - a.sales);
+  const total = vetList.reduce((s,x) => s + x.sales, 0);
+  const grandMax = vetList.length > 0 ? vetList[0].sales : 1;
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 동물약 거래처 <strong style="color:#39A2AE;">'+vetList.length+'곳</strong> · 합계 '+fmt(total)+'</div>';
+  if (!vetList.length) { html += '<div style="padding:20px;text-align:center;color:#888;">'+currentMonth+'월 동물약 출고 없음</div>'; }
+  else vetList.forEach((x, i) => {
+    const pct = Math.round(x.sales / grandMax * 100);
+    const shortN = x.name.split(' ').slice(1).join(' ') || x.name;
+    const esc = x.name.replace(/'/g,"\\'");
+    html += '<div class="pb-modal-item"><span style="width:110px;flex-shrink:0;font-size:13px;cursor:pointer;color:#1D9E75;text-decoration:underline;" onclick="closeModal();pick(\''+esc+'\')">'+(i+1)+'. '+shortN+'</span>';
+    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;background:#39A2AE;"></div></div>';
+    html += '<span class="pb-modal-amt">'+fmt(x.sales)+'</span></div>';
+  });
+  openModal(currentMonth+'월 동물약 거래처 현황', html);
+}
+
+// ============================================================
+// openAnalytics — 분석 대시보드 (타이틀 더블클릭)
+// ============================================================
+function openAnalytics() {
+  if (!currentUser) return;
+  logUsage('analytics');
+  const names = Object.keys(DATA);
+  const totalSales = names.reduce((s,n) => s + (DATA[n].sales||0), 0);
+  const totalGoal  = names.reduce((s,n) => s + (DATA[n].monthGoal||0), 0);
+  const pct = totalGoal > 0 ? Math.round(totalSales/totalGoal*100) : 0;
+  const gradeCount = { A:0, B:0, C:0, D:0, E:0 };
+  names.forEach(n => { const g = DATA[n].grade; if (gradeCount[g]!==undefined) gradeCount[g]++; });
+  const gradeColors = { A:'#1D9E75', B:'#378ADD', C:'#EF9F27', D:'#E24B4A', E:'#7F77DD' };
+  const monthlyTotals = {};
+  [1,2,3,4,5,6].forEach(m => {
+    monthlyTotals[m] = names.reduce((s,n) => { const r=PHARMACY_REAL[n]; return s+(r&&r.monthly&&r.monthly[m]?r.monthly[m]:0); }, 0);
+  });
+  const maxMonth = Math.max(...Object.values(monthlyTotals), 1);
+  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">';
+  html += '<div style="background:#F0FBF6;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#6B6963;">전체 달성률</div><div style="font-size:26px;font-weight:700;color:#1D9E75;">'+pct+'%</div><div style="font-size:11px;color:#888;">'+fmt(totalSales)+' / '+fmt(totalGoal)+'</div></div>';
+  html += '<div style="background:#F5F4EE;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#6B6963;">총 거래처</div><div style="font-size:26px;font-weight:700;">'+names.length+'곳</div><div style="font-size:11px;color:#888;">목표초과 '+names.filter(n=>DATA[n].sales>=DATA[n].monthGoal).length+'곳</div></div>';
+  html += '</div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;">📅 월별 전체 매출 추이</div>';
+  html += '<div style="display:flex;gap:4px;align-items:flex-end;height:70px;margin-bottom:14px;">';
+  [1,2,3,4,5,6].forEach(m => {
+    const v = monthlyTotals[m];
+    const h = maxMonth > 0 ? Math.round(v/maxMonth*60) : 0;
+    const isNow = m === currentMonth;
+    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">';
+    html += '<div style="font-size:9px;color:#888;">'+Math.round(v/100000000*10)/10+'억</div>';
+    html += '<div style="width:100%;background:'+(isNow?'#1D9E75':'#C8E6C9')+';height:'+Math.max(h,2)+'px;border-radius:3px 3px 0 0;"></div>';
+    html += '<div style="font-size:10px;color:'+(isNow?'#1D9E75':'#888')+';font-weight:'+(isNow?'700':'400')+';">'+m+'월</div></div>';
+  });
+  html += '</div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;">🏆 등급별 분포</div>';
+  html += '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">';
+  Object.entries(gradeCount).filter(([,c])=>c>0).forEach(([g,c]) => {
+    html += '<div style="background:'+gradeColors[g]+'22;border:1px solid '+gradeColors[g]+';border-radius:8px;padding:8px 14px;text-align:center;"><div style="font-size:16px;font-weight:700;color:'+gradeColors[g]+';">'+g+'</div><div style="font-size:11px;color:#6B6963;">'+c+'개처</div></div>';
+  });
+  html += '</div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;">📋 매출 상위 5 거래처</div>';
+  Object.values(DATA).sort((a,b)=>b.sales-a.sales).slice(0,5).forEach((d,i) => {
+    const dp = d.monthGoal>0?Math.round(d.sales/d.monthGoal*100):0;
+    const esc = d.name.replace(/'/g,"\\'");
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #EEE;">';
+    html += '<span style="width:18px;font-size:11px;color:#888;text-align:center;">'+(i+1)+'</span>';
+    html += '<span style="flex:1;font-size:13px;cursor:pointer;color:#1D9E75;font-weight:600;text-decoration:underline;" onclick="closeModal();pick(\''+esc+'\')">'+d.name.split(' ').slice(1).join(' ')+'</span>';
+    html += '<span style="font-size:12px;font-weight:600;">'+fmt(d.sales)+'</span>';
+    html += '<span style="font-size:11px;color:'+(dp>=100?'#1D9E75':'#E24B4A')+';">'+dp+'%</span></div>';
+  });
+  openModal('📊 ' + currentUser.name + ' 영업 현황 분석 (' + currentMonth + '월)', html);
+}
+
+// ============================================================
+// openAISmallTalk — 데이터 기반 스몰톡 스크립트 생성
+// ============================================================
+function openAISmallTalk(name) {
+  logUsage('ai_smalltalk');
+  const d = DATA[name]; if (!d) return;
+  const real = PHARMACY_REAL[name];
+  const shortName = name.split(' ').slice(1).join(' ') || name;
+  const trendUp = d.salesTrend.startsWith('+');
+  const hasPb   = d.catRatio.pb >= 10;
+  const hasVet  = d.vet3mAvg > 0;
+  const scripts = [];
+
+  if (trendUp) {
+    scripts.push({ tag: '📈 상승세 활용', text: shortName+' 선생님, 지난달 대비 매출이 '+d.salesTrend+' 올랐네요! 최근 어떤 품목이 잘 나가고 있으신지 여쭤봐도 될까요? 잘 나가는 신제품 정보도 가져왔습니다.' });
+  } else {
+    scripts.push({ tag: '📉 회복 기회', text: shortName+' 선생님, 이번 달 '+d.salesTrend+' 변동이 있었는데 혹시 반품이나 재고 이슈가 있으셨나요? 제가 도움이 될 수 있는 부분을 찾아보고 싶어서요.' });
+  }
+  if (d.grade === 'A' || d.grade === 'B') {
+    scripts.push({ tag: '⭐ 우수 거래처 관리', text: '항상 큰 거래처로 믿고 있습니다, 선생님. 이번에 신규 PB 라인업이 들어왔는데 '+shortName+' 선생님께 제일 먼저 소개드리고 싶었어요. 잠깐 시간 괜찮으세요?' });
+  } else {
+    scripts.push({ tag: '💡 관계 강화', text: '선생님, 요즘 약국 운영에 어려운 점은 없으신가요? 저희 쪽에서 도움드릴 수 있는 부분이 있으면 말씀해 주세요. 이번에 마진 좋은 신제품 몇 가지 가져왔습니다.' });
+  }
+  if (hasPb) {
+    const kws = (MONTHLY_PB_KEYWORDS[currentMonth]||[]).slice(0,2).join(', ');
+    scripts.push({ tag: '💎 PB 강세 활용', text: shortName+' 선생님은 저희 PB 제품을 늘 잘 써주시는데 정말 감사합니다. 이번 달 신규 PB'+(kws?' ('+kws+')':'')+' 입고됐는데 먼저 소개드릴까요?' });
+  } else {
+    scripts.push({ tag: '💎 PB 도입 제안', text: '선생님, PB 제품은 일반 제품보다 마진이 15~20% 높아서 약국 수익에 많이 도움이 됩니다. 부담 없이 소량으로 한번 테스트해 보시는 건 어떠세요?' });
+  }
+  if (hasVet) {
+    scripts.push({ tag: '🐾 동물약 확대', text: '선생님, 동물약 취급해 주셔서 감사합니다! 반려동물 시장이 계속 커지고 있어서, 이번에 신규 동물의약품 라인도 가져왔는데 한번 보시겠어요?' });
+  } else {
+    scripts.push({ tag: '🐾 동물약 첫 도입', text: '선생님, 요즘 반려동물 약 찾으시는 분들이 많이 늘었는데 동물약 취급 생각해 보신 적 있으세요? 진입 장벽이 낮고 마진도 좋아서 여쭤봤습니다.' });
+  }
+  if (d.debt > 1000000) {
+    scripts.push({ tag: '💰 미수금 정리', text: '선생님, 번거로우시겠지만 이번 방문에 미수금('+fmt(d.debt)+') 부분도 정리하면 좋을 것 같아서요. 결제 편하신 방법 있으시면 말씀해 주세요.' });
+  }
+
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">실매출 데이터 기반 맞춤 스크립트 · 클릭하면 복사됩니다</div>';
+  html += '<div style="background:#F5F4EE;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.8;">';
+  html += '<strong>'+shortName+'</strong> · '+d.grade+'등급 · '+d.salesTrend+' · PB '+d.catRatio.pb+'%'+(hasVet?' · 동물약 ✓':'')+(d.debt>500000?' · 미수금 '+fmt(d.debt):'');
+  html += '</div>';
+  scripts.forEach(s => {
+    const esc = s.text.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    html += '<div style="border:1.5px solid #E8E6DC;border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer;" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+esc+'\').then(()=>{this.style.borderColor=\'#1D9E75\';this.querySelector(\'.cp\').textContent=\'✅ 복사됨\';setTimeout(()=>{this.style.borderColor=\'#E8E6DC\';this.querySelector(\'.cp\').textContent=\'탭하면 복사\';},1500);})">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    html += '<span style="font-size:12px;font-weight:700;color:#3C3489;">'+s.tag+'</span>';
+    html += '<span class="cp" style="font-size:10px;color:#aaa;">탭하면 복사</span></div>';
+    html += '<div style="font-size:13px;line-height:1.7;color:#2B2B2B;">'+s.text+'</div></div>';
+  });
+  html += '<div style="font-size:11px;color:#aaa;text-align:center;margin-top:6px;">📊 실매출 데이터 기반 자동 생성 · 상황에 맞게 수정해서 사용하세요</div>';
+  openModal('🤖 AI 스몰톡 — ' + shortName, html);
+}
 
 // ============================================================
 // 페이지 초기화 — 사용자 선택 드롭다운 채우기
