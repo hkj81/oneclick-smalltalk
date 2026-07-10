@@ -494,6 +494,7 @@ function initUserSelect() {
 
 function toggleUsDropdown() {
   const dd = document.getElementById('UsDropdown');
+  if (!dd.children.length) initUserSelect();
   dd.classList.toggle('open');
 }
 
