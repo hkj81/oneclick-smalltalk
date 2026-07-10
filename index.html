@@ -446,6 +446,7 @@ const USERS = [
   { id: 'ext_03', name: '최익환', team: '군산 영업', type: 'ext' },
   { id: 'ext_04', name: '장진호', team: '김제·금구 영업', type: 'ext' },
   { id: 'ext_05', name: '외부5', team: '외부 참여', type: 'ext' },
+  { id: 'ext_06', name: '김형남', team: '광주 영업', type: 'ext' },
 ];
 
 let currentUser = null;
@@ -7167,6 +7168,7 @@ const USER_LISTS = {
   ext_03:    LIST_ext_03,
   ext_04:    LIST_ext_04,
   ext_05:    LIST_ext_05,
+  ext_06:    [],  // 외부6 (데이터 로딩 후 갱신)
 };
 
 
@@ -53745,9 +53747,7 @@ const PHARMACY_REAL_ext04 = {
   "전주 미소심는치과":{monthly:{1:179880,2:289280,3:198500,5:197146},pb:0,animal:0,total:864806,proGrade:{A:0,B:0,C:3,D:9,E:0,F:1},goal:0},
   "전주 으뜸안과(특약)":{monthly:{3:266400,6:355200},pb:0,animal:0,total:621600,proGrade:{A:0,B:0,C:0,D:0,E:0,F:2},goal:0},
   "전주 눈이편한안과":{monthly:{1:222127,5:214987},pb:0,animal:0,total:437114,proGrade:{A:0,B:0,C:0,D:5,E:0,F:2},goal:0},
-  "전주 예일치과의원":{monthly:{2:32200,3:115650,5:143450,6:98600},pb:0,animal:0,total:389900,proGrade:{A:0,B:0,C:4,D:6,E:4,F:0},goal:0},
-  "전주 최치과의원":{monthly:{2:125520,4:80680,6:70000},pb:0,animal:0,total:276200,proGrade:{A:0,B:0,C:2,D:2,E:0,F:1},goal:0},
-  "전주 스카이성형외과의원":{monthly:{2:15570},pb:0,animal:0,total:15570,proGrade:{A:0,B:0,C:0,D:2,E:0,F:0},goal:0},
+  "전주 예일치과의원":{monthly:{2:32200,3:115650,5:143450,6:98600},pb:0,animal:0,total:389900,proGrade:{A:0,B:0,C:4,D:0,E:0,F:0},goal:0},
 };
 Object.assign(PHARMACY_REAL, PHARMACY_REAL_ext04);
 
@@ -53760,301 +53760,410 @@ function drawMonthly(name) {
     if (!ctx) return;
     const real = PHARMACY_REAL[name];
     if (!real || !real.monthly) return;
+    if (window.__monthlyChart) { try { window.__monthlyChart.destroy(); } catch(e) {} }
     const labels = ['1월','2월','3월','4월','5월','6월'];
     const values = [1,2,3,4,5,6].map(m => real.monthly[m] || 0);
     const colors = [1,2,3,4,5,6].map(m => m === currentMonth ? '#1D9E75' : '#C8E6C9');
-    new Chart(ctx, {
+    window.__monthlyChart = new Chart(ctx, {
       type: 'bar',
       data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.parsed.y) } } },
-        scales: {
-          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => Math.round(v/10000)+'만' } },
-          x: { ticks: { font: { size: 11 } } }
-        }
+        scales: { y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => (v/10000).toFixed(0)+'만' } }, x: { ticks: { font: { size: 10 } } } }
       }
     });
   }).catch(() => {});
 }
 
 // ============================================================
-// 공통 모달 (openModal / closeModal)
+// 공통 모달 (동적 생성)
 // ============================================================
 function openModal(title, bodyHtml) {
-  let overlay = document.getElementById('GenModalOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'GenModalOverlay';
-    overlay.className = 'pb-modal-overlay';
-    overlay.innerHTML = '<div class="pb-modal"><div class="pb-modal-header"><span class="pb-modal-title" id="GenModalTitle"></span><button class="pb-modal-close" onclick="closeModal()">×</button></div><div id="GenModalBody"></div></div>';
-    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
-    document.body.appendChild(overlay);
+  let ov = document.getElementById('DynModal');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'DynModal';
+    ov.className = 'pb-modal-overlay';
+    ov.innerHTML = '<div class="pb-modal"><div class="pb-modal-header"><span class="pb-modal-title" id="DynModalTitle"></span><button class="pb-modal-close" onclick="closeModal()">✕</button></div><div id="DynModalBody"></div></div>';
+    ov.addEventListener('click', function(e) { if (e.target === ov) closeModal(); });
+    document.body.appendChild(ov);
   }
-  document.getElementById('GenModalTitle').textContent = title;
-  document.getElementById('GenModalBody').innerHTML = bodyHtml;
-  overlay.classList.add('open');
+  document.getElementById('DynModalTitle').textContent = title;
+  document.getElementById('DynModalBody').innerHTML = bodyHtml;
+  ov.classList.add('open');
 }
 function closeModal() {
-  const o = document.getElementById('GenModalOverlay');
-  if (o) o.classList.remove('open');
+  const ov = document.getElementById('DynModal');
+  if (ov) ov.classList.remove('open');
 }
 
 // ============================================================
-// logUsage — Firebase 사용 통계 (실패해도 무시)
+// 사용 로그 (Firestore)
 // ============================================================
-function logUsage(event) {
+async function logUsage(event) {
+  if (!currentUser) return;
   try {
-    if (_fbReady && _db && currentUser) {
-      _db.collection('usage').add({ event, user: currentUser.id, ts: new Date().toISOString() });
-    }
+    const ok = await initFirebase();
+    if (!ok) return;
+    await _db.collection('usage').add({ userId: currentUser.id, userName: currentUser.name, event, ts: new Date().toISOString() });
   } catch(e) {}
 }
 
 // ============================================================
-// openPbModal — PB 전 거래처 품목 상세
+// PB 전체 품목 모달
 // ============================================================
 function openPbModal() {
   logUsage('modal_pb_all');
-  const pbData = {};
-  Object.entries(PB_ITEMS_MONTHLY).filter(([ph]) => DATA[ph]).forEach(([ph, items]) => {
-    Object.entries(items).forEach(([prod, months]) => {
-      if (months[currentMonth] && months[currentMonth].a > 0) {
-        if (!pbData[prod]) pbData[prod] = { sales: 0, qty: 0, cnt: 0 };
-        pbData[prod].sales += months[currentMonth].a;
-        pbData[prod].qty   += months[currentMonth].q || 0;
-        pbData[prod].cnt++;
+  const myNames = Object.keys(DATA);
+  const itemMap = {};
+  myNames.forEach(ph => {
+    const items = PB_ITEMS_MONTHLY[ph] || {};
+    Object.entries(items).forEach(([k, v]) => {
+      if (v[currentMonth] && v[currentMonth].a > 0) {
+        if (!itemMap[k]) itemMap[k] = { sales: 0, qty: 0, cnt: 0 };
+        itemMap[k].sales += v[currentMonth].a;
+        itemMap[k].qty   += v[currentMonth].q || 0;
+        itemMap[k].cnt++;
       }
     });
   });
-  const sorted = Object.entries(pbData).sort((a,b) => b[1].sales - a[1].sales);
-  const total = sorted.reduce((s,[,v]) => s + v.sales, 0);
-  const grandMax = sorted.length > 0 ? sorted[0][1].sales : 1;
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 · 전 거래처 합산 <strong style="color:#3C3489;">'+fmt(total)+'</strong> · '+sorted.length+'개 품목</div>';
-  if (!sorted.length) { html += '<div style="padding:20px;text-align:center;color:#888;">'+currentMonth+'월 PB 출고 내역 없음</div>'; }
-  else sorted.forEach(([prod, v], i) => {
-    const pct = Math.round(v.sales / grandMax * 100);
-    html += '<div class="pb-modal-item"><span style="width:130px;flex-shrink:0;font-size:13px;">'+(i+1)+'. '+prod+'</span>';
-    html += '<span style="width:24px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+v.cnt+'처</span>';
-    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;"></div></div>';
+  const sorted = Object.entries(itemMap).sort((a,b) => b[1].sales - a[1].sales);
+  const total  = sorted.reduce((s,[,v]) => s + v.sales, 0);
+  const gMax   = sorted.length > 0 ? sorted[0][1].sales : 1;
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 전 거래처 합산 · 합계 <strong style="color:#2B2B2B;">'+fmt(total)+'</strong> · '+sorted.length+'개 품목</div>';
+  if (!sorted.length) { html += '<div style="text-align:center;padding:30px;color:#888;">PB 발주 없음</div>'; }
+  else { sorted.forEach(([name,v],i) => {
+    const pct = Math.round(v.sales/gMax*100);
+    html += '<div class="pb-modal-item"><span style="width:140px;flex-shrink:0;font-size:12px;">'+(i+1)+'. '+name+'</span>';
+    html += '<span style="width:28px;text-align:right;font-size:11px;color:#888;flex-shrink:0;">'+v.qty+'개</span>';
+    html += '<span style="width:26px;text-align:right;font-size:11px;color:#6C5CE7;flex-shrink:0;">'+v.cnt+'처</span>';
+    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div>';
     html += '<span class="pb-modal-amt">'+fmt(v.sales)+'</span></div>';
-  });
-  openModal(currentMonth+'월 PB 전 거래처 품목 상세', html);
+  }); }
+  openModal(currentMonth+'월 PB 전체 품목', html);
 }
 
 // ============================================================
-// openPharmPbModal — 거래처별 PB 품목
+// 거래처별 PB 모달
 // ============================================================
 function openPharmPbModal(name) {
   logUsage('modal_pb_pharm');
   const d = DATA[name]; if (!d) return;
   const items = d.pbThisMonthItems || [];
-  const total = items.reduce((s,x) => s + x.sales, 0);
-  const grandMax = items.length > 0 ? items[0].sales : 1;
-  const shortName = name.split(' ').slice(1).join(' ') || name;
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 · <strong style="color:#3C3489;">'+fmt(total)+'</strong> · '+items.length+'개 품목</div>';
-  if (!items.length) { html += '<div style="padding:20px;text-align:center;color:#888;">'+currentMonth+'월 PB 출고 내역 없음</div>'; }
-  else items.forEach((item, i) => {
-    const pct = Math.round(item.sales / grandMax * 100);
-    html += '<div class="pb-modal-item"><span style="width:150px;flex-shrink:0;font-size:13px;">'+(i+1)+'. '+item.name+'</span>';
-    if (item.qty) html += '<span style="width:28px;text-align:right;color:#888;font-size:11px;flex-shrink:0;">'+item.qty+'개</span>';
-    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;"></div></div>';
+  const total = items.reduce((s,x) => s+x.sales, 0);
+  const gMax  = items.length > 0 ? items[0].sales : 1;
+  const sn = name.split(' ').slice(1).join(' ') || name;
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 합계 <strong style="color:#2B2B2B;">'+fmt(total)+'</strong> · '+items.length+'개 품목</div>';
+  if (!items.length) { html += '<div style="text-align:center;padding:30px;color:#888;">'+currentMonth+'월 PB 발주 없음</div>'; }
+  else { items.forEach((item,i) => {
+    const pct = Math.round(item.sales/gMax*100);
+    html += '<div class="pb-modal-item"><span style="width:140px;flex-shrink:0;font-size:12px;">'+(i+1)+'. '+item.name+'</span>';
+    if (item.qty) html += '<span style="width:28px;text-align:right;font-size:11px;color:#888;flex-shrink:0;">'+item.qty+'개</span>';
+    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%"></div></div>';
     html += '<span class="pb-modal-amt">'+fmt(item.sales)+'</span></div>';
-  });
-  openModal(currentMonth+'월 PB 품목 ('+shortName+')', html);
+  }); }
+  openModal(currentMonth+'월 PB — '+sn, html);
 }
 
 // ============================================================
-// openPb21CheckModal — PB 21 핵심 품목 체크
+// PB 21품목 체크 모달
 // ============================================================
 function openPb21CheckModal() {
   logUsage('modal_pb21');
-  if (!curName) return;
-  const monthKws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
-  const pbItems  = PB_ITEMS_MONTHLY[curName] || {};
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 PB 핵심 '+monthKws.length+'개 품목 체크</div>';
-  if (!monthKws.length) { html += '<div style="padding:20px;text-align:center;color:#888;">이달 PB 핵심 품목 목록 없음</div>'; }
-  else monthKws.forEach(kw => {
-    const matched = Object.entries(pbItems).find(([k]) => k.includes(kw));
-    const hasData = matched && matched[1][currentMonth] && matched[1][currentMonth].a > 0;
-    const prodName = matched ? matched[0] : kw;
-    const sales = hasData ? matched[1][currentMonth].a : 0;
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F0EEE5;">';
-    html += '<span style="font-size:14px;">'+(hasData?'✅':'❌')+'</span>';
-    html += '<span style="flex:1;font-size:13px;color:'+(hasData?'#2B2B2B':'#888')+';">'+prodName+'</span>';
-    html += '<span style="font-size:12px;font-weight:600;color:'+(hasData?'#1D9E75':'#E24B4A')+';">'+(hasData?fmt(sales):'미발주')+'</span>';
-    html += '</div>';
-  });
-  openModal(currentMonth+'월 PB 21 체크 ('+(curName.split(' ').slice(1).join(' ')||curName)+')', html);
+  const kws = MONTHLY_PB_KEYWORDS[currentMonth] || [];
+  if (!curName || !DATA[curName]) return;
+  const items = DATA[curName].pbThisMonthItems || [];
+  const sn = curName.split(' ').slice(1).join(' ') || curName;
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 PB 품목 체크 — '+sn+'</div>';
+  if (!kws.length) { html += '<div style="text-align:center;padding:20px;color:#888;">'+currentMonth+'월 기준 품목 없음</div>'; }
+  else {
+    kws.forEach(kw => {
+      const found = items.find(x => x.name.includes(kw));
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F0EEE5;">';
+      html += '<span style="font-size:16px;">'+(found?'✅':'❌')+'</span>';
+      html += '<span style="flex:1;font-size:13px;color:'+(found?'#2B2B2B':'#888')+';">'+kw+'</span>';
+      if (found) html += '<span style="font-size:12px;font-weight:600;color:#3C3489;">'+fmt(found.sales)+'</span>';
+      html += '</div>';
+    });
+    const cnt = kws.filter(kw => items.some(x => x.name.includes(kw))).length;
+    html += '<div style="margin-top:12px;font-weight:700;font-size:14px;color:#3C3489;text-align:center;">'+cnt+' / '+kws.length+' 품목 발주</div>';
+  }
+  openModal('PB 품목 체크 — '+sn, html);
 }
 
 // ============================================================
-// openVetModal — 거래처별 동물약
+// 동물약 바 차트 모달
 // ============================================================
 function openVetModal(name) {
   logUsage('modal_vet');
   const real = PHARMACY_REAL[name];
-  const shortName = name.split(' ').slice(1).join(' ') || name;
-  let html = '';
-  if (!real || real.animal === 0) {
-    html = '<div style="padding:20px;text-align:center;color:#888;">'+shortName+'은 동물약 거래 없음</div>';
-  } else {
-    const monthly = real.animalMonthly || {};
-    const maxVal  = Math.max(...[1,2,3,4,5,6].map(m => monthly[m] || 0), 1);
-    html += '<div style="font-size:12px;color:#888;margin-bottom:12px;">1~6월 합계 <strong style="color:#39A2AE;">'+fmt(real.animal)+'</strong> · 월평균 '+fmt(Math.round(real.animal/6))+'</div>';
-    html += '<div style="display:flex;gap:6px;align-items:flex-end;height:80px;margin-bottom:14px;">';
-    [1,2,3,4,5,6].forEach(m => {
-      const v = monthly[m] || 0;
-      const h = Math.round(v/maxVal*68);
-      const isNow = m === currentMonth;
-      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
-      html += '<div style="font-size:9px;color:#888;">'+Math.round(v/10000)+'만</div>';
-      html += '<div style="width:100%;background:'+(isNow?'#39A2AE':'#B2DFDB')+';height:'+Math.max(h,v>0?4:1)+'px;border-radius:3px 3px 0 0;"></div>';
-      html += '<div style="font-size:10px;color:'+(isNow?'#39A2AE':'#888')+';font-weight:'+(isNow?'700':'400')+';">'+m+'월</div>';
-      html += '</div>';
-    });
-    html += '</div>';
+  const sn = name.split(' ').slice(1).join(' ') || name;
+  if (!real || !real.animalMonthly || !Object.keys(real.animalMonthly).length) {
+    openModal('동물약 — '+sn, '<div style="text-align:center;padding:30px;color:#888;">동물약 발주 이력 없음</div>');
+    return;
   }
-  openModal('동물약 현황 ('+shortName+')', html);
+  const total = real.animal || 0;
+  const html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">1~6월 합계 <strong style="color:#2B2B2B;">'+fmt(total)+'</strong></div><div style="height:160px;"><canvas id="VetChart"></canvas></div>';
+  openModal('동물약 — '+sn, html);
+  requestAnimationFrame(() => {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js', 'Chart').then(() => {
+      const ctx = document.getElementById('VetChart'); if (!ctx) return;
+      if (window.__vetChart) { try { window.__vetChart.destroy(); } catch(e) {} }
+      const labels = ['1월','2월','3월','4월','5월','6월'];
+      const values = [1,2,3,4,5,6].map(m => real.animalMonthly[m] || 0);
+      const colors = [1,2,3,4,5,6].map(m => m===currentMonth?'#39A2AE':'#B2EBF2');
+      window.__vetChart = new Chart(ctx, {
+        type:'bar', data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderRadius:4, borderSkipped:false }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}} },
+          scales:{ y:{beginAtZero:true,ticks:{font:{size:10},callback:v=>(v/10000).toFixed(0)+'만'}}, x:{ticks:{font:{size:10}}} }
+        }
+      });
+    }).catch(()=>{});
+  });
 }
 
 // ============================================================
-// openVetCountModal — 전 거래처 동물약 통계
+// 동물약 거래처 수 모달
 // ============================================================
 function openVetCountModal() {
   logUsage('modal_vet_count');
-  const vetList = Object.keys(DATA).map(name => {
-    const r = PHARMACY_REAL[name];
-    const v = r ? (r.animalMonthly && r.animalMonthly[currentMonth] ? r.animalMonthly[currentMonth] : Math.round(r.animal/6)) : 0;
-    return { name, sales: v };
-  }).filter(x => x.sales > 0).sort((a,b) => b.sales - a.sales);
-  const total = vetList.reduce((s,x) => s + x.sales, 0);
-  const grandMax = vetList.length > 0 ? vetList[0].sales : 1;
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">'+currentMonth+'월 동물약 거래처 <strong style="color:#39A2AE;">'+vetList.length+'곳</strong> · 합계 '+fmt(total)+'</div>';
-  if (!vetList.length) { html += '<div style="padding:20px;text-align:center;color:#888;">'+currentMonth+'월 동물약 출고 없음</div>'; }
-  else vetList.forEach((x, i) => {
-    const pct = Math.round(x.sales / grandMax * 100);
-    const shortN = x.name.split(' ').slice(1).join(' ') || x.name;
-    const esc = x.name.replace(/'/g,"\\'");
-    html += '<div class="pb-modal-item"><span style="width:110px;flex-shrink:0;font-size:13px;cursor:pointer;color:#1D9E75;text-decoration:underline;" onclick="closeModal();pick(\''+esc+'\')">'+(i+1)+'. '+shortN+'</span>';
-    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+pct+'%;background:#39A2AE;"></div></div>';
-    html += '<span class="pb-modal-amt">'+fmt(x.sales)+'</span></div>';
-  });
-  openModal(currentMonth+'월 동물약 거래처 현황', html);
+  const list = Object.keys(DATA)
+    .map(n => { const r=PHARMACY_REAL[n]; return { name:n, cur:(r&&r.animalMonthly&&r.animalMonthly[currentMonth])||0, total:(r&&r.animal)||0 }; })
+    .filter(x=>x.total>0).sort((a,b)=>b.cur-a.cur);
+  const curTotal = list.reduce((s,x)=>s+x.cur,0);
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">동물약 거래처 <strong style="color:#2B2B2B;">'+list.length+'개</strong> · '+currentMonth+'월 합계 <strong style="color:#2B2B2B;">'+fmt(curTotal)+'</strong></div>';
+  if (!list.length) { html += '<div style="text-align:center;padding:30px;color:#888;">없음</div>'; }
+  else { list.forEach((x,i) => {
+    const sn=x.name.split(' ').slice(1).join(' ')||x.name, g=DATA[x.name]?DATA[x.name].grade:'';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F0EEE5;font-size:13px;">';
+    html += '<span style="width:20px;font-size:11px;color:#888;text-align:right;flex-shrink:0;">'+(i+1)+'</span>';
+    if (g) html += '<span style="background:#39A2AE;color:#fff;border-radius:4px;padding:1px 5px;font-size:10px;flex-shrink:0;">'+g+'</span>';
+    html += '<span style="flex:1;font-weight:600;">'+sn+'</span>';
+    html += '<span style="font-size:11px;color:#888;width:90px;text-align:right;">6개월: '+fmt(x.total)+'</span>';
+    html += '<span style="font-size:12px;font-weight:600;color:#39A2AE;width:80px;text-align:right;">'+currentMonth+'월: '+fmt(x.cur)+'</span>';
+    html += '</div>';
+  }); }
+  openModal('동물약 발주 현황', html);
 }
 
 // ============================================================
-// openAnalytics — 분석 대시보드 (타이틀 더블클릭)
+// 전체 분석 대시보드
 // ============================================================
 function openAnalytics() {
-  if (!currentUser) return;
   logUsage('analytics');
-  const names = Object.keys(DATA);
-  const totalSales = names.reduce((s,n) => s + (DATA[n].sales||0), 0);
-  const totalGoal  = names.reduce((s,n) => s + (DATA[n].monthGoal||0), 0);
-  const pct = totalGoal > 0 ? Math.round(totalSales/totalGoal*100) : 0;
-  const gradeCount = { A:0, B:0, C:0, D:0, E:0 };
-  names.forEach(n => { const g = DATA[n].grade; if (gradeCount[g]!==undefined) gradeCount[g]++; });
-  const gradeColors = { A:'#1D9E75', B:'#378ADD', C:'#EF9F27', D:'#E24B4A', E:'#7F77DD' };
-  const monthlyTotals = {};
-  [1,2,3,4,5,6].forEach(m => {
-    monthlyTotals[m] = names.reduce((s,n) => { const r=PHARMACY_REAL[n]; return s+(r&&r.monthly&&r.monthly[m]?r.monthly[m]:0); }, 0);
-  });
-  const maxMonth = Math.max(...Object.values(monthlyTotals), 1);
-  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">';
-  html += '<div style="background:#F0FBF6;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#6B6963;">전체 달성률</div><div style="font-size:26px;font-weight:700;color:#1D9E75;">'+pct+'%</div><div style="font-size:11px;color:#888;">'+fmt(totalSales)+' / '+fmt(totalGoal)+'</div></div>';
-  html += '<div style="background:#F5F4EE;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#6B6963;">총 거래처</div><div style="font-size:26px;font-weight:700;">'+names.length+'곳</div><div style="font-size:11px;color:#888;">목표초과 '+names.filter(n=>DATA[n].sales>=DATA[n].monthGoal).length+'곳</div></div>';
-  html += '</div>';
-  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;">📅 월별 전체 매출 추이</div>';
-  html += '<div style="display:flex;gap:4px;align-items:flex-end;height:70px;margin-bottom:14px;">';
-  [1,2,3,4,5,6].forEach(m => {
-    const v = monthlyTotals[m];
-    const h = maxMonth > 0 ? Math.round(v/maxMonth*60) : 0;
-    const isNow = m === currentMonth;
-    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">';
-    html += '<div style="font-size:9px;color:#888;">'+Math.round(v/100000000*10)/10+'억</div>';
-    html += '<div style="width:100%;background:'+(isNow?'#1D9E75':'#C8E6C9')+';height:'+Math.max(h,2)+'px;border-radius:3px 3px 0 0;"></div>';
-    html += '<div style="font-size:10px;color:'+(isNow?'#1D9E75':'#888')+';font-weight:'+(isNow?'700':'400')+';">'+m+'월</div></div>';
+  const myNames = Object.keys(DATA);
+  const totSales = myNames.reduce((s,n)=>s+(DATA[n].sales||0),0);
+  const totGoal  = myNames.reduce((s,n)=>s+(DATA[n].monthGoal||0),0);
+  const pct = totGoal>0 ? Math.round(totSales/totGoal*100) : 0;
+  const mTotals = [1,2,3,4,5,6].map(m=>myNames.reduce((s,n)=>s+((PHARMACY_REAL[n]&&PHARMACY_REAL[n].monthly&&PHARMACY_REAL[n].monthly[m])||0),0));
+  const gCnt = {A:0,B:0,C:0,D:0,E:0,F:0};
+  myNames.forEach(n=>{const g=DATA[n].grade; if(gCnt[g]!==undefined) gCnt[g]++;});
+  const top5 = myNames.map(n=>({name:n,sales:DATA[n].sales||0})).sort((a,b)=>b.sales-a.sales).slice(0,5);
+  const gColors = {A:'#1D9E75',B:'#378ADD',C:'#EF9F27',D:'#E24B4A',E:'#7F77DD',F:'#888780'};
+  let html = '<div style="background:#F0FBF6;border-radius:10px;padding:14px 16px;margin-bottom:12px;">';
+  html += '<div style="font-size:12px;color:#6B6963;margin-bottom:4px;">'+currentMonth+'월 전체 목표 달성률</div>';
+  html += '<div style="font-size:28px;font-weight:700;color:#1D9E75;">'+pct+'%</div>';
+  html += '<div style="font-size:13px;color:#2B2B2B;margin-top:4px;">'+fmt(totSales)+' / 목표 '+fmt(totGoal)+'</div></div>';
+  html += '<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">1~6월 전체 매출 추이</div><div style="height:120px;"><canvas id="AnaChart"></canvas></div></div>';
+  html += '<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">등급 분포</div><div style="display:flex;gap:6px;flex-wrap:wrap;">';
+  Object.entries(gCnt).forEach(([g,cnt])=>{ if(cnt>0) html += '<div style="background:'+gColors[g]+';color:#fff;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;">'+g+'등급 '+cnt+'처</div>'; });
+  html += '</div></div><div><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">'+currentMonth+'월 매출 TOP5</div>';
+  const mTop = top5.length>0?top5[0].sales:1;
+  top5.forEach((x,i)=>{
+    const sn=x.name.split(' ').slice(1).join(' ')||x.name, p2=Math.round(x.sales/mTop*100);
+    html += '<div class="pb-modal-item"><span style="width:18px;font-size:11px;color:#888;flex-shrink:0;">'+(i+1)+'</span>';
+    html += '<span style="width:100px;flex-shrink:0;font-size:13px;font-weight:600;">'+sn+'</span>';
+    html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+p2+'%;background:#1D9E75"></div></div>';
+    html += '<span class="pb-modal-amt">'+fmt(x.sales)+'</span></div>';
   });
   html += '</div>';
-  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;">🏆 등급별 분포</div>';
-  html += '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">';
-  Object.entries(gradeCount).filter(([,c])=>c>0).forEach(([g,c]) => {
-    html += '<div style="background:'+gradeColors[g]+'22;border:1px solid '+gradeColors[g]+';border-radius:8px;padding:8px 14px;text-align:center;"><div style="font-size:16px;font-weight:700;color:'+gradeColors[g]+';">'+g+'</div><div style="font-size:11px;color:#6B6963;">'+c+'개처</div></div>';
+  openModal('📊 전체 분석 대시보드', html);
+  requestAnimationFrame(()=>{
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js','Chart').then(()=>{
+      const ctx=document.getElementById('AnaChart'); if(!ctx) return;
+      if(window.__anaChart){try{window.__anaChart.destroy();}catch(e){}}
+      const labels=['1월','2월','3월','4월','5월','6월'];
+      const colors=[1,2,3,4,5,6].map(m=>m===currentMonth?'#1D9E75':'#C8E6C9');
+      window.__anaChart=new Chart(ctx,{
+        type:'bar',data:{labels,datasets:[{data:mTotals,backgroundColor:colors,borderRadius:4,borderSkipped:false}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}},
+          scales:{y:{beginAtZero:true,ticks:{font:{size:10},callback:v=>Math.round(v/100000000*10)/10+'억'}},x:{ticks:{font:{size:10}}}}
+        }
+      });
+    }).catch(()=>{});
   });
-  html += '</div>';
-  html += '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:8px;">📋 매출 상위 5 거래처</div>';
-  Object.values(DATA).sort((a,b)=>b.sales-a.sales).slice(0,5).forEach((d,i) => {
-    const dp = d.monthGoal>0?Math.round(d.sales/d.monthGoal*100):0;
-    const esc = d.name.replace(/'/g,"\\'");
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #EEE;">';
-    html += '<span style="width:18px;font-size:11px;color:#888;text-align:center;">'+(i+1)+'</span>';
-    html += '<span style="flex:1;font-size:13px;cursor:pointer;color:#1D9E75;font-weight:600;text-decoration:underline;" onclick="closeModal();pick(\''+esc+'\')">'+d.name.split(' ').slice(1).join(' ')+'</span>';
-    html += '<span style="font-size:12px;font-weight:600;">'+fmt(d.sales)+'</span>';
-    html += '<span style="font-size:11px;color:'+(dp>=100?'#1D9E75':'#E24B4A')+';">'+dp+'%</span></div>';
-  });
-  openModal('📊 ' + currentUser.name + ' 영업 현황 분석 (' + currentMonth + '월)', html);
 }
 
 // ============================================================
-// openAISmallTalk — 데이터 기반 스몰톡 스크립트 생성
+// AI 스몰톡 스크립트 생성
 // ============================================================
 function openAISmallTalk(name) {
   logUsage('ai_smalltalk');
   const d = DATA[name]; if (!d) return;
-  const real = PHARMACY_REAL[name];
-  const shortName = name.split(' ').slice(1).join(' ') || name;
-  const trendUp = d.salesTrend.startsWith('+');
-  const hasPb   = d.catRatio.pb >= 10;
-  const hasVet  = d.vet3mAvg > 0;
+  const sn = name.split(' ').slice(1).join(' ') || name;
+  const grade = d.grade || 'E';
+  const trend = d.salesTrend || '+0%';
+  const tUp = trend.startsWith('+');
+  const pbAmt = d.catSales ? d.catSales.pb : 0;
+  const pbR = d.catRatio ? d.catRatio.pb : 0;
+  const hasVet = d.vet3mAvg > 0;
+  const pct = d.monthGoal > 0 ? Math.round(d.sales/d.monthGoal*100) : 0;
   const scripts = [];
 
-  if (trendUp) {
-    scripts.push({ tag: '📈 상승세 활용', text: shortName+' 선생님, 지난달 대비 매출이 '+d.salesTrend+' 올랐네요! 최근 어떤 품목이 잘 나가고 있으신지 여쭤봐도 될까요? 잘 나가는 신제품 정보도 가져왔습니다.' });
-  } else {
-    scripts.push({ tag: '📉 회복 기회', text: shortName+' 선생님, 이번 달 '+d.salesTrend+' 변동이 있었는데 혹시 반품이나 재고 이슈가 있으셨나요? 제가 도움이 될 수 있는 부분을 찾아보고 싶어서요.' });
-  }
-  if (d.grade === 'A' || d.grade === 'B') {
-    scripts.push({ tag: '⭐ 우수 거래처 관리', text: '항상 큰 거래처로 믿고 있습니다, 선생님. 이번에 신규 PB 라인업이 들어왔는데 '+shortName+' 선생님께 제일 먼저 소개드리고 싶었어요. 잠깐 시간 괜찮으세요?' });
-  } else {
-    scripts.push({ tag: '💡 관계 강화', text: '선생님, 요즘 약국 운영에 어려운 점은 없으신가요? 저희 쪽에서 도움드릴 수 있는 부분이 있으면 말씀해 주세요. 이번에 마진 좋은 신제품 몇 가지 가져왔습니다.' });
-  }
-  if (hasPb) {
-    const kws = (MONTHLY_PB_KEYWORDS[currentMonth]||[]).slice(0,2).join(', ');
-    scripts.push({ tag: '💎 PB 강세 활용', text: shortName+' 선생님은 저희 PB 제품을 늘 잘 써주시는데 정말 감사합니다. 이번 달 신규 PB'+(kws?' ('+kws+')':'')+' 입고됐는데 먼저 소개드릴까요?' });
-  } else {
-    scripts.push({ tag: '💎 PB 도입 제안', text: '선생님, PB 제품은 일반 제품보다 마진이 15~20% 높아서 약국 수익에 많이 도움이 됩니다. 부담 없이 소량으로 한번 테스트해 보시는 건 어떠세요?' });
-  }
-  if (hasVet) {
-    scripts.push({ tag: '🐾 동물약 확대', text: '선생님, 동물약 취급해 주셔서 감사합니다! 반려동물 시장이 계속 커지고 있어서, 이번에 신규 동물의약품 라인도 가져왔는데 한번 보시겠어요?' });
-  } else {
-    scripts.push({ tag: '🐾 동물약 첫 도입', text: '선생님, 요즘 반려동물 약 찾으시는 분들이 많이 늘었는데 동물약 취급 생각해 보신 적 있으세요? 진입 장벽이 낮고 마진도 좋아서 여쭤봤습니다.' });
-  }
-  if (d.debt > 1000000) {
-    scripts.push({ tag: '💰 미수금 정리', text: '선생님, 번거로우시겠지만 이번 방문에 미수금('+fmt(d.debt)+') 부분도 정리하면 좋을 것 같아서요. 결제 편하신 방법 있으시면 말씀해 주세요.' });
-  }
+  // 매출 추이
+  if (tUp) scripts.push({ tag:'📈 매출 상승', text:'안녕하세요! '+sn+' 약사님, 이번 달 매출이 전월 대비 '+trend+' 상승했습니다. 꾸준한 신뢰 덕분입니다. 오늘도 빠른 배송과 품질로 보답하겠습니다!' });
+  else scripts.push({ tag:'📉 매출 하락', text:'안녕하세요! '+sn+' 약사님, 이번 달 매출이 '+trend+'인데요, 불편한 점이나 개선 사항이 있으시면 편하게 말씀해 주세요. 더 잘 모시겠습니다!' });
 
-  let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">실매출 데이터 기반 맞춤 스크립트 · 클릭하면 복사됩니다</div>';
-  html += '<div style="background:#F5F4EE;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.8;">';
-  html += '<strong>'+shortName+'</strong> · '+d.grade+'등급 · '+d.salesTrend+' · PB '+d.catRatio.pb+'%'+(hasVet?' · 동물약 ✓':'')+(d.debt>500000?' · 미수금 '+fmt(d.debt):'');
-  html += '</div>';
-  scripts.forEach(s => {
+  // 등급
+  if (grade==='A'||grade==='B') scripts.push({ tag:'🏆 '+grade+'등급 우수', text:sn+' 약사님은 '+grade+'등급 최우수 거래처이십니다! 항상 큰 신뢰를 주셔서 감사합니다. 오늘 방문 시 특별 신제품 샘플을 준비했습니다.' });
+  else if (grade==='C') scripts.push({ tag:'💪 C등급 성장', text:sn+' 약사님, C등급으로 성장 잠재력이 높습니다! 이번 달 집중 관리 품목 위주로 발주 계획을 함께 검토해드릴 수 있습니다.' });
+  else scripts.push({ tag:'📋 '+grade+'등급 케어', text:sn+' 약사님, 안녕하세요! 오늘 방문은 주요 품목 재고 확인과 이번 달 특가 행사 안내를 드리려 합니다. 잠깐 시간 괜찮으실까요?' });
+
+  // PB
+  if (pbR>=5||pbAmt>100000) scripts.push({ tag:'🌿 PB 강화', text:sn+' 약사님, PB 발주가 '+fmt(pbAmt)+'으로 좋은 반응을 보이고 있습니다! 이번 달 신규 PB 라인업 중 마진율 높은 제품 위주로 추천드릴게요.' });
+  else scripts.push({ tag:'🌿 PB 입문', text:sn+' 약사님, PB 제품은 마진율이 일반약 대비 2~3배 높습니다! 부담 없는 소량으로 테스트해 보시는 건 어떨까요? 베스트셀러 샘플 가져왔습니다.' });
+
+  // 동물약
+  if (hasVet) scripts.push({ tag:'🐾 동물약 유지', text:sn+' 약사님, 동물약 꾸준히 발주해 주셔서 감사합니다! 이번 달 동물약 신제품도 함께 확인해 보세요.' });
+  else scripts.push({ tag:'🐾 동물약 신규', text:sn+' 약사님, 혹시 동물약은 취급하고 계신가요? 최근 펫 가족이 늘면서 약국 동물약 수요가 크게 늘었습니다. 소량 입고 테스트해 보시겠어요?' });
+
+  // 목표
+  if (pct>=90) scripts.push({ tag:'🎯 목표 달성', text:sn+' 약사님, 이번 달 목표 달성률이 '+pct+'%입니다! 이 추세라면 이번 달도 목표를 달성할 것 같습니다. 감사합니다!' });
+  else if (pct>0&&pct<60) scripts.push({ tag:'⚡ 목표 밀어붙이기', text:sn+' 약사님, 이번 달 달성률이 '+pct+'%인데요, 남은 기간 인기 품목 위주로 발주를 조금 더 당기시면 목표 달성이 가능합니다!' });
+
+  let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">클릭하면 클립보드에 복사됩니다</div><div style="display:flex;flex-direction:column;gap:10px;">';
+  scripts.slice(0,5).forEach((s,i) => {
     const esc = s.text.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    html += '<div style="border:1.5px solid #E8E6DC;border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer;" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+esc+'\').then(()=>{this.style.borderColor=\'#1D9E75\';this.querySelector(\'.cp\').textContent=\'✅ 복사됨\';setTimeout(()=>{this.style.borderColor=\'#E8E6DC\';this.querySelector(\'.cp\').textContent=\'탭하면 복사\';},1500);})">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
-    html += '<span style="font-size:12px;font-weight:700;color:#3C3489;">'+s.tag+'</span>';
-    html += '<span class="cp" style="font-size:10px;color:#aaa;">탭하면 복사</span></div>';
-    html += '<div style="font-size:13px;line-height:1.7;color:#2B2B2B;">'+s.text+'</div></div>';
+    html += '<div onclick="navigator.clipboard.writeText(\''+esc+'\').then(function(){this.style.background=\'#E6F5F0\';}.bind(this)).catch(function(){})" style="cursor:pointer;border:1.5px solid #E8E6DC;border-radius:10px;padding:12px;transition:background 0.2s;">';
+    html += '<div style="font-size:11px;font-weight:700;color:#3C3489;margin-bottom:6px;">'+s.tag+' <span style="font-size:10px;color:#aaa;font-weight:400;">(클릭 복사)</span></div>';
+    html += '<div style="font-size:13px;color:#2B2B2B;line-height:1.7;">'+s.text+'</div></div>';
   });
-  html += '<div style="font-size:11px;color:#aaa;text-align:center;margin-top:6px;">📊 실매출 데이터 기반 자동 생성 · 상황에 맞게 수정해서 사용하세요</div>';
-  openModal('🤖 AI 스몰톡 — ' + shortName, html);
+  html += '</div>';
+  openModal('🤖 AI 스몰톡 — '+sn, html);
 }
 
-// ============================================================
-// 페이지 초기화 — 사용자 선택 드롭다운 채우기
-// ============================================================
-initUserSelect();
+// ── 김형남 (ext_06) 데이터 ─────────────────────────
+const PHARMACY_REAL_ext06 = {
+  "광주 ACC라온약국C":{monthly:{1:7151383,2:11136114,3:20843284,4:1079064,5:1259455,6:4079026},pb:184400,pbMonthly:{1:12500,2:33500,3:39350,4:47700,5:36500,6:14850},animal:0,animalMonthly:{},total:45548326,proGrade:{A:5,B:6,C:171,D:142,E:42,F:24},goal:0},
+  "광주 고명약국D":{monthly:{1:10880890,2:10347670,3:12557710,4:10151885,5:10671101,6:10960191},pb:3185010,pbMonthly:{1:549000,2:556300,3:1316310,4:412800,5:307500,6:43100},animal:0,animalMonthly:{},total:65569447,proGrade:{A:16,B:10,C:795,D:735,E:211,F:83},goal:0},
+  "광주 노벨약국(학동)H":{monthly:{1:737792,2:524090,3:769623,4:1390024,5:1019223,6:1122175},pb:423500,pbMonthly:{1:76750,2:27500,3:171000,4:92000,5:56250},animal:0,animalMonthly:{},total:5562927,proGrade:{A:5,B:1,C:63,D:84,E:30,F:11},goal:0},
+  "광주 대동약국C":{monthly:{1:914150,2:920751,3:878266,4:1188869,5:892321,6:756804},pb:267700,pbMonthly:{1:19200,2:5500,3:37500,4:81500,5:65000,6:59000},animal:0,animalMonthly:{},total:5551161,proGrade:{A:18,B:10,C:99,D:64,E:8,F:22},goal:0},
+  "광주 대추나무약국D":{monthly:{1:24560764,2:17165234,3:26994735,4:17721352,5:19093232,6:17907590},pb:757500,pbMonthly:{1:77000,2:32400,3:94400,5:516700,6:37000},animal:54100,animalMonthly:{3:24400,5:29700},total:123442907,proGrade:{A:12,B:14,C:763,D:471,E:264,F:102},goal:0},
+  "광주 두암타운온누리약국D":{monthly:{1:31092367,2:20696423,3:25363868,4:20596092,5:21154485,6:26366299},pb:38100,pbMonthly:{4:5100,5:33000},animal:0,animalMonthly:{},total:145269534,proGrade:{A:13,B:48,C:1573,D:1287,E:417,F:134},goal:0},
+  "광주 란약국D":{monthly:{1:2771289,2:3478718,3:3520075,4:1904213,5:2741845,6:4595312},pb:258000,pbMonthly:{1:195000,5:33000,6:30000},animal:30000,animalMonthly:{6:30000},total:19011452,proGrade:{A:0,B:4,C:105,D:112,E:45,F:15},goal:0},
+  "광주 레몬약국E":{monthly:{1:38253855,2:31654899,3:40421938,4:27867372,5:42076604,6:30259205},pb:1653060,pbMonthly:{1:180250,2:107910,3:258750,4:210650,5:269900,6:625600},animal:1563900,animalMonthly:{1:92000,2:276300,3:252800,4:120100,5:167500,6:655200},total:210533873,proGrade:{A:14,B:107,C:1050,D:821,E:362,F:210},goal:0},
+  "광주 말바우약국D":{monthly:{1:10505777,2:10009836,3:10601061,4:10458021,5:10092699,6:9943881},pb:183000,pbMonthly:{2:171800,3:-36000,4:19800,6:27400},animal:0,animalMonthly:{},total:61611275,proGrade:{A:18,B:60,C:695,D:637,E:275,F:128},goal:0},
+  "광주 메디팜세종약국":{monthly:{1:386130,2:343889,3:367066,4:649176,5:145660,6:669382},pb:261300,pbMonthly:{1:41250,2:33250,3:12800,4:33000,5:83000,6:58000},animal:0,animalMonthly:{},total:2561303,proGrade:{A:0,B:2,C:32,D:15,E:10,F:6},goal:0},
+  "광주 모아약국H":{monthly:{1:6394935,2:5061578,3:6322624,4:8340563,5:7838168,6:7165953},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:41123821,proGrade:{A:4,B:7,C:263,D:245,E:52,F:15},goal:0},
+  "광주 무등산약국(소태동)H":{monthly:{1:6367632,2:4504658,3:7790673,4:8648880,5:8770699,6:9042162},pb:-27150,pbMonthly:{1:1650,3:-30400,4:1600},animal:0,animalMonthly:{},total:45124704,proGrade:{A:22,B:19,C:1474,D:620,E:225,F:144},goal:0},
+  "광주 바른약국(서동)C":{monthly:{1:1126096,2:2296061,3:1876646,4:2259797,5:2082407,6:2714422},pb:66100,pbMonthly:{1:13800,2:18000,3:6900,4:11500,5:6900,6:9000},animal:0,animalMonthly:{},total:12355429,proGrade:{A:4,B:6,C:183,D:110,E:45,F:32},goal:0},
+  "광주 밝은온누리약국E":{monthly:{1:4259658,2:4785253,3:5494289,4:5554112,5:5200312,6:4933485},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:30227109,proGrade:{A:5,B:6,C:404,D:255,E:226,F:46},goal:0},
+  "광주 백림약국D":{monthly:{1:14445274,2:25542998,3:23164764,4:9754195,5:7888964,6:11377482},pb:354200,pbMonthly:{1:94500,2:58500,4:131000,5:70200},animal:0,animalMonthly:{},total:92173677,proGrade:{A:4,B:7,C:433,D:306,E:135,F:82},goal:0},
+  "광주 보보약국F":{monthly:{1:-310000,2:104250,3:215430,4:517492,5:50396,6:62592},pb:69000,pbMonthly:{4:69000},animal:0,animalMonthly:{},total:640160,proGrade:{A:0,B:0,C:5,D:13,E:6,F:1},goal:0},
+  "광주 복있는약국C":{monthly:{1:3336956,2:780660,3:2505732,4:1292490,5:1555414,6:970098},pb:569500,pbMonthly:{1:295000,2:75000,3:117000,4:33000,5:33000,6:16500},animal:0,animalMonthly:{},total:10441350,proGrade:{A:3,B:11,C:89,D:51,E:24,F:20},goal:0},
+  "광주 봄날약국B":{monthly:{1:23505620,2:26606676,3:25430907,4:24818655,5:24315986,6:23882363},pb:23100,pbMonthly:{2:-9900,5:33000},animal:0,animalMonthly:{},total:148560207,proGrade:{A:5,B:43,C:1285,D:1098,E:484,F:160},goal:0},
+  "광주 빛고을문흥종로약국D":{monthly:{1:16696058,2:21729485,3:19792670,4:20909113,5:23153580,6:23797785},pb:104000,pbMonthly:{2:19000,3:44000,4:19000,6:22000},animal:0,animalMonthly:{},total:126078691,proGrade:{A:33,B:18,C:1231,D:1227,E:308,F:192},goal:0},
+  "광주 빛고을열린약국(산수)H":{monthly:{1:5289705,2:6539508,3:3041564,4:3571957,5:4498057,6:3449684},pb:10100,pbMonthly:{1:9000,2:8700,3:6600,4:-6100,5:-13200,6:5100},animal:0,animalMonthly:{},total:26390475,proGrade:{A:4,B:6,C:141,D:103,E:24,F:24},goal:0},
+  "광주 빛고을종로약국(일곡)G":{monthly:{1:1135361,2:1072627,3:1089980,4:1182756,5:1353738,6:826145},pb:1579350,pbMonthly:{1:227050,2:209900,3:106800,4:422550,5:292950,6:320100},animal:1442700,animalMonthly:{1:185800,2:200000,3:106800,4:368300,5:284700,6:297100},total:6660607,proGrade:{A:0,B:0,C:118,D:72,E:39,F:12},goal:0},
+  "광주 새생명약국D":{monthly:{1:1308640,2:755510,3:768838,4:1518620,5:2201258,6:598240},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:7151106,proGrade:{A:0,B:1,C:27,D:55,E:3,F:0},goal:0},
+  "광주 생생약국D":{monthly:{1:29970317,2:23597069,3:29252077,4:29729770,5:25549809,6:22701412},pb:428400,pbMonthly:{1:33500,2:88000,4:76500,5:69500,6:160900},animal:0,animalMonthly:{},total:160800454,proGrade:{A:30,B:30,C:1172,D:671,E:339,F:280},goal:0},
+  "광주 서광약국D":{monthly:{1:1188640,2:3738277,3:6475392,4:7248069,5:4691504,6:5990423},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:29332305,proGrade:{A:1,B:1,C:60,D:75,E:44,F:20},goal:0},
+  "광주 서린약국D":{monthly:{1:4137803,2:3940956,3:2999060,4:5064176,5:5249379,6:3958153},pb:174700,pbMonthly:{3:28000,4:41700,5:33000,6:72000},animal:0,animalMonthly:{},total:25349527,proGrade:{A:3,B:10,C:141,D:83,E:58,F:53},goal:0},
+  "광주 세일약국C":{monthly:{1:1535794,2:1612359,3:1514970,4:1897605,5:1041201,6:1149772},pb:471000,pbMonthly:{1:132000,3:101000,4:148000,5:90000},animal:0,animalMonthly:{},total:8751701,proGrade:{A:21,B:4,C:88,D:54,E:6,F:13},goal:0},
+  "광주 세종약국(대인동)C":{monthly:{1:6573704,2:8082404,3:5363013,4:5862887,5:4141742,6:2842002},pb:236900,pbMonthly:{1:22800,2:85500,3:47800,4:59800,5:21000},animal:0,animalMonthly:{},total:32865752,proGrade:{A:3,B:0,C:222,D:108,E:26,F:13},goal:0},
+  "광주 센트럴약국 C":{monthly:{1:9870525,2:9434433,3:12750138,4:9012752,5:9646828,6:11907148},pb:36250,pbMonthly:{3:8250,5:28000},animal:0,animalMonthly:{},total:62621824,proGrade:{A:0,B:9,C:945,D:768,E:225,F:38},goal:0},
+  "광주 수약국D":{monthly:{1:6982417,2:7992145,3:10751932,4:8735086,5:8189126,6:11869283},pb:-108500,pbMonthly:{2:26000,3:11000,4:-235500,6:90000},animal:0,animalMonthly:{},total:54519989,proGrade:{A:2,B:7,C:278,D:311,E:98,F:39},goal:0},
+  "광주 십자당약국(금남로)C":{monthly:{1:1758589,2:1648613,3:1965149,4:3177190,5:1450120,6:2236018},pb:271800,pbMonthly:{1:40100,2:133500,3:34000,4:8250,5:55950},animal:0,animalMonthly:{},total:12235679,proGrade:{A:27,B:12,C:203,D:76,E:21,F:28},goal:0},
+  "광주 십자로약국":{monthly:{1:185000,2:681198,3:306912,4:541070,5:879110,6:1193396},pb:11730,pbMonthly:{2:4830,5:6900},animal:0,animalMonthly:{},total:3786686,proGrade:{A:4,B:1,C:37,D:32,E:5,F:3},goal:0},
+  "광주 안세약국C":{monthly:{1:2916022,2:3898625,3:3740588,4:4176430,5:3130969,6:2888314},pb:681300,pbMonthly:{1:204750,2:134700,3:47500,4:69400,5:131000,6:93950},animal:410900,animalMonthly:{1:133900,2:44800,3:36200,4:49000,5:78000,6:69000},total:20750948,proGrade:{A:15,B:9,C:337,D:273,E:64,F:39},goal:0},
+  "광주 오렌지약국":{monthly:{1:2478117,2:1305266,3:1316798,4:1262571,5:1380996,6:1976893},pb:152450,pbMonthly:{1:8700,2:22750,3:29000,4:46000,5:46000},animal:0,animalMonthly:{},total:9720641,proGrade:{A:1,B:2,C:79,D:95,E:26,F:24},goal:0},
+  "광주 용봉프라자약국G":{monthly:{1:279021,2:422881,3:200730,4:293664,5:160264,6:180177},pb:-25500,pbMonthly:{3:11000,4:19000,5:-38000,6:-17500},animal:0,animalMonthly:{},total:1536737,proGrade:{A:6,B:0,C:29,D:13,E:7,F:2},goal:0},
+  "광주 우리약국(문흥동)D":{monthly:{1:3524080,2:4582502,3:3948730,4:3970222,5:4226008,6:6609470},pb:36700,pbMonthly:{1:11000,2:6900,4:11900,5:6900},animal:0,animalMonthly:{},total:26861012,proGrade:{A:14,B:17,C:372,D:280,E:47,F:46},goal:0},
+  "광주 운암종로약국F":{monthly:{1:1954226,2:1107364,3:2363673,4:1592753,5:1592848,6:1185177},pb:251000,pbMonthly:{1:90000,3:63800,4:97200},animal:0,animalMonthly:{},total:9796041,proGrade:{A:3,B:3,C:82,D:70,E:22,F:33},goal:0},
+  "광주 유리약국(동구)H":{monthly:{1:1075388,2:278640,3:381102,4:812834,5:529188,6:907118},pb:461550,pbMonthly:{1:108050,2:196000,4:138000,5:19500},animal:0,animalMonthly:{},total:3984270,proGrade:{A:5,B:1,C:84,D:76,E:10,F:1},goal:0},
+  "광주 이화약국(우산동)D":{monthly:{1:1205376,2:846247,3:1163852,4:738373,5:744411,6:751946},pb:280550,pbMonthly:{1:111650,2:75450,3:107850,4:7850,5:40450,6:-62700},animal:0,animalMonthly:{},total:5450205,proGrade:{A:15,B:5,C:113,D:92,E:12,F:20},goal:0},
+  "광주 정겨운약국B":{monthly:{1:120544,2:201400,3:126705,4:163530,5:297660,6:749988},pb:22000,pbMonthly:{3:11000,5:11000},animal:0,animalMonthly:{},total:1659827,proGrade:{A:0,B:0,C:7,D:11,E:3,F:2},goal:0},
+  "광주 조이약국":{monthly:{1:2392665,2:-9185},pb:-12690,pbMonthly:{1:-12690},animal:0,animalMonthly:{},total:2383480,proGrade:{A:6,B:7,C:92,D:91,E:14,F:8},goal:0},
+  "광주 조제약국C":{monthly:{1:80686472,2:64635733,3:79081879,4:73481117,5:58037228,6:67256647},pb:629850,pbMonthly:{1:99100,2:6600,3:343500,4:93250,5:70400,6:17000},animal:0,animalMonthly:{},total:423179076,proGrade:{A:10,B:43,C:622,D:520,E:334,F:250},goal:0},
+  "광주 즐거운약국H(학동)":{monthly:{1:4785258,2:3911540,3:3734206,4:3915396,5:3663346,6:3791186},pb:19500,pbMonthly:{2:19500},animal:0,animalMonthly:{},total:23800932,proGrade:{A:0,B:1,C:99,D:44,E:51,F:33},goal:0},
+  "광주 지산종로약국H":{monthly:{1:1942148,2:586859,3:501001,4:458169,5:251772,6:497194},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:4237143,proGrade:{A:0,B:1,C:41,D:44,E:3,F:2},goal:0},
+  "광주 첨단탑약국G":{monthly:{1:5208265,2:3329235,3:4006359,4:3564122,5:2981481,6:4185951},pb:96400,pbMonthly:{1:16500,4:25900,5:37500,6:16500},animal:0,animalMonthly:{},total:23275413,proGrade:{A:3,B:0,C:87,D:89,E:10,F:8},goal:0},
+  "광주 태평양약국D":{monthly:{1:10776776,2:12245182,3:9186685,4:11059808,5:7889378,6:12870054},pb:548700,pbMonthly:{1:101000,2:133500,3:79200,4:69000,5:46000,6:120000},animal:10000,animalMonthly:{5:10000},total:64027883,proGrade:{A:12,B:9,C:733,D:509,E:216,F:91},goal:0},
+  "광주 토마토약국(학동)C":{monthly:{1:1434240,2:2546708,3:4898426,4:6234868,5:6953426,6:7662783},pb:340950,pbMonthly:{1:24120,2:25660,3:199300,4:53320,5:9000,6:29550},animal:0,animalMonthly:{},total:29730451,proGrade:{A:21,B:7,C:375,D:355,E:64,F:28},goal:0},
+  "광주 푸른길약국H":{monthly:{1:3012153,2:1779311,3:3619425,4:2612946,5:2279140,6:2288066},pb:320600,pbMonthly:{1:66500,2:14850,3:99850,4:45550,5:14850,6:79000},animal:0,animalMonthly:{},total:15591041,proGrade:{A:3,B:0,C:107,D:167,E:19,F:9},goal:0},
+  "광주 푸른솔약국B":{monthly:{1:1828966,2:684357,3:973642,4:2022393,5:1554691,6:1033480},pb:178800,pbMonthly:{4:92000,5:86800},animal:0,animalMonthly:{},total:8097529,proGrade:{A:2,B:0,C:52,D:25,E:12,F:10},goal:0},
+  "광주 풀려라약국E":{monthly:{1:509230,2:608726,3:963850,4:649933,5:539896,6:296949},pb:105000,pbMonthly:{1:4950,2:45650,3:5900,4:5900,5:17700,6:24900},animal:0,animalMonthly:{},total:3568584,proGrade:{A:5,B:0,C:101,D:64,E:41,F:14},goal:0},
+  "광주 프라임약국C(대인동)":{monthly:{1:2740492,2:1583810,3:2292039,4:2139835,5:2079994,6:1986752},pb:221900,pbMonthly:{1:38500,2:89400,4:21700,5:56100,6:16200},animal:0,animalMonthly:{},total:12822922,proGrade:{A:23,B:23,C:210,D:157,E:24,F:16},goal:0},
+  "광주 프레메디산부인과의원":{monthly:{1:305150,2:1851330,3:1525750,4:1423600,5:569700,6:915450},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:6590980,proGrade:{A:0,B:0,C:0,D:0,E:0,F:16},goal:0},
+  "광주 학동우리들약국H":{monthly:{1:2189196,2:1859928,3:2461222,4:1857522,5:2933108,6:2863472},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:14164448,proGrade:{A:0,B:1,C:126,D:153,E:29,F:12},goal:0},
+  "광주 학동종로약국C":{monthly:{1:1275504,2:692212,3:1211638,4:1962316,5:1479419,6:350288},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:6971377,proGrade:{A:0,B:1,C:120,D:52,E:44,F:18},goal:0},
+  "광주 학동프라임약국C":{monthly:{1:16550669,2:15373141,3:14631435,4:14581576,5:24647535,6:16151177},pb:626620,pbMonthly:{1:367620,2:19240,3:10500,4:17590,5:193220,6:18450},animal:0,animalMonthly:{},total:101935533,proGrade:{A:42,B:17,C:415,D:427,E:86,F:126},goal:0},
+  "광주 해오름약국H":{monthly:{3:82000,4:66300},pb:0,pbMonthly:{},animal:0,animalMonthly:{},total:148300,proGrade:{A:0,B:0,C:0,D:1,E:0,F:0},goal:0},
+  "광주 호남온누리약국C":{monthly:{1:91695763,2:75664234,3:85383790,4:91144701,5:86841627,6:95191511},pb:206280,pbMonthly:{1:5260,2:-2630,3:14500,4:33050,5:120700,6:35400},animal:47330,animalMonthly:{1:-5540,2:-2630,3:14500,4:-13500,5:30700,6:23800},total:525921626,proGrade:{A:13,B:16,C:1134,D:994,E:410,F:277},goal:0}
+};
+Object.assign(PHARMACY_REAL, PHARMACY_REAL_ext06);
 
-</script>
-</body>
-</html>
+const LIST_ext_06 = [
+  ['광주 ACC라온약국C','광주광역시','약사','E',4079026,'+224%',0.0,0,0,0.004,false,0.0,'김형남노선',0,0],
+  ['광주 고명약국D','광주광역시','약사','C',10960191,'+3%',0.0,0,0,0.004,false,0.0,'김형남노선',0,0],
+  ['광주 노벨약국(학동)H','광주광역시','약사','E',1122175,'+10%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 대동약국C','광주광역시','약사','E',756804,'-15%',0.0,0,0,0.078,false,0.0,'김형남노선',0,0],
+  ['광주 대추나무약국D','광주광역시','약사','C',17907590,'-6%',0.0,0,0,0.002,true,0.0,'김형남노선',0,0],
+  ['광주 두암타운온누리약국D','광주광역시','약사','B',26366299,'+25%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 란약국D','광주광역시','약사','E',4595312,'+68%',0.0,0,0,0.007,true,30000.0,'김형남노선',0,0],
+  ['광주 레몬약국E','광주광역시','약사','B',30259205,'-28%',0.0,0,0,0.021,true,655200.0,'김형남노선',0,0],
+  ['광주 말바우약국D','광주광역시','약사','D',9943881,'-1%',0.0,0,0,0.003,false,0.0,'김형남노선',0,0],
+  ['광주 메디팜세종약국','광주광역시','약사','E',669382,'+360%',0.0,0,0,0.087,false,0.0,'김형남노선',0,0],
+  ['광주 모아약국H','광주광역시','약사','D',7165953,'-9%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 무등산약국(소태동)H','광주광역시','약사','D',9042162,'+3%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 바른약국(서동)C','광주광역시','약사','E',2714422,'+30%',0.0,0,0,0.003,false,0.0,'김형남노선',0,0],
+  ['광주 밝은온누리약국E','광주광역시','약사','E',4933485,'-5%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 백림약국D','광주광역시','약사','C',11377482,'+44%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 보보약국F','광주광역시','약사','E',62592,'+24%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 복있는약국C','광주광역시','약사','E',970098,'-38%',0.0,0,0,0.017,false,0.0,'김형남노선',0,0],
+  ['광주 봄날약국B','광주광역시','약사','C',23882363,'-2%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 빛고을문흥종로약국D','광주광역시','약사','C',23797785,'+3%',0.0,0,0,0.001,false,0.0,'김형남노선',0,0],
+  ['광주 빛고을열린약국(산수)H','광주광역시','약사','E',3449684,'-23%',0.0,0,0,0.001,false,0.0,'김형남노선',0,0],
+  ['광주 빛고을종로약국(일곡)G','광주광역시','약사','E',826145,'-39%',0.0,0,0,0.387,true,297100.0,'김형남노선',0,0],
+  ['광주 새생명약국D','광주광역시','약사','E',598240,'-73%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 생생약국D','광주광역시','약사','C',22701412,'-11%',0.0,0,0,0.007,false,0.0,'김형남노선',0,0],
+  ['광주 서광약국D','광주광역시','약사','D',5990423,'+28%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 서린약국D','광주광역시','약사','E',3958153,'-25%',0.0,0,0,0.018,false,0.0,'김형남노선',0,0],
+  ['광주 세일약국C','광주광역시','약사','E',1149772,'+10%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 세종약국(대인동)C','광주광역시','약사','E',2842002,'-31%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 센트럴약국 C','광주광역시','약사','C',11907148,'+23%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 수약국D','광주광역시','약사','C',11869283,'+45%',0.0,0,0,0.008,false,0.0,'김형남노선',0,0],
+  ['광주 십자당약국(금남로)C','광주광역시','약사','E',2236018,'+54%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 십자로약국','광주광역시','약사','E',1193396,'+36%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 안세약국C','광주광역시','약사','E',2888314,'-8%',0.0,0,0,0.033,true,69000.0,'김형남노선',0,0],
+  ['광주 오렌지약국','광주광역시','약사','E',1976893,'+43%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 용봉프라자약국G','광주광역시','약사','E',180177,'+12%',0.0,0,0,-0.097,false,0.0,'김형남노선',0,0],
+  ['광주 우리약국(문흥동)D','광주광역시','약사','D',6609470,'+56%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 운암종로약국F','광주광역시','약사','E',1185177,'-26%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 유리약국(동구)H','광주광역시','약사','E',907118,'+71%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 이화약국(우산동)D','광주광역시','약사','E',751946,'+1%',0.0,0,0,-0.083,false,0.0,'김형남노선',0,0],
+  ['광주 정겨운약국B','광주광역시','약사','E',749988,'+152%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 조이약국','광주광역시','약사','E',0,'+0%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 조제약국C','광주광역시','약사','A',67256647,'+16%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 즐거운약국H(학동)','광주광역시','약사','E',3791186,'+3%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 지산종로약국H','광주광역시','약사','E',497194,'+97%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 첨단탑약국G','광주광역시','약사','E',4185951,'+40%',0.0,0,0,0.004,false,0.0,'김형남노선',0,0],
+  ['광주 태평양약국D','광주광역시','약사','C',12870054,'+63%',0.0,0,0,0.009,true,0.0,'김형남노선',0,0],
+  ['광주 토마토약국(학동)C','광주광역시','약사','D',7662783,'+10%',0.0,0,0,0.004,false,0.0,'김형남노선',0,0],
+  ['광주 푸른길약국H','광주광역시','약사','E',2288066,'+0%',0.0,0,0,0.035,false,0.0,'김형남노선',0,0],
+  ['광주 푸른솔약국B','광주광역시','약사','E',1033480,'-34%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 풀려라약국E','광주광역시','약사','E',296949,'-45%',0.0,0,0,0.084,false,0.0,'김형남노선',0,0],
+  ['광주 프라임약국C(대인동)','광주광역시','약사','E',1986752,'-4%',0.0,0,0,0.008,false,0.0,'김형남노선',0,0],
+  ['광주 프레메디산부인과의원','광주광역시','약사','E',915450,'+61%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 학동우리들약국H','광주광역시','약사','E',2863472,'-2%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 학동종로약국C','광주광역시','약사','E',350288,'-76%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 학동프라임약국C','광주광역시','약사','C',16151177,'-34%',0.0,0,0,0.001,false,0.0,'김형남노선',0,0],
+  ['광주 해오름약국H','광주광역시','약사','E',0,'+0%',0.0,0,0,0.0,false,0.0,'김형남노선',0,0],
+  ['광주 호남온누리약국C','광주광역시','약사','A',95191511,'+10%',0.0,0,0,0.0,true,23800.0,'김형남노선',0,0]
+]; // 외부6 김형남
+USER_LISTS['ext_06'] = LIST_ext_06;
+
+</script></body></html>
