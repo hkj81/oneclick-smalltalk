@@ -54115,6 +54115,13 @@ const PHARMACY_REAL_ext06 = {
   "광주 호남온누리약국C":{monthly:{1:91695763,2:75664234,3:85383790,4:91144701,5:86841627,6:95191511},pb:206280,pbMonthly:{1:5260,2:-2630,3:14500,4:33050,5:120700,6:35400},animal:47330,animalMonthly:{1:-5540,2:-2630,3:14500,4:-13500,5:30700,6:23800},total:525921626,proGrade:{A:13,B:16,C:1134,D:994,E:410,F:277},goal:0}
 };
 Object.assign(PHARMACY_REAL, PHARMACY_REAL_ext06);
+// ext_06 pbMonthly → PB_MONTHLY 연결
+Object.entries(PHARMACY_REAL_ext06).forEach(([name, data]) => {
+  if (data.pbMonthly && Object.keys(data.pbMonthly).length > 0) {
+    PB_MONTHLY[name] = {};
+    Object.entries(data.pbMonthly).forEach(([m, v]) => { PB_MONTHLY[name][+m] = v; });
+  }
+});
 
 const LIST_ext_06 = [
   ['광주 ACC라온약국C','광주광역시','약사','E',4079026,'+224%',0.0,0,0,0.004,false,0.0,'김형남노선',0,0],
