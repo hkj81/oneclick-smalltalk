@@ -53977,28 +53977,35 @@ async function openAnalytics() {
       userCounts[uname] = (userCounts[uname] || 0) + 1;
     });
     const total = snap.docs.length;
-    const eventLabels = {
-      'analytics':'전체분석', 'modal_pb_all':'PB 전체',
-      'modal_pb_pharm':'거래처 PB', 'modal_pb21':'PB21 점검',
-      'modal_vet_count':'동물약', 'ai_smalltalk':'AI 스물톡',
-      'map':'지도'
+    const userCount = Object.keys(userCounts).length;
+    const topEvt = Object.entries(eventCounts).sort((a,b)=>b[1]-a[1])[0] || ['?', 0];
+    const evtMap = {
+      'pharmacy_open':'거래처 열기','sessions':'세션 시작',
+      'month_change':'월 변경','search':'검색',
+      'analytics':'전체 분석','ai_smalltalk':'AI 스몰톡',
+      'month_jump':'월 이동','modal_pb_pharm':'거래처 PB',
+      'modal_pb_all':'PB 전체','modal_pb21':'PB21 점검',
+      'map_view':'지도','map':'지도','set_target':'목표 설정',
+      'modal_vet':'동물약','modal_vet_count':'동물약',
+      'modal_7day_menu':'7일 메뉴'
     };
-    let html = '<div style="font-size:12px;color:#888;margin-bottom:12px;">최근 '+total+'건 이용 기록</div>';
-    html += '<div style="margin-bottom:14px;"><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">기능별 사용 횟수</div>';
+    // 이용자별 (심플 리스트)
+    let html = '<div style="font-size:12px;color:#888;margin-bottom:10px;">최근 '+total+'건 · 사용자 '+userCount+'명</div>';
+    html += '<div style="margin-bottom:14px;"><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">👤 이용자별 클릭</div>';
+    Object.entries(userCounts).sort((a,b)=>b[1]-a[1]).forEach(([user,cnt]) => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid #F5F3EC;font-size:13px;">';
+      html += '<span style="font-weight:600;">'+user+'</span>';
+      html += '<span style="color:#1D9E75;font-weight:700;">'+cnt+'회</span></div>';
+    });
+    html += '</div>';
+    // 기능별
+    html += '<div style="border-top:1px solid #E8E4D8;padding-top:12px;"><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">🔢 기능별 사용</div>';
     const maxEvt = Math.max(1, ...Object.values(eventCounts));
     Object.entries(eventCounts).sort((a,b)=>b[1]-a[1]).forEach(([evt,cnt]) => {
-      const label = eventLabels[evt] || evt;
+      const label = evtMap[evt] || evt;
       const p = Math.round(cnt/maxEvt*100);
       html += '<div class="pb-modal-item"><span style="width:90px;flex-shrink:0;font-size:12px;">'+label+'</span>';
       html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+p+'%;background:#39A2AE"></div></div>';
-      html += '<span class="pb-modal-amt">'+cnt+'회</span></div>';
-    });
-    html += '</div><div><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">이용자별 활동</div>';
-    const maxUsr = Math.max(1, ...Object.values(userCounts));
-    Object.entries(userCounts).sort((a,b)=>b[1]-a[1]).forEach(([user,cnt]) => {
-      const p = Math.round(cnt/maxUsr*100);
-      html += '<div class="pb-modal-item"><span style="width:70px;flex-shrink:0;font-size:13px;font-weight:600;">'+user+'</span>';
-      html += '<div class="pb-modal-bar-wrap"><div class="pb-modal-bar" style="width:'+p+'%;background:#1D9E75"></div></div>';
       html += '<span class="pb-modal-amt">'+cnt+'회</span></div>';
     });
     html += '</div>';
