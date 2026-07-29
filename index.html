@@ -356,7 +356,6 @@ body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <button class="user-badge" id="UserBadge" onclick="changeUser()">👤 <span id="UserBadgeName">로딩 중...</span> <span style="font-size:11px;opacity:0.7;">변경</span></button>
-      <button class="map-btn" onclick="openMap()">📍 지도 보기</button>
     </div>
   </div>
 </div>
@@ -557,14 +556,14 @@ function changeUser() {
 // ============================================================
 // 필터바 — 기준월 · 목표액
 // ============================================================
-let currentMonth = 6;
+let currentMonth = 7;
 let userMonthlyTarget = 0;
 
 function jumpToMonth(m) { const delta = m - currentMonth; if (delta !== 0) { logUsage('month_jump'); changeMonth(delta); } }
 function changeMonth(delta) {
   logUsage('month_change');
   const newM = currentMonth + delta;
-  if (newM < 1 || newM > 6) { alert('1~6월 데이터만 있습니다.'); return; }
+  if (newM < 1 || newM > 7) { alert('1~7월 데이터만 있습니다.'); return; }
   currentMonth = newM;
   // DATA 월별 매출 업데이트
   Object.keys(DATA).forEach(name => {
@@ -7232,13 +7231,13 @@ const PHARMACY_REAL = {
 
 const NEWS = {
   market: [
+    { title: "비만치료의 혁명? 2030 파고든 ‘마운자로’ 오남용 공포", desc: "마운자로.&lt;연합뉴스&gt; 대구 달서구 성당동에 사는 직장인 김모씨(여·31)는 최근 유행하는 비만치료제... 정상 체중 친구들도 요즘 날", source: "yeongnam.com", link: "https://www.yeongnam.com/web/view.php?key=20260729022068971" },
     { title: "美 주교단 \"낙태약·체외 수정 확산 저지\"…전국적 기도와 행동 촉구", desc: "EWTN 뉴스 원격 진료 통한 낙태약 처방과 온라인 판매 강력 비판 주교단은 특히 미 식품의약청(FDA)이 원격... 아울러 신자들에게 '생명의", source: "news.cpbc.co.kr", link: "https://news.cpbc.co.kr/article/1174626?division=NAVER" },
-    { title: "\"죽은 사람 이름으로 마약 처방을?\" 식약처, 병원 4만 곳 다 훑었다", desc: "YTN라디오(FM 94.5) [YTN 뉴스FM 슬기로운 라디오생활] □ 방송일시 : 2026년 7월 29일 (수) □ 진행 : 박귀빈 아나운서.", source: "ytn.co.kr", link: "https://www.ytn.co.kr/_ln/0103_202607291033059330" },
-    { title: "'바르는 리쥬란' 열풍…왜 제약사들은 PDRN 크림에 꽂혔나", desc: "[사진=핀포인트뉴스] 약국용 PDRN 일반의약품 시장이 10년 만에 경쟁 구도로 재편됐다. 파마리서치 '리쥬비넥스크림'이 주도하던 시장에 지난해", source: "pinpointnews.co.kr", link: "https://www.pinpointnews.co.kr/news/articleView.html?idxno=472434" }
+    { title: "\"죽은 사람 이름으로 마약 처방을?\" 식약처, 병원 4만 곳 다 훑었다", desc: "YTN라디오(FM 94.5) [YTN 뉴스FM 슬기로운 라디오생활] □ 방송일시 : 2026년 7월 29일 (수) □ 진행 : 박귀빈 아나운서.", source: "ytn.co.kr", link: "https://www.ytn.co.kr/_ln/0103_202607291033059330" }
   ],
   local: [
-    { title: "[국회 상임위 만남] 서영석 의원 \"보건의료 혁신의 출발점은 국민 신뢰...", desc: "가지 약국도 안전상비의약품 판매점도 없는 이른바 '의약품취약지역' 문제는 다르게접근해야 합니다. 전국 3,604개 읍면동 중 14.7%에 달하는", source: "polinews.co.kr", link: "https://www.polinews.co.kr/news/articleView.html?idxno=736866" },
-    { title: "\"밤에 아이가 아파도 갈 곳이 생겼다\"…국민 불편 줄인 적극행정 주역들", desc: "희귀질환 환자의 진단·치료 부담을 줄인 질병관리청 공무원, 야간·휴일 소아진료 공백을 메운 전북 남원시... 이전에는 국민이 직접 문을 연 병원", source: "fnnews.com", link: "http://www.fnnews.com/news/202607071446401796" }
+    { title: "[산업소식] 카카오, 미래 세대 위한 AI·교육 전문가 협의체 출범", desc: "약사의 복약 지도를 받아 약국에서 구매할 수 있는 일반의약품이다. 셀트리온제약은 생물다양성 보전... 캠프 종료 후에는 성장 가능성과 훈련 태도", source: "4th.kr", link: "http://www.4th.kr/news/articleView.html?idxno=2115425" },
+    { title: "[국회 상임위 만남] 서영석 의원 \"보건의료 혁신의 출발점은 국민 신뢰...", desc: "가지 약국도 안전상비의약품 판매점도 없는 이른바 '의약품취약지역' 문제는 다르게접근해야 합니다. 전국 3,604개 읍면동 중 14.7%에 달하는", source: "polinews.co.kr", link: "https://www.polinews.co.kr/news/articleView.html?idxno=736866" }
   ]
 };
 const MEMOS = {
@@ -16089,7 +16088,7 @@ function renderTab(name, tab) {
   if (tab === 'trend') {
     const routeInfo = ROUTE_INFO[d.route] || {};
     const members = routeInfo.members || [];
-    if (!members.length) return '<div class="empty">노선 정보 없음</div>';
+    if (!members.length) return '';
     const routeData = members.map(m => DATA[m]).filter(Boolean);
     const sorted = [...routeData].sort((a,b) => b.sales - a.sales);
     const maxSales = Math.max(...sorted.map(x=>x.sales), 1);
@@ -16307,7 +16306,6 @@ function render(name) {
   html += '<p class="sub">'+d.region+' · 약사 '+d.pharmacist+'</p></div>';
   html += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">';
   html += '<span class="grade">등급 '+d.grade+'</span>';
-  html += '<span class="route-badge">📦 '+d.route+' ('+routeInfo.days+')</span>';
   html += '</div></div>';
   html += '<div class="metrics">';
   html += '<div class="metric" style="position:relative;">';
@@ -16315,21 +16313,14 @@ function render(name) {
   html += '<span style="font-size:12px;color:#6B6963;">이번달 매출 <span style="cursor:pointer;" onclick="editGoal(\''+name+'\')">✏️</span></span>';
   html += '<span style="font-size:11px;color:#1D9E75;cursor:pointer;font-weight:600;" onclick="setGoalFromAvg(\''+name+'\')">3개월평균</span>';
   html += '</div>';
-  html += '<div style="font-size:13px;font-weight:600;">';
-  html += '<span style="color:#6B6963;">목표 / 현매출 : </span>';
-  html += '<span style="color:#1D9E75;">'+fmt(d.monthGoal)+'</span>';
-  html += '<span style="color:#ccc;margin:0 4px;">/</span>';
-  html += '<span style="color:#1F1E1D;">'+fmt(d.sales)+'</span>';
-  html += '</div>';
+  html += '<div class="metric-value">'+fmt(d.sales)+'</div>';
+  html += '<div style="font-size:12px;color:#6B6963;margin-top:2px;">목표 '+fmt(d.monthGoal)+'</div>';
   html += '<div class="metric-trend '+(trendUp?'up':'down')+'" style="margin-top:4px;">'+d.salesTrend+'</div>';
   html += '</div>';
-  html += '<div class="metric"><div class="metric-label">반품률</div><div style="display:flex;align-items:baseline;gap:6px;"><div class="metric-value">'+d.returnRate+'%</div><div style="font-size:11px;color:#888;">'+fmt(d.returnAmt)+'</div></div><div class="metric-trend '+(d.returnRate<7?'up':'down')+'">'+(d.returnRate<7?'양호':'주의')+'</div></div>';
+  html += '<div class="metric"><div class="metric-label">반품률</div><div class="metric-value">'+d.returnRate+'%</div><div style="font-size:14px;font-weight:600;color:#2B2B2B;margin-top:2px;">'+fmt(d.returnAmt)+'</div><div class="metric-trend '+(d.returnRate<7?'up':'down')+'">'+(d.returnRate<7?'양호':'주의')+'</div></div>';
   html += '<div class="metric"><div class="metric-label">미수금</div><div class="metric-value">'+fmt(d.debt)+'</div><div class="metric-trend '+(d.debt<500000?'up':'down')+'">'+(d.debt<500000?'양호':'관리')+'</div></div>';
   html += '</div>';
-  html += '<div style="background:#F5F4EE;border-radius:8px;padding:10px 14px;margin-top:4px;font-size:13px;">';
-  html += '<span style="color:#173404;font-weight:600;">'+d.route+' 배송 동선 ('+routeInfo.days+') :</span> ';
-  html += routeMembers.map(m => m === name ? '<strong style="color:#1D9E75;">'+m+'</strong>' : m).join(' → ');
-  html += '</div></div>';
+  html += '</div>';
 
   html += '<div class="card">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
@@ -16341,8 +16332,7 @@ function render(name) {
   html += '<div style="text-align:right;font-size:13px;"><span style="color:#1D9E75;font-weight:600;">'+fmt(d.monthGoal)+'</span> / <strong>'+fmt(d.monthCurrent)+'</strong></div></div>';
   html += '<div class="bar-track"><div class="bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+(pct>=100?'#1D9E75':pct>=80?'#639922':pct>=50?'#BA7517':'#E24B4A')+'"></div></div>';
   html += '<div class="goal-meta"><span>남은 '+remainingDays+'일</span><span>일평균 '+fmt(dailyNeed)+' 필요</span><span>'+(pct>=100?'목표 달성!':'목표까지 '+fmt(remaining))+'</span></div></div>';
-  html += '<div style="margin-top:14px;"><div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;">📅 1~6월 매출 추이</div><div class="chart-wrap" style="height:110px;"><canvas id="MonthlyChart"></canvas></div></div>';
-  html += '<div class="chart-wrap"><canvas id="DailyChart"></canvas></div></div>';
+  html += '</div>';
 
   html += '<div class="card"><div class="section" style="margin-top:0">📊 카테고리 분석</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">';
@@ -16380,7 +16370,7 @@ function render(name) {
   const mfrPalette = ['#3C3489','#6C5CE7','#1D9E75','#EF9F27','#E24B4A','#378ADD','#39A2AE','#E67E22','#8E44AD','#16A085','#C0392B','#2980B9','#F39C12','#27AE60','#D35400','#7F8C8D','#1ABC9C','#9B59B6','#E74C3C','#3498DB'];
   html += '<div>';
   let mfrHeaderHtml = '<div style="font-size:12px;font-weight:600;color:#6B6963;margin-bottom:6px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px;">🏭 제약사별 <button onclick="openMfrModal()" style="font-size:10px;padding:2px 7px;border:1px solid #6C5CE7;background:#fff;color:#6C5CE7;border-radius:5px;cursor:pointer;font-weight:600;">전체 🔍</button>';
-  [1,2,3,4,5,6].forEach(m => {
+  [1,2,3,4,5,6,7].forEach(m => {
     const isActive = m === currentMonth;
     mfrHeaderHtml += '<button onclick="jumpToMonth('+m+')" style="font-size:10px;padding:1px 5px;border:1px solid '+(isActive?'#3C3489':'#ccc')+';background:'+(isActive?'#3C3489':'#fff')+';color:'+(isActive?'#fff':'#888')+';border-radius:4px;cursor:pointer;font-weight:'+(isActive?'700':'400')+';">'+m+'월</button>';
   });
@@ -16435,7 +16425,6 @@ function render(name) {
   html += '<div class="tabs">';
   html += '<button class="tab tab-pro active" id="tab-pro" onclick="openProGenModal(\'pro\',curName)">전문약 🔍</button>';
   html += '<button class="tab tab-gen" id="tab-gen" onclick="openProGenModal(\'gen\',curName)">일반약 🔍</button>';
-  html += '<button class="tab tab-hs" id="tab-trend" onclick="switchTab(\'trend\')">🏪 노선 비교</button>';
   html += '<button class="tab tab-pb" id="tab-new" onclick="switchTab(\'new\')">🆕 신규 품목</button>';
   html += '</div><div id="tab-content">'+renderTab(name, 'trend')+'</div></div>';
 
@@ -16444,14 +16433,14 @@ function render(name) {
   const marketNews = (d.news && d.news.market) ? d.news.market : [];
   marketNews.forEach(n => {
     html += '<div class="news"><div style="font-weight:600;margin-bottom:4px;">'+n.title+'</div><div style="color:#6B6963;margin-bottom:6px;">'+n.desc+'</div>';
-    if (n.link) html += '<a href="'+n.link+'" target="_blank" style="color:#1D9E75;font-size:12px;text-decoration:none;font-weight:500;">기사 보기 →</a> · ';
+    if (n.link) html += '<span onclick="window.open(\''+n.link+'\',\'_blank\')" style="color:#1D9E75;font-size:12px;font-weight:500;cursor:pointer;">기사 보기 →</span> · ';
     html += '<span style="color:#999;font-size:11px;">'+n.source+'</span></div>';
   });
   html += '<div style="font-size:12px;color:#3C3489;margin:14px 0 8px;font-weight:600;">📍 전북 지역</div>';
   const localNews = (d.news && d.news.local) ? d.news.local : [];
   localNews.forEach(n => {
     html += '<div class="news"><div style="font-weight:600;margin-bottom:4px;">'+n.title+'</div><div style="color:#6B6963;margin-bottom:6px;">'+n.desc+'</div>';
-    if (n.link) html += '<a href="'+n.link+'" target="_blank" style="color:#3C3489;font-size:12px;text-decoration:none;font-weight:500;">기사 보기 →</a> · ';
+    if (n.link) html += '<span onclick="window.open(\''+n.link+'\',\'_blank\')" style="color:#3C3489;font-size:12px;font-weight:500;cursor:pointer;">기사 보기 →</span> · ';
     html += '<span style="color:#999;font-size:11px;">'+n.source+'</span></div>';
   });
   html += '</div>';
@@ -16488,7 +16477,7 @@ function render(name) {
   html += '</div></div>';
 
   document.getElementById('Result').innerHTML = html;
-  setTimeout(() => { drawMonthly(name); drawDaily(d.daily, d.monthGoal, d.monthDays); drawCat(d.catRatio); drawGrade(d.proGrade); drawMfr(); }, 100);
+  setTimeout(() => { drawCat(d.catRatio); drawGrade(d.proGrade); drawMfr(); }, 100);
 }
 
 // ============================================================
@@ -54192,5 +54181,361 @@ const LIST_ext_06 = [
   ['광주 호남온누리약국C','광주광역시','약사','A',95191511,'+10%',0.0,0,0,0.0,true,23800.0,'김형남노선',0,0]
 ]; // 외부6 김형남
 USER_LISTS['ext_06'] = LIST_ext_06;
+
+// ── 홍경진 6~7월 반품 업데이트 (2026-07-29) ──
+const _hongjReturnPatch = {
+  '용안 중앙약국': {6:51900, 7:175000},
+  '익산 광제약국': {6:104370, 7:479061},
+  '익산 대성약국': {6:153380, 7:770822},
+  '익산 대학종로약국': {6:8578620, 7:1134190},
+  '익산 모인약국': {6:677140, 7:364540},
+  '익산 문약국': {6:90060, 7:34096},
+  '익산 보람찬약국': {6:217828, 7:109197},
+  '익산 보름달약국': {6:215202},
+  '익산 비타민약국': {6:4280},
+  '익산 상아약국': {6:469077, 7:407605},
+  '익산 성실약국': {6:87610, 7:91246},
+  '익산 세계로약국': {6:1102822, 7:5139231},
+  '익산 웃음약국': {6:1178740, 7:265110},
+  '익산 익산건강한약국': {6:98311, 7:23016},
+  '익산 익산종합약국': {6:111023, 7:281900},
+  '익산 정문약국': {6:132000},
+  '익산 정성온누리약국': {7:24650},
+  '익산 초당약국': {7:71330},
+  '익산 하나로약국': {6:2962524, 7:1345884},
+  '전주 나을약국': {6:120400, 7:630886},
+  '함열 박약국': {6:941690, 7:915776},
+  '함열 성심약국': {6:111240, 7:94570},
+  '함열 약손약국': {6:179400},
+  '함열 유명종로약국': {6:59908, 7:10380},
+  '함열 일등약국': {6:2207762, 7:378246},
+  '함열 함열건강약국': {6:85155},
+  '함열 함열보령약국': {6:784781, 7:1389365},
+  '함열 함열온누리약국': {6:717338, 7:658338},
+  '함열 함열태평양약국': {6:990708, 7:902549},
+  '황등 온누리약국': {6:150579, 7:472318},
+  '황등 평화약국': {6:7680, 7:38750},
+  '황등 호남약국': {7:23160},
+  '황등 황등바른약국': {6:482666, 7:504300},
+  '황등 황등사랑약국': {7:234900},
+  '황등 황등솔약국': {6:316944},
+  '황등 황등종로약국': {6:384656, 7:7800},
+};
+Object.entries(_hongjReturnPatch).forEach(([nm, upd]) => {
+  if (!RETURN_AMTS_MONTHLY[nm]) RETURN_AMTS_MONTHLY[nm] = {};
+  Object.assign(RETURN_AMTS_MONTHLY[nm], upd);
+});
+
+// ── 홍경진 제약사별 6~7월 업데이트 (2026-07-29) ──
+const _hongjMfrPatch = {
+  '(주)한림눈건강': {6:347125, 7:472251},
+  'CMG제약': {6:1046770, 7:769340},
+  'DKSH': {6:1559020, 7:1889320},
+  'J S': {6:8817},
+  'JW신약': {6:307950, 7:522328},
+  'KMS': {6:32220, 7:206010},
+  'S K': {6:8821700, 7:9802480},
+  'TJHC': {6:1730788, 7:1762336},
+  'TJ팜': {6:2927246, 7:5910237},
+  'TRN': {6:4426948, 7:2540148},
+  '건일': {6:3571072, 7:2562828},
+  '경남': {6:326750, 7:339790},
+  '경동': {6:4034256, 7:6275490},
+  '경방': {7:34000},
+  '경방신약': {6:36316, 7:43212},
+  '경보': {6:3626570, 7:5761450},
+  '경풍': {6:882200, 7:994240},
+  '고려은단': {6:228510, 7:261560},
+  '고려은단헬스': {6:174999, 7:89378},
+  '고려제': {6:197080, 7:176120},
+  '광동': {6:1259642, 7:1386620},
+  '구주': {6:766680, 7:1050180},
+  '국제': {6:1226492, 7:2370803},
+  '그린': {6:571656, 7:630832},
+  '글락소': {6:4808470, 7:4480432},
+  '나이스': {6:109800, 7:54900},
+  '남양프': {7:21500},
+  '넥스': {7:125000},
+  '넥스팜': {6:7860, 7:119420},
+  '넬슨': {6:27000, 7:38220},
+  '노바티스': {6:6152038, 7:7932047},
+  '노보노': {6:1508852, 7:1129241},
+  '녹십자': {6:5230935, 7:5128562},
+  '뉴신팜': {6:4409222, 7:7017585},
+  '다림바이오': {6:1589035, 7:1472695},
+  '다산': {6:9439312, 7:10476430},
+  '다이이찌': {6:1477652, 7:2500484},
+  '다케다': {6:957900, 7:494400},
+  '대동': {6:1619980, 7:632980},
+  '대동유통': {6:691080, 7:292380},
+  '대우': {6:247078, 7:462260},
+  '대웅': {6:288556, 7:198934},
+  '대웅바이오': {6:110289, 7:119730},
+  '대원': {6:8708261, 7:7527602},
+  '대원바이오텍': {6:785616, 7:652352},
+  '대일': {6:6725, 7:5500},
+  '대한': {6:368750, 7:152500},
+  '대한뉴': {6:4178435, 7:4109189},
+  '대화': {6:4444930, 7:4159442},
+  '더블유사이언스': {6:325968, 7:265800},
+  '더유': {6:2484076, 7:2202933},
+  '동광': {6:2147606, 7:2848458},
+  '동구': {6:5988636, 7:8761338},
+  '동국': {6:2695767, 7:2844197},
+  '동남의': {6:13600, 7:27800},
+  '동성': {6:885175, 7:537894},
+  '동아ST': {6:19524678, 7:15386658},
+  '동아제약': {6:1488722, 7:1873908},
+  '동원헬스케어': {6:5780, 7:18440},
+  '동주팜': {6:53400, 7:219840},
+  '동화': {6:7330460, 7:5583430},
+  '디알파마': {6:472710, 7:655022},
+  '라이징': {6:342440, 7:757412},
+  '라이트팜': {6:123660, 7:142721},
+  '로얄제이에스': {6:498960, 7:308880},
+  '로하스': {6:46200, 7:121290},
+  '룬드벡': {6:1372224, 7:42756},
+  '릴리': {6:19610099, 7:8193590},
+  '마더스': {6:7045312, 7:10145596},
+  '맥널티': {6:1210240, 7:260790},
+  '머크': {6:8413300},
+  '먼디파': {6:73000, 7:247800},
+  '메나리니': {6:329132, 7:900336},
+  '메디카': {6:16136909, 7:15663954},
+  '메디코': {7:5900},
+  '메디콥': {6:11500, 7:23700},
+  '명문': {6:8884450, 7:10310538},
+  '명문바이오': {6:625540, 7:607670},
+  '명인': {6:5258641, 7:4133316},
+  '명진': {6:1227720, 7:693960},
+  '명품': {6:69600, 7:208800},
+  '미쓰비시': {6:947780, 7:1033820},
+  '바슈롬': {6:29800, 7:13500},
+  '바슈헬스코리아': {6:640871, 7:396880},
+  '바스칸': {6:150000},
+  '바이넥': {6:1360857, 7:1185587},
+  '바이어스도르프': {6:99500, 7:49500},
+  '바이오스마트': {6:312981, 7:637600},
+  '백제약품': {6:400947, 7:173411},
+  '베링거': {6:279840, 7:456360},
+  '베키오': {6:10210, 7:30630},
+  '보령': {6:16341000, 7:13154595},
+  '보령약': {6:14490},
+  '보령컨슈머헬스': {6:793170, 7:945368},
+  '부광': {6:4712084, 7:5002765},
+  '비보존': {6:1276440, 7:1515922},
+  '비씨월드': {6:154530, 7:110280},
+  '비아트리스(업존)': {6:1729324, 7:2518246},
+  '비앤씨': {6:713076, 7:208680},
+  '사노피': {6:5791922, 7:4698579},
+  '산텐': {6:750710, 7:753120},
+  '삼공': {7:10140},
+  '삼남': {6:958894, 7:1330490},
+  '삼성': {6:470160, 7:508864},
+  '삼아': {6:1982364, 7:1861995},
+  '삼일': {6:1383502, 7:1700910},
+  '삼전': {6:229000, 7:174380},
+  '삼진': {6:9734077, 7:8185991},
+  '삼천당': {6:4108414, 7:4360702},
+  '서울': {6:4930218, 7:5353179},
+  '서울유니온': {6:66560, 7:184320},
+  '서울태전': {6:5808270, 7:4202760},
+  '세르비에': {6:366180, 7:1230624},
+  '세화': {6:37350, 7:49800},
+  '셀릭스': {6:18180, 7:19350},
+  '셀트리온': {6:2278580, 7:2890960},
+  '수경': {6:1008308, 7:1300954},
+  '슈미트': {6:52946, 7:370622},
+  '신신': {6:1977209, 7:1664069},
+  '신일': {6:594110, 7:854620},
+  '신풍': {6:2105658, 7:977876},
+  '신화': {6:12600, 7:180000},
+  '씨에이치디(주)': {6:841914, 7:639758},
+  '씨케이팜': {6:59000, 7:17200},
+  '씨티씨': {6:2324118, 7:2904430},
+  '아브노바': {6:213110, 7:152536},
+  '아스텔라스': {6:3798520, 7:3296680},
+  '아스트': {6:394625, 7:657117},
+  '아우겐코리아': {6:38379, 7:8288},
+  '아이엔지': {6:532000, 7:266000},
+  '아이월드': {6:57000, 7:58667},
+  '아이팜': {6:2917012},
+  '아주약품': {6:4552910, 7:4890660},
+  '안국': {6:5999339, 7:4597132},
+  '안국뉴팜': {7:31560},
+  '알리코': {6:9466260, 7:9662740},
+  '알보젠': {6:5163338, 7:3025160},
+  '알엠에스': {6:252000, 7:126000},
+  '애보트': {6:1981436, 7:1963180},
+  '앱토크롬': {6:129630, 7:173250},
+  '얀센': {6:9180, 7:4197408},
+  '에리슨': {6:1964680, 7:1329090},
+  '에이블팜': {6:142110, 7:66440},
+  '에이스약품': {6:79000},
+  '에이치알팜': {6:131980, 7:263960},
+  '에이치에이써플라이': {6:999460, 7:570760},
+  '에이치엘비': {6:4732764, 7:5051086},
+  '에이치피앤씨': {7:30530},
+  '에이프로젠': {6:819334, 7:1069380},
+  '에자이': {6:1766540, 7:863010},
+  '엘지': {6:3119232, 7:2951764},
+  '영일': {6:1752670, 7:2576662},
+  '영진': {6:3347228, 7:4523404},
+  '영풍': {6:20050, 7:164970},
+  '오상': {6:1200},
+  '오스코리아': {6:238000, 7:238000},
+  '오스템': {6:526520, 7:219664},
+  '오스템파마': {7:43200},
+  '오엔케이': {7:55000},
+  '오츠카': {6:201440},
+  '온라인': {6:17254343, 7:20507593},
+  '온힐': {6:215730, 7:9180},
+  '옵투스': {6:998040, 7:1803996},
+  '우리들': {7:61380},
+  '우메딕스': {7:30720},
+  '우영': {7:36660},
+  '원광': {6:36000, 7:12000},
+  '위더스': {6:1504290, 7:2274074},
+  '위드원바이오': {6:27458, 7:43832},
+  '유니메드': {6:506586, 7:441150},
+  '유니온': {6:58570, 7:143258},
+  '유성팜': {6:154860, 7:97908},
+  '유영': {6:421770, 7:180660},
+  '유유': {6:1848922, 7:2169994},
+  '유한': {6:30269755, 7:27451237},
+  '이노엔(CJ)': {6:15927214, 7:10665114},
+  '이노트로닉': {6:124820, 7:45000},
+  '이든': {6:3037320, 7:3128726},
+  '이산': {6:218100, 7:420270},
+  '이연': {6:2478618, 7:2307244},
+  '익수': {6:254180, 7:968730},
+  '일동': {6:10357273, 7:7379295},
+  '일성': {6:1790580, 7:1270850},
+  '일양': {6:2238482, 7:1959421},
+  '일화': {6:1818515, 7:1300886},
+  '자이언트팜': {6:66000, 7:11000},
+  '제이오팜': {6:99449, 7:183630},
+  '제일': {6:8285982, 7:7081593},
+  '제일헬스': {6:304766, 7:619134},
+  '종근당': {6:31963044, 7:29363904},
+  '주경': {6:693550, 7:460728},
+  '중외': {6:11664255, 7:12321302},
+  '중헌': {7:81100},
+  '쥴릭': {6:8448770, 7:7659980},
+  '지엘파마': {6:38790, 7:101884},
+  '진양': {6:1905452, 7:3208752},
+  '초당': {6:170370, 7:355400},
+  '케이에스': {6:152320, 7:198088},
+  '켄뷰': {6:1717776, 7:790679},
+  '코러스': {6:8070},
+  '코오롱': {6:3404817, 7:1992287},
+  '콜마': {6:66000},
+  '킴스헬스케어': {6:2982270, 7:2327480},
+  '킵스바이오파': {6:2824400, 7:2535760},
+  '태극': {6:1863505, 7:1947451},
+  '태영': {6:57568, 7:115136},
+  '태준': {6:529870, 7:692736},
+  '테라젠': {6:5214366, 7:6871304},
+  '파마': {6:2162808, 7:1685160},
+  '파마리서치': {6:27000},
+  '파마사이언스': {6:4785440, 7:3143750},
+  '파마존': {6:274750, 7:153560},
+  '파마킹': {6:84240, 7:296400},
+  '팜베이': {6:1747635, 7:1007245},
+  '팜비오': {6:3446475, 7:3555254},
+  '팜월드': {6:1350584, 7:1787603},
+  '팜젠': {6:6199955, 7:6208274},
+  '퍼슨': {6:6864},
+  '페링': {6:457054, 7:612298},
+  '펠릭스': {6:2940, 7:12080},
+  '폴라리스': {6:76000},
+  '프라임': {6:5804427, 7:4723174},
+  '하나': {6:2731282, 7:3097050},
+  '하원': {6:15480, 7:61050},
+  '한가람': {6:74922, 7:80640},
+  '한국메딕스': {6:8160072, 7:7370370},
+  '한국신약': {6:71400, 7:107073},
+  '한국오가논': {6:1884616, 7:1185701},
+  '한국유': {6:1635876, 7:1390872},
+  '한국코와': {6:232662, 7:133950},
+  '한독': {6:8832939, 7:7282976},
+  '한독테바': {6:16620},
+  '한림': {6:4059096, 7:2147306},
+  '한솔': {6:65450, 7:13600},
+  '한올': {7:41300},
+  '한풍': {6:31140},
+  '한풍비에스': {6:1377901, 7:1465751},
+  '한화': {6:1278994, 7:1167260},
+  '현대': {6:5707720, 7:5025302},
+  '호넥스': {6:36721, 7:132542},
+  '화이자': {6:248870, 7:147600},
+  '화이트': {6:13356252, 7:16982818},
+  '환인': {6:2926684, 7:1819447},
+  '휴비스트': {6:1335102, 7:1492570},
+  '휴온스': {6:5544681, 7:4812079},
+  '휴온스메디': {6:2445152, 7:2125058},
+  '휴텍스': {6:4635148, 7:9151056},
+  'ＢＭＳ': {6:649800, 7:1681950},
+};
+Object.entries(_hongjMfrPatch).forEach(([co, upd]) => {
+  if (!MFR_MONTHLY[co]) MFR_MONTHLY[co] = {};
+  Object.assign(MFR_MONTHLY[co], upd);
+});
+
+// ── 홍경진 6~7월 실매출 업데이트 (2026-07-29) ──
+const _hongjPatch = {
+  '용안 중앙약국': {6:3976445, 7:4771879},
+  '익산 광제약국': {6:10130820, 7:10671913},
+  '익산 대성약국': {6:9275517, 7:6864110},
+  '익산 대학종로약국': {6:181579260, 7:153047723},
+  '익산 대학종로약국(특약)': {6:532000, 7:3056928},
+  '익산 모인약국': {6:3054714, 7:3195207},
+  '익산 문약국': {6:9258607, 7:9643624},
+  '익산 보람찬약국': {6:4263395, 7:3876444},
+  '익산 보름달약국': {6:3044261, 7:3584698},
+  '익산 비타민약국': {6:12732388, 7:4908891},
+  '익산 상아약국': {6:7031521, 7:8118033},
+  '익산 성실약국': {6:1815665, 7:1421655},
+  '익산 세계로약국': {6:61924896, 7:46512812},
+  '익산 세종안과': {6:2187759},
+  '익산 안종욱안과의원': {6:729253},
+  '익산 어양우리약국': {6:1197052, 7:872142},
+  '익산 웃음약국': {6:942363, 7:688653},
+  '익산 유한약국': {6:6112162, 7:6135519},
+  '익산 익산 라온약국': {6:3578011, 7:3142629},
+  '익산 익산건강한약국': {6:3116680, 7:3106550},
+  '익산 익산종합약국': {6:4746292, 7:5092480},
+  '익산 정문약국': {6:4830096, 7:4812820},
+  '익산 정성온누리약국': {6:3438525, 7:1632466},
+  '익산 청십자약국': {6:3985782, 7:18890819},
+  '익산 초당약국': {6:2934408, 7:2771008},
+  '익산 하나로약국': {6:31693215, 7:34078685},
+  '전주 나을약국': {6:5459749, 7:5884896},
+  '전주 박용현내과': {6:251525},
+  '함열 박약국': {6:28015512, 7:37697513},
+  '함열 박약국(특약)': {6:891008, 7:556880},
+  '함열 성심약국': {6:5188398, 7:6924902},
+  '함열 성심약국(특약)': {6:556880, 7:334128},
+  '함열 약손약국': {6:2622038, 7:3741361},
+  '함열 유명종로약국': {6:14034427, 7:15918858},
+  '함열 일등약국': {6:31079393, 7:32231456},
+  '함열 함열건강약국': {6:8022866, 7:9169306},
+  '함열 함열보령약국': {6:27141587, 7:24461232},
+  '함열 함열온누리약국': {6:7261382, 7:7765863},
+  '함열 함열태평양약국': {6:24665924, 7:23603736},
+  '황등 온누리약국': {6:5713204, 7:4438757},
+  '황등 평화약국': {6:5618884, 7:5415116},
+  '황등 호남약국': {6:12962594, 7:11163286},
+  '황등 황등바른약국': {6:20766256, 7:16348859},
+  '황등 황등사랑약국': {6:921187, 7:2232192},
+  '황등 황등솔약국': {6:1701113, 7:4380378},
+  '황등 황등종로약국': {6:6200939, 7:11715602},
+};
+Object.entries(_hongjPatch).forEach(([nm, upd]) => {
+  if (PHARMACY_REAL[nm]) {
+    Object.assign(PHARMACY_REAL[nm].monthly, upd);
+    PHARMACY_REAL[nm].total = Object.values(PHARMACY_REAL[nm].monthly).reduce((a,b)=>a+b,0);
+  }
+});
 
 </script></body></html>
